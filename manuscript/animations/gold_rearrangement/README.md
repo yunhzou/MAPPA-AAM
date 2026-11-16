@@ -6,7 +6,7 @@ A **30-second 3D replay** of one recorded cut context. The matching grows atom b
 
 ![Actual MAPPA atom-by-atom growth and the oxygen-placement split](gold-oxygen-preview.gif)
 
-[Film (MP4)](gold-oxygen-3d.mp4) · [Film viewer](index.html) · [Inspect every growth event and all four branches](trajectory.html) · [Inputs and reproduction](../../../examples/gold_rearrangement/README.md)
+[Film (MP4)](gold-oxygen-3d.mp4) · [Film viewer](index.html) · [Inspect every growth event and all four branches](trajectory.html) · [Historical inputs and reproduction](https://github.com/yunhzou/MAPPA-AAM/tree/b13898ad97311ffcb47d6b9fb78d7d8d4a160e42/examples/gold_rearrangement)
 
 Both HTML viewers are self-contained and work offline after downloading. The detailed trajectory viewer exposes every live candidate, tested extension, deferred boundary, symmetry block and terminal branch from this cut.
 
@@ -47,12 +47,6 @@ python manuscript/scripts/gold_film/export_gif.py manuscript/animations/gold_rea
 
 The builder verifies every featured growth frame against `trajectory.json.gz`, checks shared-prefix transitions and the collapsed subtree, and certifies both complete witnesses against their compressed families. The browser renderer checks the real tree, one-second highlights, paused camera and mapping injectivity. The MP4 is 1440 × 900 at 24 fps; the GIF is 960 × 600 at 12 fps.
 
-To regenerate an inspectable trace from the example's checkpoint:
-
-```bash
-python examples/gold_rearrangement/run_gold.py --output gold-output
-python manuscript/scripts/gold_film/capture_trajectory.py \
-  gold-output/aam.checkpoint gold-trace --context 21
-```
-
-The replay has a 300-second watchdog and checks its fragment results against the saved archive. The standalone detailed viewer keeps all four branches available; the promotional film collapses only the explicitly counted subtree.
+The removed example runner and its input preparation are preserved in the
+[recorded source revision](https://github.com/yunhzou/MAPPA-AAM/tree/b13898ad97311ffcb47d6b9fb78d7d8d4a160e42/examples/gold_rearrangement). Current film rebuilding uses the
+saved trace and `selected-families.json` beside this document.

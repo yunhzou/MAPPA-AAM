@@ -1,6 +1,6 @@
 {
-  "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_memoryfix833_checkpoint_20260907",
-  "baseline_source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_memoryfix833_fullnode_20260907",
+  "source": "private-reference-4c346e7766d06a64278f",
+  "baseline_source": "private-reference-ea7929cc4b6cddef0bdf",
   "indices": [
     833
   ],
@@ -169,5 +169,9 @@
     "src/rxn_core/retrosynthesis/enumeration.py": "10545133d700937e3b83478dcd9303569d1ff14dbab7f051cf10dea998057d17",
     "src/rxn_core/retrosynthesis/ranking.py": "8462b01e0e900f6c3b4a85cd64603e60282d61951fb7f1ada85e37c8d3592537",
     "src/rxn_core/retrosynthesis/decision_graph.py": "f38061babdf6f436ee8e1d181b9d3510288b2ed05ad0a2320a52ab004f8f0aa9"
+  },
+  "privacy_projection": {
+    "original_sha256": "58c45a3eae0c07aed7532ddf0e45ff782076716082c2870f07ccaa8671cbee3f",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

@@ -17,12 +17,12 @@ See `summary.json` for outcomes, `cases.json` for per-case timings and phase exi
 
 ## Resources and reproducibility
 
-- Slurm array442512: 23 reactions, eight CPUs and 128GiB allocated per reaction.
+- 23 reactions, eight workers per reaction.
 - Search watchdog300seconds; verification watchdog240seconds; overall job limit10minutes.
 - Incomplete searches are checked using saved completed cuts. A negative result from incomplete search or verification remains `unknown`, not a confirmed miss.
 - Frozen source, exact inputs, cut intermediates, completed checkpoints, logs, and evaluations:
-  `/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seeds10_cap2000_20260907`
-- `manifest.json` records configuration and frozen-source hashes. `slurm_accounting.psv` records resource accounting.
+Original artifact locations are retained privately.
+- `manifest.json` records configuration and frozen-source hashes. Private accounting records record resource accounting.
 - 141 regression tests passed, including a check that only the requested seed and branch budgets change.
 
 Higher cap does not guarantee an exhaustive search. Even an uncapped miss concerns the sampled seed/cut search, not every mathematically possible mapping.

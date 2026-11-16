@@ -1,5 +1,5 @@
 {
-  "run": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_full_20260906",
+  "run": "private-reference-1b357e7e903053fd974d",
   "search_revision": "9dd6d8d2bb4ae20ec6e6482743d8727655bb724d",
   "configuration": {
     "cut_floor": 0.2,
@@ -142,7 +142,7 @@
     "stages": {}
   },
   "reused_searches": 14,
-  "completion_campaign": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_completion_20260906",
+  "completion_campaign": "private-reference-278eb8c830287a28de35",
   "completion_records": 152,
   "recorded_live_branch_max": 100,
   "recorded_live_branch_limit_exceedances": 0,
@@ -195,23 +195,6 @@
     "p95": 3588.87109375,
     "maximum": 32730.1640625
   },
-  "nodes": [
-    "bosque12",
-    "bosque20",
-    "bosque26",
-    "bosque34",
-    "bosque35",
-    "bosque36",
-    "bosque37",
-    "bosque38",
-    "bosque39",
-    "bosque40",
-    "bosque44",
-    "bosque46",
-    "bosque56",
-    "bosque67",
-    "bosque70"
-  ],
   "cpu_models": [
     "Intel(R) Xeon(R) Gold 6148 CPU @ 2.40GHz",
     "Intel(R) Xeon(R) Gold 6248R CPU @ 3.00GHz"
@@ -247,14 +230,8 @@
   "checkpoint_restore_and_finalize_seconds": {
     "n": 0
   },
-  "slurm": {
-    "tasks": 1926,
-    "states": {
-      "COMPLETED": 1849,
-      "CANCELLED by 7711": 77
-    },
-    "measured_cpu_seconds": 122188.876,
-    "allocated_cpu_seconds": 368054.0,
-    "note": "Parent array tasks only: includes search, scoring, serialization and timed-out jobs; excludes cached pilot searches and supervisor. Accounting can lag task completion."
+  "privacy_projection": {
+    "original_sha256": "baf65107b89c428161d38b63e33802138e0d2db1628715b8539e34b5c7c4eb1e",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

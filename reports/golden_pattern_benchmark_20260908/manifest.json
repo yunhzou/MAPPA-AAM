@@ -1,5 +1,5 @@
 {
-  "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908",
+  "source": "private-reference-be722dc251b50351ca8e",
   "indices": [
     0,
     1,
@@ -2026,5 +2026,9 @@
   "explicit_hydrogen": true,
   "random_seed": 0,
   "scope": "All saved terminal histories, exact duplicate query inputs merged; unresolved work is reported.",
-  "search": "No AAM rerun: frozen seed10 cap100 tol1 bidirectional archives."
+  "search": "No AAM rerun: frozen seed10 cap100 tol1 bidirectional archives.",
+  "privacy_projection": {
+    "original_sha256": "8df8aee04886dca70e463fa95f5ce8e001356037f09dae3ea7965cdf54fbcd2d",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

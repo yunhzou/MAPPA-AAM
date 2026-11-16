@@ -1,0 +1,13 @@
+{
+  "case": "01561/forward",
+  "stage": "decoding",
+  "workers": 1,
+  "memory_bytes": 2147483648,
+  "source_commit": "5fd12602addfb597bcad422fc5abc132594dd7d4",
+  "submitted_utc": "2026-11-01T06:07:36.507246+00:00",
+  "purpose": "Validate unique-fragment decoder publication at the original 2 GiB worker limit using the complete saved catalogue",
+  "privacy_projection": {
+    "original_sha256": "63c542f21923fc8aa78268ca89dcb7b9124f896cd034b47bf885ef748310d64f",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
+}

@@ -15,7 +15,7 @@ def build(repo, output):
     from mappa.family_query import query_path
     source = repo / 'manuscript/animations/gold_rearrangement'
     data = json.loads((source / 'film-data.json').read_text())
-    families = json.loads((repo / 'examples/gold_rearrangement/data/selected-families.json').read_text())
+    families = json.loads((source / 'selected-families.json').read_text())
     problem = AAMProblem(*(MolecularEndpoint(d['elements'], d['coordinates'], d['wbo'])
                            for d in (data['input']['reactant'], data['input']['product'])))
     import numpy as np

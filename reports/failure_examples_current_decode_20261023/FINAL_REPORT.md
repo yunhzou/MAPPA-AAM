@@ -26,7 +26,7 @@ The 80-atom search was branch capped. Its minimum of 24 is therefore proven over
 
 ## Evidence
 
-The frozen source is recorded in [source_sha256.json](source_sha256.json). Machine-readable final results are in [final-results.json](final-results.json). The [decoding evidence archive](decoding-evidence.tar.gz) contains the cut checkpoints, catalogues, decoder outputs, per-family reports, and execution provenance. The final witness audits are retained separately with the extracted results.
+The frozen source is recorded in [source_sha256.json](source_sha256.json). Machine-readable final results are in [final-results.json](final-results.json). The decoding evidence archive (raw archive retained privately) contains the cut checkpoints, catalogues, decoder outputs, per-family reports, and execution provenance. The final witness audits are retained separately with the extracted results.
 
 Final 80-atom audits: [independent WBO rescore](cluster-evidence/results/search_memory_partitioned/independent-audit.json), [producing-family membership](cluster-evidence/results/search_memory_partitioned/constructive-membership-audit.json), and [serial/parallel comparison](cluster-evidence/serial-parallel-equality.json).
 

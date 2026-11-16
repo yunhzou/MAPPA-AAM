@@ -260,7 +260,7 @@
         "53": 49,
         "54": 50
       },
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seed_diversity_20260907/distance/590/cuts/aam.pkl.gz",
+      "archive": "private-reference-4c0ea56aae100104c7e1",
       "scope": "complete saved sweep",
       "steps": [
         {
@@ -646,7 +646,7 @@
   "archives": [
     {
       "policy": "random",
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seed_diversity_20260907/random/590/cuts/aam.pkl.gz",
+      "path": "private-reference-a40fe68766dbb116c7f9",
       "scope": "complete saved sweep",
       "terminals": 51974,
       "capped": true,
@@ -655,7 +655,7 @@
     },
     {
       "policy": "distance",
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seed_diversity_20260907/distance/590/cuts/aam.pkl.gz",
+      "path": "private-reference-4c0ea56aae100104c7e1",
       "scope": "complete saved sweep",
       "terminals": 51906,
       "capped": true,
@@ -925,5 +925,9 @@
     30,
     31
   ],
-  "required_complement_map_labels": []
+  "required_complement_map_labels": [],
+  "privacy_projection": {
+    "original_sha256": "fb2db9a30b1abaf08a649914da2c73b2b75bf6945f8b092ddf50075f6e009763",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

@@ -1,10 +1,10 @@
 {
   "provenance": {
     "depth_first": {
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_seed_frontier_20260910_WPQlDv",
+      "path": "private-reference-1cd89772c0cf00d5400f",
       "manifest": {
         "parent_commit": "b2c0dcc4b5ab07039f0d7f89414d53f68bb7c094",
-        "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/conditioned_reuse_full_20260910_0o09px",
+        "source": "private-reference-2ae30bd5c99eff160c67",
         "input_sha256": {
           "25": "b68e18799568e580beb124b821fc53fee88731117aaa00e355b2f3e20109dbf2",
           "76": "a4ed808ca17fadb70038c6dc1428f6459b1c05c2930352323359b911906917aa",
@@ -26,7 +26,6 @@
         "watchdog": {
           "worker_seconds": 300,
           "kill_after_seconds": 5,
-          "slurm_minutes": 10,
           "requeue": false
         },
         "native_sha256": "c9fd92a1aaebf04f5f81c7708e8fe93dcee691324ec5412f757b34432eb4d4c2"
@@ -34,10 +33,10 @@
       "python_source_sha256": "4e66d6843e947408fa772ba84d65cec1da234f6645dd2d92f3fb2c88fa649b6e"
     },
     "fair_depth": {
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_seed_fair_20260910_IF7GXy",
+      "path": "private-reference-edf37a2599e0ee889a25",
       "manifest": {
         "parent_commit": "b2c0dcc4b5ab07039f0d7f89414d53f68bb7c094",
-        "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/conditioned_reuse_full_20260910_0o09px",
+        "source": "private-reference-2ae30bd5c99eff160c67",
         "input_sha256": {
           "25": "b68e18799568e580beb124b821fc53fee88731117aaa00e355b2f3e20109dbf2",
           "76": "a4ed808ca17fadb70038c6dc1428f6459b1c05c2930352323359b911906917aa",
@@ -59,7 +58,6 @@
         "watchdog": {
           "worker_seconds": 300,
           "kill_after_seconds": 5,
-          "slurm_minutes": 10,
           "requeue": false
         },
         "native_sha256": "c9fd92a1aaebf04f5f81c7708e8fe93dcee691324ec5412f757b34432eb4d4c2"
@@ -67,10 +65,10 @@
       "python_source_sha256": "a18505b2cabae4ac314308b6665bd744489c3d0ecc0afb726f57207b46a0e60f"
     },
     "novel_regions": {
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_seed_novel_20260910_yb0TW1",
+      "path": "private-reference-0cabd628d462d08edd97",
       "manifest": {
         "parent_commit": "b2c0dcc4b5ab07039f0d7f89414d53f68bb7c094",
-        "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/conditioned_reuse_full_20260910_0o09px",
+        "source": "private-reference-2ae30bd5c99eff160c67",
         "input_sha256": {
           "25": "b68e18799568e580beb124b821fc53fee88731117aaa00e355b2f3e20109dbf2",
           "76": "a4ed808ca17fadb70038c6dc1428f6459b1c05c2930352323359b911906917aa",
@@ -92,7 +90,6 @@
         "watchdog": {
           "worker_seconds": 300,
           "kill_after_seconds": 5,
-          "slurm_minutes": 10,
           "requeue": false
         },
         "native_sha256": "c9fd92a1aaebf04f5f81c7708e8fe93dcee691324ec5412f757b34432eb4d4c2"
@@ -100,10 +97,10 @@
       "python_source_sha256": "cffd3fcccaabdffb1a2348554778605b05baadcaee75229de85f64bee4eac8ac"
     },
     "one_route": {
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_seed_route_20260910_4bbcer",
+      "path": "private-reference-9da8f8ff88b6727e5756",
       "manifest": {
         "parent_commit": "b2c0dcc4b5ab07039f0d7f89414d53f68bb7c094",
-        "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/conditioned_reuse_full_20260910_0o09px",
+        "source": "private-reference-2ae30bd5c99eff160c67",
         "input_sha256": {
           "25": "b68e18799568e580beb124b821fc53fee88731117aaa00e355b2f3e20109dbf2",
           "76": "a4ed808ca17fadb70038c6dc1428f6459b1c05c2930352323359b911906917aa",
@@ -125,7 +122,6 @@
         "watchdog": {
           "worker_seconds": 300,
           "kill_after_seconds": 5,
-          "slurm_minutes": 10,
           "requeue": false
         },
         "native_sha256": "c9fd92a1aaebf04f5f81c7708e8fe93dcee691324ec5412f757b34432eb4d4c2"
@@ -133,10 +129,10 @@
       "python_source_sha256": "cfe7aac8a392730b0403cb4eff9cf258df13b7ab38b06a27f2291aa0b9df3a65"
     },
     "balanced_regions": {
-      "path": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_seed_balanced_20260910_Nogs0S",
+      "path": "private-reference-bbe2332215acb59a64a2",
       "manifest": {
         "parent_commit": "cf270d02b5709fba0fc9d867b19015d7c0cce794",
-        "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/conditioned_reuse_full_20260910_0o09px",
+        "source": "private-reference-2ae30bd5c99eff160c67",
         "input_sha256": {
           "25": "b68e18799568e580beb124b821fc53fee88731117aaa00e355b2f3e20109dbf2",
           "76": "a4ed808ca17fadb70038c6dc1428f6459b1c05c2930352323359b911906917aa",
@@ -158,7 +154,6 @@
         "watchdog": {
           "worker_seconds": 300,
           "kill_after_seconds": 5,
-          "slurm_minutes": 10,
           "requeue": false
         },
         "native_sha256": "c9fd92a1aaebf04f5f81c7708e8fe93dcee691324ec5412f757b34432eb4d4c2"
@@ -233,7 +228,6 @@
             "max_rss_kib": 233564
           }
         ],
-        "host": "bosque6",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {}
@@ -304,7 +298,6 @@
             "max_rss_kib": 181712
           }
         ],
-        "host": "bosque6",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {}
@@ -375,7 +368,6 @@
             "max_rss_kib": 179836
           }
         ],
-        "host": "bosque6",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {}
@@ -446,7 +438,6 @@
             "max_rss_kib": 140456
           }
         ],
-        "host": "bosque6",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {}
@@ -517,7 +508,6 @@
             "max_rss_kib": 215352
           }
         ],
-        "host": "bosque6",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {}
@@ -588,7 +578,6 @@
             "max_rss_kib": 180392
           }
         ],
-        "host": "bosque6",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {}
@@ -659,7 +648,6 @@
             "max_rss_kib": 173472
           }
         ],
-        "host": "bosque6",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {}
@@ -730,7 +718,6 @@
             "max_rss_kib": 140720
           }
         ],
-        "host": "bosque6",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {}
@@ -801,7 +788,6 @@
             "max_rss_kib": 252316
           }
         ],
-        "host": "bosque6",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {}
@@ -872,7 +858,6 @@
             "max_rss_kib": 182268
           }
         ],
-        "host": "bosque6",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {}
@@ -943,7 +928,6 @@
             "max_rss_kib": 173904
           }
         ],
-        "host": "bosque6",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {}
@@ -1014,7 +998,6 @@
             "max_rss_kib": 140080
           }
         ],
-        "host": "bosque6",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {}
@@ -1085,7 +1068,6 @@
             "max_rss_kib": 840716
           }
         ],
-        "host": "bosque12",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {
@@ -3056,7 +3038,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/25/R_to_P/independent_native_dependency",
+          "baseline": "private-reference-5a77b51de8741aa2db18",
           "seconds": 8.249716695398092,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
         },
@@ -10604,7 +10586,6 @@
             "max_rss_kib": 220092
           }
         ],
-        "host": "bosque12",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {
@@ -10800,7 +10781,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/76/P_to_R/independent_native_dependency",
+          "baseline": "private-reference-2f2fc7ec68365f6716c4",
           "seconds": 2.8262864034622908,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
         },
@@ -14523,7 +14504,6 @@
             "max_rss_kib": 254276
           }
         ],
-        "host": "bosque12",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {
@@ -14631,7 +14611,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/77/P_to_R/independent_native_dependency",
+          "baseline": "private-reference-58c3de17a7f27025fbfb",
           "seconds": 1.3834104556590319,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
         },
@@ -15608,7 +15588,6 @@
             "max_rss_kib": 139948
           }
         ],
-        "host": "bosque12",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {
@@ -15680,7 +15659,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/114/R_to_P/independent_native_dependency",
+          "baseline": "private-reference-0eaec1a9d325137d4acb",
           "seconds": 0.02628942020237446,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
         },
@@ -16053,7 +16032,6 @@
             "max_rss_kib": 1243384
           }
         ],
-        "host": "bosque12",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {
@@ -17972,7 +17950,7 @@
               ]
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/25/R_to_P/independent_native_dependency",
+          "baseline": "private-reference-5a77b51de8741aa2db18",
           "seconds": 8.506462687626481,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
         },
@@ -27870,7 +27848,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/25/R_to_P/independent_native_dependency",
+          "baseline": "private-reference-5a77b51de8741aa2db18",
           "equivalence": "element_pair_score_response",
           "seconds": 11.984240246005356,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
@@ -28512,7 +28490,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/25/R_to_P/independent_native_dependency",
+          "baseline": "private-reference-5a77b51de8741aa2db18",
           "equivalence": "element_pair_score_response",
           "seconds": 11.761913416907191,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
@@ -29181,7 +29159,6 @@
             "max_rss_kib": 583228
           }
         ],
-        "host": "bosque12",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {
@@ -29299,7 +29276,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/76/P_to_R/independent_native_dependency",
+          "baseline": "private-reference-2f2fc7ec68365f6716c4",
           "seconds": 3.249277161434293,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
         },
@@ -35412,7 +35389,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/76/P_to_R/independent_native_dependency",
+          "baseline": "private-reference-2f2fc7ec68365f6716c4",
           "equivalence": "element_pair_score_response",
           "seconds": 4.761369070038199,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
@@ -35591,7 +35568,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/76/P_to_R/independent_native_dependency",
+          "baseline": "private-reference-2f2fc7ec68365f6716c4",
           "equivalence": "element_pair_score_response",
           "seconds": 4.267329228110611,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
@@ -35806,7 +35783,6 @@
             "max_rss_kib": 559136
           }
         ],
-        "host": "bosque12",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {
@@ -35893,7 +35869,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/77/P_to_R/independent_native_dependency",
+          "baseline": "private-reference-58c3de17a7f27025fbfb",
           "seconds": 1.5354878613725305,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
         },
@@ -36786,7 +36762,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/77/P_to_R/independent_native_dependency",
+          "baseline": "private-reference-58c3de17a7f27025fbfb",
           "equivalence": "element_pair_score_response",
           "seconds": 1.6641921941190958,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
@@ -36943,7 +36919,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/77/P_to_R/independent_native_dependency",
+          "baseline": "private-reference-58c3de17a7f27025fbfb",
           "equivalence": "element_pair_score_response",
           "seconds": 1.560784725472331,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
@@ -37119,7 +37095,6 @@
             "max_rss_kib": 140668
           }
         ],
-        "host": "bosque12",
         "scope": "Search+setup+symmetry CPU/wall exclude persistence/evaluation. Scores are representatives, not family minima."
       },
       "evidence": {
@@ -37184,7 +37159,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/114/R_to_P/independent_native_dependency",
+          "baseline": "private-reference-0eaec1a9d325137d4acb",
           "seconds": 0.024393166415393353,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
         },
@@ -37524,7 +37499,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/114/R_to_P/independent_native_dependency",
+          "baseline": "private-reference-0eaec1a9d325137d4acb",
           "equivalence": "element_pair_score_response",
           "seconds": 0.015950582921504974,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
@@ -37648,7 +37623,7 @@
               "new": []
             }
           ],
-          "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU/results/114/R_to_P/independent_native_dependency",
+          "baseline": "private-reference-0eaec1a9d325137d4acb",
           "equivalence": "element_pair_score_response",
           "seconds": 0.01590234972536564,
           "scope": "Saved representative heavy-atom relations modulo exact event-response endpoint graph automorphisms. Full-H event counts. Missing representative class does not prove absence from compressed families. No independent chemical ground truth."
@@ -37750,13 +37725,16 @@
       "skipped": "0",
       "tests": "489",
       "time": "98.913",
-      "timestamp": "2026-09-09T22:56:19.738733-04:00",
-      "hostname": "bosque12"
+      "timestamp": "2026-09-09T22:56:19.738733-04:00"
     }
   ],
   "vanadium_literal_event_signatures_at_400": {
     "1": 60,
     "2": 4
   },
-  "scope": "Frozen four-case pilot; original and element-pair score-equivalence results both retained. Not equality of full labelled result sets, all H-transfer patterns, higher-event spectrum or chemical ground-truth coverage."
+  "scope": "Frozen four-case pilot; original and element-pair score-equivalence results both retained. Not equality of full labelled result sets, all H-transfer patterns, higher-event spectrum or chemical ground-truth coverage.",
+  "privacy_projection": {
+    "original_sha256": "fc39ab7ad79e01aae1c0c6981b43561357df0a854c7140fceb83776aa59b0746",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

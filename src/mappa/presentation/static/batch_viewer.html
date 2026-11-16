@@ -1,0 +1,76 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>__TITLE__</title></head>
+<body><header><h1>__TITLE__</h1><div class="stats">__SUMMARY__</div>
+<div class="actions"><button id="prev">Previous</button><button id="next">Next</button><button id="standalone" disabled>Open standalone</button></div></header>
+<main><aside><input id="search" type="search" placeholder="Filter cases…"><div id="current">Select a case</div><div id="list"></div></aside>
+<section id="stage"><div id="loading">Loading embedded viewer…</div><iframe id="viewer" title="Selected reaction viewer"></iframe></section></main>
+<script>
+const CASES=__CASES__;
+const COMMON_B64="__COMMON__", MARKER="__MARKER__";
+const list=document.getElementById('list'), frame=document.getElementById('viewer');
+const loading=document.getElementById('loading'), current=document.getElementById('current');
+const standalone=document.getElementById('standalone');
+let filtered=CASES.slice(), selected=null, currentHTML=null, loadToken=0;
+
+async function gunzip64(value) {
+  const raw=atob(value), bytes=Uint8Array.from(raw, c=>c.charCodeAt(0));
+  const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+  return await new Response(stream).text();
+}
+const commonPromise=gunzip64(COMMON_B64);
+
+function renderList() {
+  list.replaceChildren();
+  for (const c of filtered) {
+    const button=document.createElement('button');
+    button.className='case'+(selected && selected.id===c.id?' active':'');
+    for (const [kind, value] of [['name',c.id],['badge',c.badge],['meta',c.meta]]) {
+      const span=document.createElement('span');
+      span.className=kind; span.textContent=value || ''; button.appendChild(span);
+    }
+    button.onclick=()=>openCase(c);
+    list.appendChild(button);
+  }
+}
+
+async function openCase(c) {
+  const token=++loadToken;
+  selected=c; currentHTML=null; standalone.disabled=true;
+  renderList(); loading.classList.add('show'); current.textContent=c.detail;
+  location.hash=encodeURIComponent(c.id);
+  try {
+    const [common, body]=await Promise.all([commonPromise,gunzip64(c.payload)]);
+    if (token!==loadToken) return;
+    currentHTML=body.replace(MARKER,()=>common);
+    frame.srcdoc=currentHTML; standalone.disabled=false;
+  } catch (error) {
+    if (token!==loadToken) return;
+    current.textContent=String(error); frame.srcdoc='';
+  } finally {
+    if (token===loadToken) loading.classList.remove('show');
+  }
+}
+
+function move(delta) {
+  if (!selected || !filtered.length) return;
+  const i=filtered.findIndex(c=>c.id===selected.id);
+  openCase(filtered[(i+delta+filtered.length)%filtered.length]);
+}
+document.getElementById('prev').onclick=()=>move(-1);
+document.getElementById('next').onclick=()=>move(1);
+standalone.onclick=()=>{
+  if (!currentHTML) return;
+  const url=URL.createObjectURL(new Blob([currentHTML],{type:'text/html'}));
+  window.open(url,'_blank'); setTimeout(()=>URL.revokeObjectURL(url),60000);
+};
+document.getElementById('search').oninput=e=>{
+  const query=e.target.value.trim().toLowerCase();
+  filtered=CASES.filter(c=>c.id.toLowerCase().includes(query)
+    || (c.badge || '').toLowerCase().includes(query) || String(c.atoms)===query);
+  renderList();
+};
+renderList();
+const requested=decodeURIComponent(location.hash.slice(1));
+openCase(CASES.find(c=>c.id===requested)||CASES[0]);
+</script></body></html>

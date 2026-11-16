@@ -1,0 +1,538 @@
+{
+  "status": "Both matching, reduction and verification arms audited. Fresh one-seed decoding complete; ten-seed decoding stopped and drained with six compute timeouts. Window remains minimum + 5.",
+  "arms": {
+    "1": {
+      "case_seconds": 600,
+      "window": 128,
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "submitted_utc": "2026-11-06T04:23:16.673421+00:00",
+      "cases": 1851,
+      "source_commit": "27b18abad691648cf2a87d2e5ae43db117d80b66",
+      "shared_reaction_cache": true,
+      "directions": 3702,
+      "reused_caches": 0,
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 1,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "immutable_blobs_verified": 5553,
+      "input_index_sha256": "83c2fcf23100b7ce69793103b493541182f075532c90bf31aab9cf463b56341f",
+      "seed_batch": 1,
+      "reused_scientific_results": 0,
+      "linux_preflight_seconds": 23.96,
+      "workers": 32,
+      "run_seconds": 9600,
+      "source_identity": "85295acd57f0ec390999901674da3f3252dbe4916ceb0a5ee6475fdb99dce828",
+      "linux_preflight_tests": 277,
+      "global_matching_reduction_barrier": true,
+      "memory_gib_per_worker": 2,
+      "completed_fragment_cache_bytes": 67108864,
+      "allocated_cpus": 40,
+      "hardware": {
+        "cpu_model": "Intel(R) Xeon(R) Gold 6442Y",
+        "system": "Linux",
+        "release": "5.19.0-45-generic",
+        "machine": "x86_64",
+        "python": "3.10.12 (main, May 27 2025, 17:12:29) [GCC 11.4.0]",
+        "visible_cpus": 40,
+        "packages": {
+          "numpy": "2.2.6",
+          "sympy": "1.14.0",
+          "pynauty": "2.8.8.1",
+          "z3-solver": "5.3.3.0",
+          "psutil": "7.2.2"
+        }
+      },
+      "registered_workers": 32,
+      "startup_seconds": 3.672028027009219
+    },
+    "10": {
+      "case_seconds": 600,
+      "window": 128,
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "submitted_utc": "2026-11-06T04:23:16.813729+00:00",
+      "cases": 1851,
+      "source_commit": "27b18abad691648cf2a87d2e5ae43db117d80b66",
+      "shared_reaction_cache": true,
+      "directions": 3702,
+      "reused_caches": 0,
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "immutable_blobs_verified": 5553,
+      "input_index_sha256": "4ab9a6c9a1838765dc2cc6761fcb7fbc1c5689f91a86316a7ffcfdd71ecfdee5",
+      "seed_batch": 10,
+      "reused_scientific_results": 0,
+      "linux_preflight_seconds": 23.96,
+      "workers": 32,
+      "run_seconds": 9600,
+      "source_identity": "85295acd57f0ec390999901674da3f3252dbe4916ceb0a5ee6475fdb99dce828",
+      "linux_preflight_tests": 277,
+      "global_matching_reduction_barrier": true,
+      "memory_gib_per_worker": 2,
+      "completed_fragment_cache_bytes": 67108864,
+      "allocated_cpus": 40,
+      "hardware": {
+        "cpu_model": "Intel(R) Xeon(R) Gold 6442Y",
+        "system": "Linux",
+        "release": "5.19.0-45-generic",
+        "machine": "x86_64",
+        "python": "3.10.12 (main, May 27 2025, 17:12:29) [GCC 11.4.0]",
+        "visible_cpus": 40,
+        "packages": {
+          "numpy": "2.2.6",
+          "sympy": "1.14.0",
+          "pynauty": "2.8.8.1",
+          "z3-solver": "5.3.3.0",
+          "psutil": "7.2.2"
+        }
+      },
+      "registered_workers": 32,
+      "startup_seconds": 3.488607588922605
+    }
+  },
+  "accuracy": "Golden reference catalogue membership in either direction; 1851 reaction denominator; not decoded event-window recovery",
+  "measurements": [
+    "per-seed CPU/wall and cache counters",
+    "per-cut task CPU/wall and scope",
+    "per-direction matching, reduction, decoding and external verification CPU/wall",
+    "publication and cache I/O costs",
+    "sampled per-task memory and process lifetime high-water mark",
+    "stage elapsed, task overlap, startup, allocation accounting",
+    "reaction recovery gains/losses, unknown and resource failures"
+  ],
+  "initial_attempt": {
+    "one_seed": {
+      "matching": 3702,
+      "reduction": 3702,
+      "decoding": 1334,
+      "verification": 0
+    },
+    "ten_seeds": {
+      "matching": 2239,
+      "reduction": 0,
+      "decoding": 0,
+      "verification": 0
+    },
+    "resource_failures": 0,
+    "retries": 0,
+    "arms": {
+      "1": {
+        "source_commit": "040f817f0e2f3c0ba1b285d72c48ab31d80de2fc",
+        "source_identity": "e66b482ec77639159e471c70c3f6796ad1ae39e143d6dff7e888eda58b7b87ea",
+        "cases": 1851,
+        "directions": 3702,
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 1,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "event_slack": 5,
+          "fragment_seconds": 5.0
+        },
+        "immutable_blobs_verified": 5553,
+        "input_index_sha256": "83c2fcf23100b7ce69793103b493541182f075532c90bf31aab9cf463b56341f",
+        "seed_batch": 1,
+        "workers": 32,
+        "allocated_cpus": 40,
+        "memory_gib_per_worker": 2,
+        "case_seconds": 600,
+        "run_seconds": 9600,
+        "window": 128,
+        "shared_reaction_cache": true,
+        "completed_fragment_cache_bytes": 67108864,
+        "reused_scientific_results": 0,
+        "reused_caches": 0,
+        "global_matching_reduction_barrier": true,
+        "linux_preflight_tests": 310,
+        "linux_preflight_seconds": 38.82,
+        "submitted_utc": "2026-11-06T03:48:34.401864+00:00",
+        "hardware": {
+          "cpu_model": "Intel(R) Xeon(R) Gold 6442Y",
+          "system": "Linux",
+          "release": "5.19.0-45-generic",
+          "machine": "x86_64",
+          "python": "3.10.12 (main, May 27 2025, 17:12:29) [GCC 11.4.0]",
+          "visible_cpus": 40,
+          "packages": {
+            "numpy": "2.2.6",
+            "sympy": "1.14.0",
+            "pynauty": "2.8.8.1",
+            "z3-solver": "5.3.3.0",
+            "psutil": "7.2.2"
+          }
+        },
+        "registered_workers": 32,
+        "startup_seconds": 2.3741007689386606
+      },
+      "10": {
+        "source_commit": "040f817f0e2f3c0ba1b285d72c48ab31d80de2fc",
+        "source_identity": "e66b482ec77639159e471c70c3f6796ad1ae39e143d6dff7e888eda58b7b87ea",
+        "cases": 1851,
+        "directions": 3702,
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 10,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "event_slack": 5,
+          "fragment_seconds": 5.0
+        },
+        "immutable_blobs_verified": 5553,
+        "input_index_sha256": "4ab9a6c9a1838765dc2cc6761fcb7fbc1c5689f91a86316a7ffcfdd71ecfdee5",
+        "seed_batch": 10,
+        "workers": 32,
+        "allocated_cpus": 40,
+        "memory_gib_per_worker": 2,
+        "case_seconds": 600,
+        "run_seconds": 9600,
+        "window": 128,
+        "shared_reaction_cache": true,
+        "completed_fragment_cache_bytes": 67108864,
+        "reused_scientific_results": 0,
+        "reused_caches": 0,
+        "global_matching_reduction_barrier": true,
+        "linux_preflight_tests": 310,
+        "linux_preflight_seconds": 38.82,
+        "submitted_utc": "2026-11-06T03:48:34.524759+00:00",
+        "hardware": {
+          "cpu_model": "Intel(R) Xeon(R) Gold 6442Y",
+          "system": "Linux",
+          "release": "5.19.0-45-generic",
+          "machine": "x86_64",
+          "python": "3.10.12 (main, May 27 2025, 17:12:29) [GCC 11.4.0]",
+          "visible_cpus": 40,
+          "packages": {
+            "numpy": "2.2.6",
+            "sympy": "1.14.0",
+            "pynauty": "2.8.8.1",
+            "z3-solver": "5.3.3.0",
+            "psutil": "7.2.2"
+          }
+        },
+        "registered_workers": 32,
+        "startup_seconds": 2.5308110620826483
+      }
+    }
+  },
+  "decoder_storage_validation": {
+    "source_commit": "a5f1f657cf87ff05ded6ad1cab293883b6dce255",
+    "source_identity": "220e3a70983e44417d5fed53429a421eb9c0c1e42c32a4e6545ec9d323c26148",
+    "guard_bytes": 2147483648,
+    "case_seconds": 600,
+    "original_failures_preserved": true,
+    "changes": [
+      "Shared local bond terms with branch action-position references",
+      "Release construction indexes and remove decoder ownership cycle",
+      "Release derived responses excluded by the finalized event window",
+      "Release completed decoder sessions before publication",
+      "Use shared core costs without duplicate detailed bond tables in assembly and persistence"
+    ],
+    "validation": "1300 full local tests; 109 Linux decoder tests. All nine original memory failures complete with one attempt each, unchanged 2 GiB guard and 600-second budget. Full one-seed decoding complete; ten-seed decoding has subsequent compute timeouts."
+  },
+  "decoding_measurement": {
+    "1": {
+      "source_commit": "a5f1f657cf87ff05ded6ad1cab293883b6dce255",
+      "source_identity": "220e3a70983e44417d5fed53429a421eb9c0c1e42c32a4e6545ec9d323c26148",
+      "submitted_utc": "2026-11-06T06:05:25.943436+00:00",
+      "workers": 32,
+      "memory_bytes": 2147483648,
+      "case_seconds": 600,
+      "run_seconds": 9600,
+      "window": 128,
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 1,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "reused_catalogues": 3702,
+      "imported_stage_results": 0,
+      "measurement_scope": "Fresh decoding only. Matching, reduction and verification retain their audited original measurements. No combined end-to-end elapsed time is claimed.",
+      "original_campaign_unchanged": true,
+      "result": {
+        "status_counts": {
+          "complete": 3702
+        },
+        "terminal_directions": 3702,
+        "pool_elapsed_seconds": 501.98618019605055,
+        "direction": {
+          "compute_seconds": {
+            "count": 3702,
+            "maximum": 322.6170240510255,
+            "maximum_case": "00873/forward",
+            "median": 0.4934251814847812,
+            "p90": 4.862974167126231,
+            "p95": 11.467303110461202,
+            "p99": 85.75341256286701,
+            "total": 13822.771456215996
+          },
+          "cpu_seconds": {
+            "count": 3702,
+            "maximum": 322.574951428,
+            "maximum_case": "00873/forward",
+            "median": 0.4923188875000051,
+            "p90": 4.862185567699997,
+            "p95": 11.462165382699986,
+            "p99": 85.74061641214988,
+            "total": 13817.890630297992
+          },
+          "publish_cpu_seconds": {
+            "count": 3702,
+            "maximum": 0.31003234900000365,
+            "maximum_case": "00862/reverse",
+            "median": 0.014646085500004347,
+            "p90": 0.05505218330000262,
+            "p95": 0.08353736330000032,
+            "p99": 0.14063243918000187,
+            "total": 89.85947504399907
+          },
+          "publish_seconds": {
+            "count": 3702,
+            "maximum": 7.368938589002937,
+            "maximum_case": "00830/forward",
+            "median": 0.018202095525339246,
+            "p90": 0.09815137523692102,
+            "p95": 0.3672906458610667,
+            "p99": 1.8530365663045076,
+            "total": 346.224158170633
+          }
+        },
+        "reaction": {
+          "compute_seconds": {
+            "count": 1851,
+            "maximum": 449.9823071840219,
+            "maximum_case": "00873",
+            "median": 1.0454225831199437,
+            "p90": 10.340831940062344,
+            "p95": 23.933298217481934,
+            "p99": 172.9700712020276,
+            "total": 13822.771456215996
+          },
+          "cpu_seconds": {
+            "count": 1851,
+            "maximum": 449.92138406800007,
+            "maximum_case": "00873",
+            "median": 1.0442756030000169,
+            "p90": 10.338248750000002,
+            "p95": 23.925289332000002,
+            "p99": 172.9476860935,
+            "total": 13817.89063029797
+          }
+        },
+        "sampled_peak_tree_rss_bytes": 429867008,
+        "verified_output_checksums": 3702,
+        "worker_ownership_nonoverlapping": true
+      }
+    },
+    "10": {
+      "source_commit": "a5f1f657cf87ff05ded6ad1cab293883b6dce255",
+      "source_identity": "220e3a70983e44417d5fed53429a421eb9c0c1e42c32a4e6545ec9d323c26148",
+      "submitted_utc": "2026-11-06T06:05:28.108051+00:00",
+      "workers": 32,
+      "memory_bytes": 2147483648,
+      "case_seconds": 600,
+      "run_seconds": 9600,
+      "window": 128,
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "reused_catalogues": 3702,
+      "imported_stage_results": 0,
+      "measurement_scope": "Fresh decoding only. Matching, reduction and verification retain their audited original measurements. No combined end-to-end elapsed time is claimed.",
+      "original_campaign_unchanged": true,
+      "result": {
+        "status_counts": {
+          "complete": 732,
+          "timeout": 6,
+          "unattempted": 2964
+        },
+        "queue_drained": true,
+        "failed_directions": [
+          "00817/reverse",
+          "00869/reverse",
+          "00411/forward",
+          "00873/forward",
+          "00902/reverse",
+          "00545/forward"
+        ],
+        "retries": 0,
+        "event_slack": 5
+      }
+    }
+  },
+  "regression_validation": {
+    "report": "logic-validation.json",
+    "status": "Representation-induced search broadening isolated on four selected fragments; repair not implemented.",
+    "event_slack": 5,
+    "assignment_oracle_cases": 256,
+    "affected_tests_passed": 173,
+    "uncommitted_residual_bound_active": false
+  },
+  "current_postprocessing_validation": {
+    "status": "Both pools running; all 64 workers registered. One-seed transport complete and reduction started; ten-seed transport active. No observed errors at initial running observation.",
+    "local_runner_tests": 42,
+    "linux_affected_tests": 151,
+    "linux_test_seconds": 94.11,
+    "arms": {
+      "1": {
+        "source_commit": "7b248506a4d541cf2c50540e41ce6204bc87bf80",
+        "source_identity": "9cbf91185762e37e3b586ca2717add1703ee8c261deca706c7b7fd453d7af4ae",
+        "cases": 1851,
+        "directions": 3702,
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 1,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "event_slack": 5,
+          "fragment_seconds": 5.0
+        },
+        "workers": 32,
+        "memory_bytes": 2147483648,
+        "case_seconds": 600,
+        "window": 64,
+        "run_seconds": 9600,
+        "baseline_recovered": 1841,
+        "measurement_scope": "Saved matching reused; fresh transport, reduction, decoding and verification with explicit new-version budgets. Original attempts and ledgers untouched.",
+        "submitted_utc": "2026-11-06T08:50:05.756128+00:00"
+      },
+      "10": {
+        "source_commit": "7b248506a4d541cf2c50540e41ce6204bc87bf80",
+        "source_identity": "9cbf91185762e37e3b586ca2717add1703ee8c261deca706c7b7fd453d7af4ae",
+        "cases": 1851,
+        "directions": 3702,
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 10,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "event_slack": 5,
+          "fragment_seconds": 5.0
+        },
+        "workers": 32,
+        "memory_bytes": 2147483648,
+        "case_seconds": 600,
+        "window": 64,
+        "run_seconds": 9600,
+        "baseline_recovered": 1847,
+        "measurement_scope": "Saved matching reused; fresh transport, reduction, decoding and verification with explicit new-version budgets. Original attempts and ledgers untouched.",
+        "submitted_utc": "2026-11-06T08:50:06.080064+00:00"
+      }
+    },
+    "observed_workers": {
+      "1": 32,
+      "10": 32
+    }
+  }
+}

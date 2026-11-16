@@ -1,0 +1,315 @@
+{
+  "batches": [
+    {
+      "batch": 0,
+      "ledger_sha256": "5a37025d3f5ad5b65bd96eaf8b99131bf7fa3d4f047edcb51f9b18322a125fa1",
+      "retired_stage_failures": 0,
+      "stages": [
+        {
+          "directions": 500,
+          "stage": "deduplication",
+          "state": "complete"
+        },
+        {
+          "directions": 500,
+          "stage": "matching",
+          "state": "complete"
+        }
+      ]
+    },
+    {
+      "batch": 1,
+      "ledger_sha256": "e4ad72a8ae239adfe6cbebc075ee07f106f61ac584fde1768d45e8eee41d24d1",
+      "retired_stage_failures": 1,
+      "stages": [
+        {
+          "directions": 500,
+          "stage": "deduplication",
+          "state": "complete"
+        },
+        {
+          "directions": 500,
+          "stage": "matching",
+          "state": "complete"
+        }
+      ]
+    },
+    {
+      "batch": 2,
+      "ledger_sha256": "749bc4cc98a4f52d120ff8fd7545991e230d54b0c0ef8a6b4c07ec19f18c1c50",
+      "retired_stage_failures": 0,
+      "stages": [
+        {
+          "directions": 497,
+          "stage": "matching",
+          "state": "complete"
+        }
+      ]
+    },
+    {
+      "batch": 3,
+      "ledger_sha256": "4147bbe41197b8134f7f21b7b8fd1d38194a8334f912854286ce7ea649fc5362",
+      "retired_stage_failures": 0,
+      "stages": [
+        {
+          "directions": 500,
+          "stage": "deduplication",
+          "state": "complete"
+        },
+        {
+          "directions": 500,
+          "stage": "matching",
+          "state": "complete"
+        }
+      ]
+    },
+    {
+      "batch": 4,
+      "ledger_sha256": "1016f61d825712f6204c95a895c460c84b13c9e798490cb9ed89c1cd2d772d3b",
+      "retired_stage_failures": 0,
+      "stages": [
+        {
+          "directions": 498,
+          "stage": "deduplication",
+          "state": "complete"
+        },
+        {
+          "directions": 498,
+          "stage": "matching",
+          "state": "complete"
+        }
+      ]
+    },
+    {
+      "batch": 5,
+      "ledger_sha256": "1a4bba811eb2a9661abd760c08d7200029ddd0b3f1cb8f3abcedcdf7d0893902",
+      "retired_stage_failures": 0,
+      "stages": [
+        {
+          "directions": 240,
+          "stage": "deduplication",
+          "state": "complete"
+        },
+        {
+          "directions": 240,
+          "stage": "matching",
+          "state": "complete"
+        }
+      ]
+    },
+    {
+      "batch": 6,
+      "ledger_sha256": "58db91e87bb205c0561bdb303cdb03ca3e2ae713c1eb537274a14ada62b74586",
+      "retired_stage_failures": 0,
+      "stages": [
+        {
+          "directions": 242,
+          "stage": "deduplication",
+          "state": "complete"
+        },
+        {
+          "directions": 242,
+          "stage": "matching",
+          "state": "complete"
+        }
+      ]
+    },
+    {
+      "batch": 7,
+      "ledger_sha256": "1d179afcee0c61b38a62a17c8844bc330ec6003596004abbfb85fce8a1ca5db3",
+      "retired_stage_failures": 0,
+      "stages": [
+        {
+          "directions": 240,
+          "stage": "deduplication",
+          "state": "complete"
+        },
+        {
+          "directions": 240,
+          "stage": "matching",
+          "state": "complete"
+        }
+      ]
+    },
+    {
+      "batch": 8,
+      "ledger_sha256": "2e24b2848d2ae15f22fd166826b2b68d1da0ee7906d1a9b2b36fc2c0308f8e1d",
+      "retired_stage_failures": 0,
+      "stages": [
+        {
+          "directions": 240,
+          "stage": "deduplication",
+          "state": "complete"
+        },
+        {
+          "directions": 240,
+          "stage": "matching",
+          "state": "complete"
+        }
+      ]
+    },
+    {
+      "batch": 9,
+      "ledger_sha256": "341f5548d09644fcf48d47637d7b1eba2e0a1625febc43609f211489ee5c64c6",
+      "retired_stage_failures": 0,
+      "stages": [
+        {
+          "directions": 242,
+          "stage": "deduplication",
+          "state": "complete"
+        },
+        {
+          "directions": 242,
+          "stage": "matching",
+          "state": "complete"
+        }
+      ]
+    }
+  ],
+  "code_identity": "ab93d412975f9194d794403d7eb2e20716d7a27a464a29ae76a69cef7e10e1bf",
+  "complete": false,
+  "config": {
+    "anchors": [],
+    "branch_limit": 2000,
+    "cut_floor": 0.2,
+    "event_threshold": 0.5,
+    "graph_floor": 0.2,
+    "iso_tolerance": 1.0,
+    "metal_event_threshold": 0.3,
+    "random_seed": 42,
+    "seed_count": 1,
+    "seed_selection": "random",
+    "self_tolerance": 1.0,
+    "sweep_cuts": true,
+    "task_chunksize": 1
+  },
+  "disposition": "intentionally stopped for repair and fresh rerun; diagnostic evidence only",
+  "limits": [
+    "No decoding or reference verification ran; no full-benchmark accuracy or timing claim is supported.",
+    "This summary audits ledger counts, stopped ownership and the one reduction recovery, not every matching audit or scientific output blob.",
+    "Failed-attempt sampled CPU is recorded separately and must not be added to exact compute CPU as if it were independent work.",
+    "The fresh rerun must use empty result and cache state; this interrupted campaign is diagnostic only."
+  ],
+  "local_matching_probe": {
+    "bounded_seconds": 30,
+    "case": 1801,
+    "completed": false,
+    "cut": "uncut",
+    "direction": "reverse",
+    "interpretation": "Recursive equivalent-target-set membership during saturation dominated the sampled stacks; no complete-case runtime or accuracy conclusion.",
+    "native_stack_samples": 2169,
+    "observed_hotspot": [
+      "SetOrbit::contains",
+      "StabilizerChain::contains"
+    ],
+    "profile_seconds": 5,
+    "reported_cpu_seconds": 29.8,
+    "reported_peak_rss_mib": 57
+  },
+  "reduction_recovery": {
+    "attempts": [
+      {
+        "finish_epoch": 1793685579.9710333,
+        "metrics": {
+          "compute_seconds": 99.19329634401947,
+          "cpu_seconds": 99.02535992600001,
+          "memory_guard_bytes": 2147483648,
+          "memory_samples": 506,
+          "peak_tree_rss_bytes": 2298966016,
+          "phase_at_exit": "publication",
+          "phase_peak_tree_rss_bytes": {
+            "compute": 1464500224,
+            "publication": 2298966016
+          },
+          "sampled_cpu_seconds": 101.55999999999999
+        },
+        "start_epoch": 1793685478.1715136,
+        "state": "memory_limit"
+      },
+      {
+        "finish_epoch": 1793685936.842489,
+        "metrics": {
+          "compute_seconds": 63.78961390198674,
+          "cpu_seconds": 63.18888159,
+          "memory_guard_bytes": 4294967296,
+          "memory_samples": 343,
+          "peak_tree_rss_bytes": 2190528512,
+          "phase_at_exit": "publication",
+          "phase_peak_tree_rss_bytes": {
+            "compute": 1382334464,
+            "publication": 2190528512
+          },
+          "publish_cpu_seconds": 4.819200181999996,
+          "publish_seconds": 4.829197057057172,
+          "sampled_cpu_seconds": 67.89,
+          "total_cpu_seconds": 68.0081495
+        },
+        "start_epoch": 1793685868.2218823,
+        "state": "complete"
+      }
+    ],
+    "case": 1561,
+    "direction": "forward",
+    "fresh_retry_seconds": 0,
+    "original_attempt_preserved": true,
+    "original_guard_bytes": 2147483648,
+    "original_task_specification_preserved": true,
+    "other_rows_preserved": 999,
+    "retry_guard_bytes": 4294967296,
+    "spent_after_seconds": 162.9847183227539,
+    "spent_before_seconds": 99.19423413276672,
+    "stage": "deduplication",
+    "state": "complete",
+    "total_budget_seconds": 3600.0
+  },
+  "reference_policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+  "retired_stage_failures": 1,
+  "schema": "mappa.stopped_golden_diagnostic/v1",
+  "scope": {
+    "batches": 10,
+    "directions": 3702,
+    "matching_cuts": 177552,
+    "reactions": 1851
+  },
+  "source_commit": "2658966b5cc1c73e5510ee2d8001b29e7db989ff",
+  "stage_directions": {
+    "decoding": {
+      "complete": 0,
+      "error": 0,
+      "without_terminal_record": 3702
+    },
+    "deduplication": {
+      "complete": 3202,
+      "error": 0,
+      "without_terminal_record": 500
+    },
+    "matching": {
+      "complete": 3699,
+      "error": 0,
+      "without_terminal_record": 3
+    },
+    "verification": {
+      "complete": 0,
+      "error": 0,
+      "without_terminal_record": 3702
+    }
+  },
+  "stop": {
+    "no_campaign_jobs_or_steps_remaining": true,
+    "requested_utc": "2026-11-03T06:10:19.863093+00:00",
+    "user_approved_repair_and_fresh_rerun": true,
+    "verified_utc": "2026-11-03T06:10:52.492290+00:00"
+  },
+  "unarchived_queue_snapshot": {
+    "attempts": {
+      "complete": 15,
+      "running": 31
+    },
+    "interpretation": "31 saved running attempts were interrupted by intentional cancellation; these are not scientific absence or recorded algorithm errors. Their final CPU/RSS is unavailable.",
+    "tasks": {
+      "complete": 15,
+      "pending": 264,
+      "running": 31
+    }
+  }
+}

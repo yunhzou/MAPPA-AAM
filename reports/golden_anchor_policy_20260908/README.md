@@ -42,7 +42,7 @@ All explicit H pairs remain eligible. Rarity is the product of the source and ta
 
 Summed measured core search time: **80.234 seconds**; median per task **0.166 seconds**, maximum **3.360 seconds**. These are single-run search-stage wall timings, excluding process startup, scheduling, verification and archive finalization. They are not complete campaign elapsed time and are not isolated-node speed comparisons.
 
-Each task had a 90-second search watchdog, 45-second score watchdog and five-minute Slurm limit. Arrays: 442866, 442931, 443171. Eleven unstarted tasks stalled in node configuration and were canceled/resubmitted without rerunning completed tasks. Raw accounting is retained.
+Each task had a 90-second search watchdog, 45-second score watchdog and five-minute Slurm limit. Eleven unstarted tasks stalled in node configuration and were canceled/resubmitted without rerunning completed tasks. Raw accounting is retained privately.
 
 Two policy tests pass: deterministic/reference-metadata-independent selection, element compatibility, uniqueness, budget behavior and explicit-H eligibility. Runtime anchor-preservation assertions pass for all completed searches. No production files under `src/rxn_core` changed; production baseline remains `29b0722` for this experiment. The experiment harness was checkpointed separately as `44c5135`.
 
@@ -50,9 +50,7 @@ Two policy tests pass: deterministic/reference-metadata-independent selection, e
 
 `manifest.json` records selections, task sharing and frozen source hashes. `cases.json` preserves every outcome and witness, and `summary.json` groups them by policy. Full AAM graphs, logs, status and input-source paths are saved under:
 
-```
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_anchor_policy_20260908
-```
+Full artifacts and raw operational records are retained privately.
 
 The positive case is task `174`; its `aam.pkl.gz` and `evaluation.json` contain the complete result and verification. Selection was reference-blind, but the pilot cases were chosen from known failures and controls, so this is not a new full-dataset accuracy estimate.
 

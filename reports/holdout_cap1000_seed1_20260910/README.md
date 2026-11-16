@@ -55,7 +55,7 @@ case and 133 ties. Fresh SLAP scores differ from the archived comparison in
 retains directional completion, cap flags, phase status and hardware. The
 compressed witnesses were independently rescored with the scalar bond-event
 implementation; the published scores use the original vectorized evaluator.
-`archive_hashes.json` identifies full local search archives at `/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_cap1000_seed1_20260910`.
+`archive_hashes.json` identifies full local search archives at private artifact storage.
 The search driver is `bench/holdout_cap_seed_benchmark.py`; this report is built
 by `bench/publish_holdout_cap_seed.py`. Existing manuscript baseline panels are
 unchanged by this separate experiment.

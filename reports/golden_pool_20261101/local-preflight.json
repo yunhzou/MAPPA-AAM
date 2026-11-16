@@ -1,0 +1,31 @@
+{
+  "verdicts": {
+    "00000/reverse": "recovered",
+    "00000/forward": "recovered"
+  },
+  "elapsed_seconds": 15.051541667198762,
+  "memory_bytes": 2147483648,
+  "stages": [
+    {
+      "stage": "decoding",
+      "state": "complete",
+      "count": 2
+    },
+    {
+      "stage": "deduplication",
+      "state": "complete",
+      "count": 2
+    },
+    {
+      "stage": "matching",
+      "state": "complete",
+      "count": 2
+    },
+    {
+      "stage": "verification",
+      "state": "complete",
+      "count": 2
+    }
+  ],
+  "source": "2bff72f93c2e7f17910d013ee9b77215ec7d7b91807c32fc5c2e27239aea3abf"
+}

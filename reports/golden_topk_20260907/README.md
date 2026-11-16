@@ -39,15 +39,11 @@ This is coverage of families selected by representative rank, not optimization o
 ## Artifacts and runtime
 
 Full class tables, ranking metrics, compressed-family query results, source snapshot, worker logs and statuses:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_topk_20260907`
-
+Original artifact locations are retained privately.
 Original immutable search archives:
+Original artifact locations are retained privately.
+Script: `bench/golden_topk.py`. Local `cases.json`, `summary.json`, `manifest.json` and the private accounting records retain all case outcomes, the executed source hashes and allocation accounting.
 
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907`
+Each task used one worker. Each process had a five-minute watchdog and each Slurm task a six-minute limit. The maximum measured completed scoring time was **99.01 seconds**; summed scoring elapsed time was **4,500.76 seconds** (not parallel wall time or allocated CPU-hours).
 
-Script: `bench/golden_topk.py`. Local `cases.json`, `summary.json`, `manifest.json` and `slurm_accounting.psv` retain all case outcomes, the executed source hashes and allocation accounting.
-
-One CPU per worker, 16 GiB memory requested, at most 128 main-array tasks concurrently. Each process had a five-minute watchdog and each Slurm task a six-minute limit. The maximum measured completed scoring time was **99.01 seconds**; summed scoring elapsed time was **4,500.76 seconds** (not parallel wall time or allocated CPU-hours).
-
-Main arrays: 440574 (indices 0–925), 440575 (indices 926–1850). Unstarted CONFIGURING tasks were rescheduled via 441244, 441245 and 441973. No completed scoring calculation was repeated. All 1,851 workers exited zero. **147 regression tests pass**, including score-window coverage priority and fifth-place tie inclusion.
+Disjoint batches covered indices 0–925 and 926–1850. Only unstarted tasks were rescheduled after startup failure. No completed scoring calculation was repeated. All 1,851 workers exited zero. **147 regression tests pass**, including score-window coverage priority and fifth-place tie inclusion.

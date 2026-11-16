@@ -3,7 +3,7 @@
   "direction": "P_to_R",
   "variant": "tol_1p5",
   "search_rerun": false,
-  "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_tol15_20260911/runs/tol_1p5/results/golden/1599/P_to_R/original/cuts/aam.pkl.gz",
+  "archive": "private-reference-4488deeb8d93e226e917",
   "archive_sha256": "c69cf74d31ab6cdb30627ab48392f2ec6424af623be37c7c15e2e9dc274052fb",
   "reference_sha256": "b577831884a4868b1c5fba5f10f0c17dc3562969edead3ca7b9e1be1f7ac4ea5",
   "driver_sha256": "636f788ff3b8218f0d88f581b066ce9701264d20b0eccaae912434404bebf738",
@@ -38,5 +38,9 @@
     "search_direction": "P_to_R",
     "mapping_space": "search source/target; use orientation.json to recover input R/P indices",
     "coverage_space": "original input product"
+  },
+  "privacy_projection": {
+    "original_sha256": "b72de27e23ccd8734461fcd989708628b465d61048a6a19407ac3d727306ff7b",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

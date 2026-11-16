@@ -1,6 +1,6 @@
 {
   "status": "passed",
-  "run": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/slap_edge_sweep_full_20260910",
+  "run": "private-artifact:f389dbdbb2deeb45",
   "baseline_upstream_commit": "ea248fd9494f52f4865193e87a98cc92c62b5f9e",
   "cases": 1851,
   "recovered": 1795,

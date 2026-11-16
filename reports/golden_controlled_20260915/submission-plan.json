@@ -1,5 +1,4 @@
 {
-  "pilot_job": "6818073",
   "invalid_array_attempt": "Initial 0-1850 array rejected by scheduler; no tasks created.",
   "array_ranges": [
     {
@@ -15,25 +14,14 @@
       "concurrency": 50
     }
   ],
-  "allocated_cpu_limit": 200,
   "source_archive_sha256": "0001d20943d55fdefeeaadd3a79026fe33a3ab87b51473bb6bc027a8ed6bb6f9",
-  "array_jobs": [
-    "6818088",
-    "6818089"
-  ],
-  "superseded_jobs": {
-    "pilot": "6817888",
-    "arrays": [
-      "6817903",
-      "6817904"
-    ],
-    "reason": "Case0 at cap2000 too expensive for a quick functional gate; canceled and its checkpoints preserved under remote pilot-partial/case0. Full dataset still includes case0. No original array tasks started."
-  },
   "pilot_cases": [
     9,
     1001
   ],
-  "remote_root": "/lustre/fsw/portfolios/nvr/users/yunhengz/Projects/coordinate_alignment/golden_controlled_20260915",
-  "finalization_job": "6818580",
-  "finalization_dependency": "afterany:6818088:6818089"
+  "remote_root": "private-reference-d83c179afbd855b933e3",
+  "privacy_projection": {
+    "original_sha256": "f08a6d3916a086baddf809c9b1be70c084afdaeba99cfd9df2ffbb22176ffdae",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

@@ -98,7 +98,7 @@ minimum witness and every positive target witness was independently rescored
 `targets.json` and `per_case.json` include the bond edits, actual mappings and
 family-query provenance. Compressed search records, source hashes, frozen analysis
 scripts and Slurm accounting accompany this report. Large search archives remain
-at `/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_missing_pattern_seeds_20260910` and retain their hashes. Existing full benchmark reports are
+at private artifact storage and retain their hashes. Existing full benchmark reports are
 unchanged. Run `bench/holdout_missing_pattern_seeds.py prepare` with a fresh
 `--run`, then `submit`; its task list is restricted to these three cases. After
 the case analyses finish, run `bench/certify_heavy_event_exclusion.py --run` on

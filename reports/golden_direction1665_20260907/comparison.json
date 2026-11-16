@@ -12,7 +12,7 @@
       "scoring": "Representatives checked with identical original-orientation chemical certificate; absence alone is not a compressed-family miss.",
       "original_orientation_top_terminal": 10156,
       "witness": null,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/R_to_P/case1665_seeds3_cap2000/cuts/aam.pkl.gz"
+      "archive": "private-reference-fbf48f588e494ae3e553"
     },
     {
       "direction": "P_to_R",
@@ -348,7 +348,11 @@
           2
         ]
       },
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00000.json"
+      "archive": "private-reference-2b78ac55922a7483285f"
     }
-  ]
+  ],
+  "privacy_projection": {
+    "original_sha256": "9a5ccf0050a753c03bd6edc3d9a3b558197e3f836f20b65465a563cb93baef26",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

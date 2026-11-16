@@ -1,0 +1,622 @@
+{
+  "schema": "mappa.enzymemap_decoded_reference_summary/v1",
+  "utc": "2026-11-07T21:48:25Z",
+  "scientific_identity": "ba841d410beb9356c1bf1d86c9c34467a42e06d9e82a66cfd45c4aa65fa92e6b",
+  "scope": {
+    "reactions": 47974,
+    "directions": 95948,
+    "first_pass_pools": 43,
+    "audit_attempts": 96501,
+    "all_inputs_unchanged": true,
+    "all_queues_drained": true,
+    "all_allocations_complete": true
+  },
+  "policy": {
+    "reference": "exact annotated atom indices; unspecified atoms admit any feasible completion",
+    "event_window": "saved minimum + 5 under the independent-fragment event model",
+    "positive": "complete saved-decoder witness, action replay, injectivity and independent scalar count",
+    "derived_absence": "250 bounded decoded queries remain unknown; their references are conclusively absent from the unchanged containing catalogue, so also absent from its saved decoded subset",
+    "physical_count": "reported separately; model-window membership does not assert physical-count window membership"
+  },
+  "catalogue_direction_counts": {
+    "recovered": 94823,
+    "not_recovered": 1125
+  },
+  "catalogue_reaction_counts": {
+    "recovered": 47798,
+    "not_recovered": 176
+  },
+  "direct_direction_counts": {
+    "recovered": 94820,
+    "not_recovered": 878,
+    "unknown": 250
+  },
+  "direct_reaction_counts": {
+    "recovered": 47796,
+    "not_recovered": 133,
+    "unknown": 45
+  },
+  "combined_direction_counts": {
+    "recovered": 94820,
+    "not_recovered": 1128
+  },
+  "combined_reaction_counts": {
+    "recovered": 47796,
+    "not_recovered": 178
+  },
+  "recovered_percentage": 99.62896568974861,
+  "unknown_query_directions": [
+    "06766/reverse",
+    "06855/reverse",
+    "09224/reverse",
+    "09278/reverse",
+    "09279/forward",
+    "09291/forward",
+    "11471/reverse",
+    "15723/forward",
+    "15724/reverse",
+    "15725/forward",
+    "15726/reverse",
+    "15728/reverse",
+    "19493/reverse",
+    "23473/reverse",
+    "26212/reverse",
+    "27855/forward",
+    "27873/forward",
+    "27963/reverse",
+    "27995/reverse",
+    "27998/reverse",
+    "28024/reverse",
+    "28553/reverse",
+    "39804/reverse",
+    "40111/reverse",
+    "40795/forward",
+    "40795/reverse",
+    "40799/forward",
+    "40808/forward",
+    "40808/reverse",
+    "40817/forward",
+    "40817/reverse",
+    "40818/reverse",
+    "40823/forward",
+    "40839/reverse",
+    "40849/forward",
+    "40860/forward",
+    "40880/forward",
+    "46544/forward",
+    "46546/forward",
+    "46640/forward",
+    "46641/reverse",
+    "46650/forward",
+    "46651/reverse",
+    "46654/forward",
+    "46655/reverse",
+    "46668/forward",
+    "46669/reverse",
+    "46674/forward",
+    "46675/reverse",
+    "46676/forward",
+    "46677/reverse",
+    "46684/forward",
+    "46685/reverse",
+    "46877/forward",
+    "46878/reverse",
+    "46879/forward",
+    "46880/reverse",
+    "46900/forward",
+    "46901/reverse",
+    "46906/forward",
+    "46907/reverse",
+    "46912/forward",
+    "46913/reverse",
+    "46916/forward",
+    "46917/reverse",
+    "46920/forward",
+    "46921/reverse",
+    "46942/forward",
+    "46944/forward",
+    "46945/forward",
+    "46951/forward",
+    "46981/forward",
+    "46983/forward",
+    "46987/forward",
+    "46993/forward",
+    "47015/forward",
+    "47016/reverse",
+    "47065/forward",
+    "47067/forward",
+    "47068/forward",
+    "47083/forward",
+    "47086/forward",
+    "47089/forward",
+    "47089/reverse",
+    "47094/forward",
+    "47096/forward",
+    "47096/reverse",
+    "47104/forward",
+    "47109/reverse",
+    "47120/forward",
+    "47121/forward",
+    "47121/reverse",
+    "47127/forward",
+    "47132/forward",
+    "47134/forward",
+    "47145/forward",
+    "47154/forward",
+    "47157/forward",
+    "47159/forward",
+    "47160/forward",
+    "47175/forward",
+    "47176/reverse",
+    "47179/forward",
+    "47180/reverse",
+    "47189/forward",
+    "47194/reverse",
+    "47219/forward",
+    "47220/reverse",
+    "47221/forward",
+    "47222/reverse",
+    "47223/forward",
+    "47224/reverse",
+    "47244/reverse",
+    "47248/reverse",
+    "47257/forward",
+    "47258/reverse",
+    "47259/forward",
+    "47260/reverse",
+    "47265/forward",
+    "47266/reverse",
+    "47267/forward",
+    "47268/reverse",
+    "47271/forward",
+    "47272/reverse",
+    "47283/reverse",
+    "47284/forward",
+    "47285/reverse",
+    "47312/forward",
+    "47318/forward",
+    "47319/reverse",
+    "47322/forward",
+    "47323/reverse",
+    "47324/forward",
+    "47325/reverse",
+    "47354/forward",
+    "47355/reverse",
+    "47362/forward",
+    "47363/reverse",
+    "47364/forward",
+    "47365/reverse",
+    "47368/forward",
+    "47374/reverse",
+    "47375/forward",
+    "47376/forward",
+    "47377/forward",
+    "47380/forward",
+    "47387/forward",
+    "47393/forward",
+    "47396/forward",
+    "47398/forward",
+    "47399/forward",
+    "47410/forward",
+    "47413/forward",
+    "47416/forward",
+    "47421/forward",
+    "47423/forward",
+    "47426/forward",
+    "47427/forward",
+    "47431/forward",
+    "47433/forward",
+    "47438/forward",
+    "47444/forward",
+    "47454/forward",
+    "47464/forward",
+    "47470/forward",
+    "47477/forward",
+    "47487/forward",
+    "47492/forward",
+    "47502/forward",
+    "47503/forward",
+    "47518/forward",
+    "47523/forward",
+    "47531/forward",
+    "47534/forward",
+    "47541/forward",
+    "47545/forward",
+    "47547/forward",
+    "47554/forward",
+    "47556/forward",
+    "47558/forward",
+    "47562/forward",
+    "47568/forward",
+    "47569/forward",
+    "47577/forward",
+    "47578/forward",
+    "47579/forward",
+    "47580/forward",
+    "47584/forward",
+    "47587/forward",
+    "47593/forward",
+    "47597/forward",
+    "47603/forward",
+    "47608/forward",
+    "47618/forward",
+    "47620/forward",
+    "47625/forward",
+    "47626/forward",
+    "47630/forward",
+    "47634/forward",
+    "47638/forward",
+    "47649/forward",
+    "47652/forward",
+    "47653/forward",
+    "47658/forward",
+    "47667/forward",
+    "47668/forward",
+    "47673/forward",
+    "47682/forward",
+    "47690/forward",
+    "47693/forward",
+    "47695/forward",
+    "47696/forward",
+    "47702/forward",
+    "47709/forward",
+    "47712/forward",
+    "47713/forward",
+    "47716/forward",
+    "47718/forward",
+    "47741/forward",
+    "47744/forward",
+    "47752/forward",
+    "47753/forward",
+    "47760/forward",
+    "47761/forward",
+    "47762/forward",
+    "47765/forward",
+    "47768/forward",
+    "47770/forward",
+    "47806/forward",
+    "47823/forward",
+    "47831/forward",
+    "47835/forward",
+    "47844/forward",
+    "47848/forward",
+    "47852/forward",
+    "47853/reverse",
+    "47854/forward",
+    "47855/forward",
+    "47856/forward",
+    "47858/forward",
+    "47862/forward",
+    "47870/forward",
+    "47883/forward",
+    "47929/forward",
+    "47930/reverse",
+    "47931/forward",
+    "47935/forward",
+    "47937/forward",
+    "47938/forward",
+    "47939/reverse"
+  ],
+  "absence_by_catalogue_reactions": [
+    27855,
+    40795,
+    40799,
+    40808,
+    40817,
+    40823,
+    40849,
+    40860,
+    40880,
+    46640,
+    46641,
+    47083,
+    47089,
+    47096,
+    47104,
+    47121,
+    47257,
+    47258,
+    47322,
+    47323,
+    47324,
+    47325,
+    47393,
+    47413,
+    47416,
+    47427,
+    47502,
+    47503,
+    47541,
+    47547,
+    47554,
+    47568,
+    47569,
+    47579,
+    47593,
+    47603,
+    47638,
+    47668,
+    47693,
+    47760,
+    47823,
+    47831,
+    47855,
+    47870,
+    47938
+  ],
+  "catalogue_recovered_decoded_absent_directions": [
+    "44128/reverse",
+    "44130/reverse",
+    "47863/reverse"
+  ],
+  "catalogue_recovered_decoded_absent_reactions": [
+    44128,
+    44130
+  ],
+  "positive_certificates_checked": 94820,
+  "certificate_errors": 0,
+  "catalogue_contradictions": [],
+  "model_physical_count_differences": 2801,
+  "attempts_by_state": {
+    "complete": 96497,
+    "memory_limit": 4
+  },
+  "report_hashes": {
+    "decoded-reference-pilot": "38073794fbefb9e6f704d7fafdd11f9101283e9ff39e75b84fa1cfb2257c4e79",
+    "decoded-reference-large": "3884547211caf15995dab4dbfa7445ee8f61a4f247b5d1e7b9d109b1606026fd",
+    "decoded-reference-audit/0": "83be345cb58a09be566744802b53d9060c1062fd2ddf74bbf35719c658e7d91c",
+    "decoded-reference-audit/1": "a9973a92658a1ffbe3450910af9b06322028971a75891fc6272ac18446d24569",
+    "decoded-reference-audit/10": "b346d09c982ae5dddfe486169c2e59f579d8ecd14d9f275dbd3263a473905fd0",
+    "decoded-reference-audit/11": "3709122ba8a4483607c61386cf351693fb9ed24938bc7ec5e5139fdff755498b",
+    "decoded-reference-audit/12": "664c57176305fc5519906cffa3e1aa20b890f80c601a6c80e0c1d854edfccbad",
+    "decoded-reference-audit/13": "924fe90ba0999f558c9aa2428c18751f7c08adb99d3cf273613039fadad9ccae",
+    "decoded-reference-audit/14": "05f473446fdb792cacfa6080053d3cdcacffccd9f51fd50fddf7b4c6880574b7",
+    "decoded-reference-audit/15": "a5b59d7fb941b80271a184ac5dd3068c04bcd01e5c2465880ed81aac016deb55",
+    "decoded-reference-audit/16": "31a5d9a31200eeac541d90ed5daaeb39f8a3617e7610f26717f2e35653efa4ac",
+    "decoded-reference-audit/17": "e2cb0edb481f7f0bd9b9be052c6a013828aea8004ef79790b2f6fd4860463cc4",
+    "decoded-reference-audit/18": "f5530dd4398cbdbf6fe30e31d9a1be05e1d4b7ae5d4319d214ab0c3ede90cd9d",
+    "decoded-reference-audit/19": "413c147937f8541436966d28a69013c9ee70948416462b4582f943f76ec41034",
+    "decoded-reference-audit/2": "2ba3550bc2005eaff8668e89ed54ac625a534169467baa7672af1f0cf0d28c30",
+    "decoded-reference-audit/20": "fed6702fe8d1aff3550d1fb2fb4e44241fcbbb64c4a3d5723497e10244e6140e",
+    "decoded-reference-audit/21": "f451cddb2235265508cff5550608186eb96f22bac064c16d6ed4731367864b79",
+    "decoded-reference-audit/22": "aef8ae80d5f06cf8743481f631eae8b0510e9f65adabdf70edd1572db2a7baf9",
+    "decoded-reference-audit/23": "c45e3c5c89f5d8e7ac1f59552670ff0e2778814ccf3de1067554a17dce080a71",
+    "decoded-reference-audit/24": "be57f0a5d57b067bcfad311b5e8b5b10effc12f6fc1919ad9d3255de4f42e2c8",
+    "decoded-reference-audit/25": "6c78478a6d435d56b8336cfde9612c067023c4cea7361b3cc3484242bffdcfb7",
+    "decoded-reference-audit/26": "d9442d39a3c70bed5b151cc9f37d2e4b6d546acd0baae09550dd39253080f53d",
+    "decoded-reference-audit/27": "bfe73950dd850280e0cba6ce8781ba3908ff78f4f18a6da4cd8e6d734774ee72",
+    "decoded-reference-audit/28": "84a4c5c6e35e07d769f0b90bceaf204eae5161f74ffea89a70c898dd5936eb27",
+    "decoded-reference-audit/29": "2093ffdd0e101fcb1599c41916f0ca9fdce121ae9aeef029499a536ec421a49a",
+    "decoded-reference-audit/3": "24395dda407f6d1c1ecc217ce98339f25da44373076b45195f0b1d6fe2235084",
+    "decoded-reference-audit/30": "076f9edd624af601e63020fedfd4472a5bf2904b39a6ba0283256d96e52c335e",
+    "decoded-reference-audit/31": "69e43a46f8ae060d1b27fe982a1fb2531be2486a1e945999a97972bebbf60937",
+    "decoded-reference-audit/32": "d958b23f844972be58c4fdbcdbadb27fd29a4ecc0a81e76513e213f3c9b905d1",
+    "decoded-reference-audit/33": "0f97533afe3ed908853953e4cc42c2ddf3e3f174fbdadf413730d9a411557bb1",
+    "decoded-reference-audit/34": "2751534de1f28e009fe6a27ff324e93b9a2df31be307d7d0428dbc6efdead275",
+    "decoded-reference-audit/35": "21d1075d6cb2c733d1ae352e631e92a3bb0b2be8f3dadd1110559a024e7dd710",
+    "decoded-reference-audit/36": "e9e51f1dc912a3e4b211da959f0ff428b09dedd3af50a8688e873b2104956efa",
+    "decoded-reference-audit/37": "6079f705253aa9f660f0aba0efa08e19846e28ef22d33fca4e3efa1215b9e54d",
+    "decoded-reference-audit/38": "03dc6f682bc33abd6008e0d0dd95e5ab7153044179f6da0766f4440d223f2d03",
+    "decoded-reference-audit/39": "da7d5346bcc8d3d927f2e845e3824046c56eb2cd85deb5b890fde42c064a82c6",
+    "decoded-reference-audit/4": "e16b8a2e1a8037fcada22b0300108828172ef04a1f2e2f6c245fc58e989e188c",
+    "decoded-reference-audit/40": "746c9279896319d1c670466914c76f3be56f6383ec6d6856c5f66cfe6dd72115",
+    "decoded-reference-audit/5": "794e761c59be7cf1b2444f524b67f69ebd6511df14197d9c46d856b41223e8e4",
+    "decoded-reference-audit/6": "fbe7a53ad9131286e742137ea4cb1d273bb1b9d6fe6a8606781bddd04ddf76ea",
+    "decoded-reference-audit/7": "a9ca9f81a42e0a10af3a703735c12b949e0df5cb9d126c1029ea15b53c00ea3d",
+    "decoded-reference-audit/8": "99c7118e1d6d634370ffc3a2a37ed08c28e0956be62cac6c72e8c9ec317a50d4",
+    "decoded-reference-audit/9": "05b38aa8c7736f768e10a2abe9cac63d97765c6305922f84f5414cd83978fd8a",
+    "decoded-reference-pilot-extended": "52e455106a28f23c91071ac8ba3c544e9324c38ddbf12e311fe1d1431e2b120d",
+    "decoded-reference-continued": "c4a800b055c6b8ab211840d423671fb32d41127828b8f8ec3947bf3540df2bb5",
+    "decoded-reference-certificates": "12caf8d0b5e57cd63159784459bf96050d9518114d81afe3604cc6c27222958e"
+  },
+  "records_sha256": "277893da09c9bf69e5a50253e3d67a9075c7b2c34da2c4d16432304f306e4995",
+  "code_validation": {
+    "latest_revision": "91eea28",
+    "affected_tests_passed": 45,
+    "scientific_source_unchanged": true,
+    "initial_benchmark_tests_passed": 44,
+    "initial_smoke_tests_passed": 26,
+    "query_budget_tests_passed": 6,
+    "latest_tests_include": [
+      "explicit-permutation oracle",
+      "wrong starting orbit rejection",
+      "source-side correspondence rebasing",
+      "event-window exclusion",
+      "sparse identity action certificates",
+      "zero-search candidate checking"
+    ]
+  },
+  "timing": {
+    "successful_task_compute_cpu_seconds": 154176.95112442898,
+    "successful_task_cpu_seconds_including_publication": 154327.1941311829,
+    "historical_failed_attempt_sampled_cpu_seconds": 206.37000000000003,
+    "observed_worker_cpu_hours_including_failed_attempts": 42.9259900364397,
+    "allocation_total_cpu_seconds": 156634.13499999998,
+    "allocated_cpu_hours": 71.65722222222222,
+    "first_worker_allocation_to_last_completion_wall_seconds": 2647.0,
+    "wall_time_caveat": "Includes diagnostic allocations and gaps for audit implementation, validation and submission; not a fresh uniform-version throughput measurement.",
+    "main_benchmark_time_excludes_this_audit": true
+  },
+  "phases": {
+    "full_disjoint_pass": {
+      "directions": 95948,
+      "states": {
+        "complete": 95946,
+        "memory_limit": 2
+      },
+      "statuses": {
+        "recovered": 94669,
+        "not_recovered": 772,
+        "unknown": 507
+      },
+      "compute_cpu_seconds": 106629.24228097497,
+      "sampled_failed_cpu_seconds": 74.91,
+      "peak_sampled_worker_gib": 7.001304626464844,
+      "longest_pool_wall_seconds": 451.4303709769156,
+      "actual_registered_workers_per_pool": [
+        4,
+        24
+      ],
+      "per_worker_memory_gib": [
+        4.0,
+        8.0
+      ],
+      "query_seconds": [
+        20.0
+      ],
+      "task_guard_seconds": [
+        180.0
+      ],
+      "query_max_nodes": [
+        10000
+      ]
+    },
+    "pilot_query_extension": {
+      "directions": 2,
+      "states": {
+        "memory_limit": 1,
+        "complete": 1
+      },
+      "statuses": {
+        "unknown": 2
+      },
+      "compute_cpu_seconds": 103.258470814,
+      "sampled_failed_cpu_seconds": 75.78999999999999,
+      "peak_sampled_worker_gib": 4.0526275634765625,
+      "longest_pool_wall_seconds": 107.52207884506788,
+      "actual_registered_workers_per_pool": [
+        2
+      ],
+      "per_worker_memory_gib": [
+        4.0
+      ],
+      "query_seconds": [
+        120.0
+      ],
+      "task_guard_seconds": [
+        180.0
+      ],
+      "query_max_nodes": [
+        10000
+      ]
+    },
+    "unresolved_query_extension": {
+      "directions": 507,
+      "states": {
+        "complete": 506,
+        "memory_limit": 1
+      },
+      "statuses": {
+        "recovered": 107,
+        "not_recovered": 106,
+        "unknown": 294
+      },
+      "compute_cpu_seconds": 47309.641017089976,
+      "sampled_failed_cpu_seconds": 55.670000000000044,
+      "peak_sampled_worker_gib": 8.014373779296875,
+      "longest_pool_wall_seconds": 853.2514700929169,
+      "actual_registered_workers_per_pool": [
+        64
+      ],
+      "per_worker_memory_gib": [
+        8.0
+      ],
+      "query_seconds": [
+        120.0
+      ],
+      "task_guard_seconds": [
+        240.0
+      ],
+      "query_max_nodes": [
+        100000
+      ]
+    },
+    "existing_witness_checks": {
+      "directions": 44,
+      "states": {
+        "complete": 44
+      },
+      "statuses": {
+        "recovered": 44
+      },
+      "compute_cpu_seconds": 134.80935554999996,
+      "sampled_failed_cpu_seconds": 0,
+      "peak_sampled_worker_gib": 0.7555961608886719,
+      "longest_pool_wall_seconds": 40.0826132458169,
+      "actual_registered_workers_per_pool": [
+        8
+      ],
+      "per_worker_memory_gib": [
+        8.0
+      ],
+      "query_seconds": [
+        0.0
+      ],
+      "task_guard_seconds": [
+        120.0
+      ],
+      "query_max_nodes": [
+        10000
+      ]
+    }
+  },
+  "window_exclusion_examples": [
+    {
+      "name": "44128/reverse",
+      "catalogue_family": 1578,
+      "catalogue_status": "recovered",
+      "minimum": 14,
+      "minimum_proven": true,
+      "window": [
+        14,
+        19
+      ],
+      "retained_family_contexts": [],
+      "boundaries": [
+        {
+          "partition": 0,
+          "cut": 0,
+          "lower": 14
+        }
+      ],
+      "decoded_sha256": "f96ee3dcfee0a06d9664fb8ed7c30b01f279bfe6b35c97c8c9ae48b128856373",
+      "seconds": 0.5386592040304095,
+      "catalogue_witness_model_count": 22,
+      "catalogue_witness_physical_count": 22,
+      "catalogue_witness_within_window": false,
+      "catalogue_certificate_sha256": "40d107d1ae4685264f2368121fedd1b8830abea0198ebda776a3fdf254e16519"
+    },
+    {
+      "name": "44130/reverse",
+      "catalogue_family": 1578,
+      "catalogue_status": "recovered",
+      "minimum": 14,
+      "minimum_proven": true,
+      "window": [
+        14,
+        19
+      ],
+      "retained_family_contexts": [],
+      "boundaries": [
+        {
+          "partition": 0,
+          "cut": 0,
+          "lower": 14
+        }
+      ],
+      "decoded_sha256": "c45865e60b8b7834dfa2475b01c065e2e8ad8c2cbc0379397bf01a3ea6e25cd7",
+      "seconds": 0.5698120470624417,
+      "catalogue_witness_model_count": 22,
+      "catalogue_witness_physical_count": 22,
+      "catalogue_witness_within_window": false,
+      "catalogue_certificate_sha256": "09312f0aad1a1ca6676457ad92a86142cd7bc6b58d1a86736e6396f511d0c78f"
+    }
+  ],
+  "limits": {
+    "direct_queries": "250 bounded direction queries remain unknown; no unknown is relabeled as a direct negative.",
+    "absence_deduction": "For those 250 directions the reference is conclusively absent from the unchanged containing catalogue. Its selected decoded subset cannot add that reference. This closes 45 reactions not independently resolved by decoded queries.",
+    "window_exclusions": "Both directions of 44128 and 44130 were independently exhausted without a retained witness. Their recovered reverse catalogue witness has 22 events outside the saved 14\u201319 window.",
+    "count_approximation": "2,801 accepted direction witnesses have different independent-fragment and physical whole-reaction event counts. They pass the declared model window; this is not a physical event-bin accuracy measurement.",
+    "algorithm": "No matching, reduction or decoding algorithm changes or scientific-stage reruns in this audit."
+  }
+}

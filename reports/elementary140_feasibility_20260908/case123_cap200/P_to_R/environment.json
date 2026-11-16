@@ -1,5 +1,4 @@
 {
-  "host": "bosque6",
   "platform": "Linux-5.15.0-177-generic-x86_64-with-glibc2.35",
   "python": "3.12.12 (main, Oct 28 2025, 12:10:49) [Clang 20.1.4 ]",
   "cpu_models": [
@@ -23,11 +22,8 @@
     28,
     30
   ],
-  "slurm": {
-    "SLURM_JOB_ID": "454401",
-    "SLURM_ARRAY_JOB_ID": "454401",
-    "SLURM_ARRAY_TASK_ID": "247",
-    "SLURM_CPUS_PER_TASK": "16",
-    "SLURM_JOB_PARTITION": "cpunodes"
+  "privacy_projection": {
+    "original_sha256": "74e504c2b9aa86f0998e17d468cbae364b47de9ebf3befa04f524095d9c7902f",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

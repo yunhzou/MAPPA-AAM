@@ -1,0 +1,22 @@
+{
+  "reactions": 1851,
+  "directions": 3702,
+  "all_decoded_checksums_verified": true,
+  "original_scope_and_minima_unchanged": true,
+  "original_branch_counts_unchanged": true,
+  "physical_counts_equal_saved_minima_for_all_observed_patterns": true,
+  "additional_searches": 0,
+  "local_wall_seconds": 15.659639957826585,
+  "workers": 8,
+  "analysis_revision": "c035d9a",
+  "manuscript_validation": "passed: all evidence checks, references and overflow checks",
+  "visual_review": {
+    "pages": [
+      15
+    ],
+    "figure": "manuscript/figs/fig10_minimum_choices.png",
+    "labels_legible": true,
+    "no_overlaps": true
+  },
+  "manuscript_sha256": "d741be4d66a0d65c19269222860bcc590ed8e287eb68847addd5c5efc1ca8998"
+}

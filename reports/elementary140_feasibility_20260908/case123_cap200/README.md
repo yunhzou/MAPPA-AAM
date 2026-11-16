@@ -22,14 +22,9 @@ The main fixed-cap-100 benchmark remains **139/140**. With this explicitly targe
 cap-200 follow-up, every one of the 140 cases has now returned a full AAM mapping.
 This is not a fresh uniform cap-200 benchmark and is not an accuracy measurement.
 
-Two 16-CPU tasks, 32 GB each, five-minute process watchdog, Slurm array 454401.
-Node/model information is in each `environment.json`; this is not a same-hardware
-speedup experiment. Actual search code and input files were reused unchanged.
-Full archives and raw cut checkpoints:
-
-```text
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_case123_cap200_20260908
-```
+Each of the two calls used 16 workers and a five-minute process watchdog.
+This is not a same-hardware speedup experiment. Actual search code and input files were reused unchanged.
+Full artifacts are retained privately.
 
 Saved full terminal mappings are included here for inspection, and the original
 compressed archives remain on the cluster. `comparison.json` contains stop-stage

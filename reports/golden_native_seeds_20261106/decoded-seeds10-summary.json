@@ -1,0 +1,123 @@
+{
+  "code_revision": "1591a8c90d810ba42b27273f19de3ea1278dd4e5",
+  "complete": true,
+  "expected_reactions": 1851,
+  "expected_directions": 3702,
+  "policy": "exact annotated heavy-atom indices, including unmatched atoms, in the saved decoded window",
+  "event_count_policy": "saved independent-fragment model; physical count reported separately",
+  "passes": [
+    {
+      "code_identity": "dd32be60adae663324e806d2087bc9b06eac4a61c8cdb3889b1d06ee9d8d46bf",
+      "verifier_sha256": "5833041a20bf3994ae1ee7a3eb0cfcdc6cc59d11f9f2aadd5716abe55e5f7eca",
+      "resources": {
+        "workers": 32,
+        "query_seconds": 10.0,
+        "task_seconds": 60.0,
+        "memory_bytes": 2147483648
+      },
+      "expected": 3702,
+      "complete": true,
+      "source_unchanged": true,
+      "certificate_failures": 0,
+      "elapsed_seconds": 218.09386373497546,
+      "status_counts": {
+        "recovered": 3649,
+        "not_recovered": 28,
+        "unknown": 25
+      },
+      "original_hashes": {
+        "index.json": "1f010f078e89719c8d770cf14721370b86e8dffa790488ae020a3ba2e89cb869",
+        "result/plan.json": "3ff1384f23891f6abe28a58b5aed752eff3ac4da9c42a9ef593ecdca82f956a9",
+        "result/ledger.sqlite": "fd4eab4982b49b1f32cd5c30cc6cc264c2e193a9706a57ae11e7b4ec0ce90903"
+      },
+      "cpu_seconds": 6265.757729610008,
+      "compute_seconds": 6291.114905747119,
+      "publish_seconds": 305.2852228207048,
+      "peak_tree_rss_bytes": 1375485952,
+      "event_filter": {
+        "contexts": 27877,
+        "rejected": 4141,
+        "symmetry_queries": 23735,
+        "seconds": 269.9507330551278
+      }
+    },
+    {
+      "code_identity": "dd32be60adae663324e806d2087bc9b06eac4a61c8cdb3889b1d06ee9d8d46bf",
+      "verifier_sha256": "5833041a20bf3994ae1ee7a3eb0cfcdc6cc59d11f9f2aadd5716abe55e5f7eca",
+      "resources": {
+        "workers": 9,
+        "query_seconds": 50.0,
+        "task_seconds": 90.0,
+        "memory_bytes": 2147483648
+      },
+      "expected": 9,
+      "complete": true,
+      "source_unchanged": true,
+      "certificate_failures": 0,
+      "elapsed_seconds": 66.44395884987898,
+      "status_counts": {
+        "not_recovered": 2,
+        "unknown": 5,
+        "recovered": 2
+      },
+      "original_hashes": {
+        "index.json": "1f010f078e89719c8d770cf14721370b86e8dffa790488ae020a3ba2e89cb869",
+        "result/plan.json": "3ff1384f23891f6abe28a58b5aed752eff3ac4da9c42a9ef593ecdca82f956a9",
+        "result/ledger.sqlite": "fd4eab4982b49b1f32cd5c30cc6cc264c2e193a9706a57ae11e7b4ec0ce90903"
+      },
+      "cpu_seconds": 455.561065516,
+      "compute_seconds": 455.7128886838909,
+      "publish_seconds": 0.059206056175753474,
+      "peak_tree_rss_bytes": 1305432064,
+      "event_filter": {
+        "contexts": 23951,
+        "rejected": 5518,
+        "symmetry_queries": 18432,
+        "seconds": 7.088961477158591
+      }
+    }
+  ],
+  "reaction_counts": {
+    "recovered": 1841,
+    "not_recovered": 8,
+    "unknown": 2
+  },
+  "direction_counts": {
+    "recovered": 3651,
+    "not_recovered": 30,
+    "unknown": 21
+  },
+  "unknown_reactions": [
+    590,
+    607
+  ],
+  "absent_reactions": [
+    7,
+    19,
+    986,
+    1285,
+    1358,
+    1377,
+    1475,
+    1553
+  ],
+  "gains_vs_one_seed": [
+    20,
+    44,
+    852,
+    867,
+    964,
+    1034,
+    1228,
+    1314,
+    1568,
+    1606
+  ],
+  "definite_losses_vs_one_seed": [],
+  "unresolved_previous_positive": [
+    607
+  ],
+  "positive_certificates": 3651,
+  "model_physical_count_difference_directions": 32,
+  "physical_witnesses_outside_saved_numeric_window_count": 0
+}

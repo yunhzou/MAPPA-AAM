@@ -31,10 +31,8 @@ failed the strict mapping-format validation. The two exceptions were upstream
 
 - Mapping campaign: **8 min 09 s** from first allocation start to last finish,
   including staggered starts, watchdog waits and persistence; **not pure compute time**.
-- Maximum 32 allocations × 32 single-threaded CPU workers = 1,024 workers.
-  Individual allocations lasted at most 321 seconds; each variant had a
-  300-second watchdog. The initial eight pending allocations received reduced
-  memory reservations; no completed work was repeated.
+- Individual allocations lasted at most 321 seconds; each variant had a
+  300-second watchdog. No completed work was repeated.
 - Separate parallel evaluation: **35 seconds**, 64 shards.
 - Completed-call native mapping CPU: **14.479 CPU-hours**, or 28.160 CPU-seconds
   per Golden reaction summed over directions, modes and cuts. This is **not total
@@ -54,9 +52,7 @@ failed the strict mapping-format validation. The two exceptions were upstream
 
 Full native outputs, every cut, reference witnesses, logs, frozen upstream source,
 and separate timing records:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/slap_edge_sweep_full_20260910`
-
+Original artifact locations are retained privately.
 Compact Git-tracked files in this folder: `summary.json`, `case_metrics.json`,
 `manifest.json`, `slurm_accounting.json`, submission records and artifact paths.
 `case_metrics.json` provides native archive pointers for one recovered reference
@@ -65,10 +61,9 @@ witness per direction/mode. Every alternative remains in the full archive.
 ## Protocol
 
 The previous AAM optimization campaign was stopped at the user's request.
-Slurm array `466079` and dependent comparison `466114` were cancelled.
+The search and dependent comparison were cancelled.
 Existing AAM checkpoints remain under
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/shared_capacity_full_20260910`.
-
+Original artifact locations are retained privately.
 This separate experiment tests pinned upstream SLAP
 (`ea248fd9494f52f4865193e87a98cc92c62b5f9e`) on all 1,851 Golden reactions.
 Run uncut plus every single source-edge deletion, independently in both
@@ -97,5 +92,5 @@ identify each frame's offset, length and SHA256. Only load these trusted archive
 
 The home filesystem is full, so development is isolated on branch
 `experiment_slap_sweep_cut` at
-`/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910`.
+Original artifact locations are retained privately.
 No AAM core algorithm change is involved.

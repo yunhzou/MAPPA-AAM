@@ -1,8 +1,8 @@
 # Reusable search-trajectory pipeline
 
 This pipeline animates the **algorithm's search history**: seed selection,
-one-atom growth attempts, compatible and rejected targets, candidate branching,
-deduplication counts, deferred boundaries, and committed fragments. R and P keep
+one-witness growth attempts, accepted and deferred edges, final compressed
+placements, and committed fragments. R and P keep
 their original coordinates throughout. It uses the shared white 3D reaction
 viewer style.
 
@@ -15,9 +15,11 @@ The stages are independent:
 4. Render `trace.json` into a self-contained `algorithm_trajectory.html`.
 
 No cut sweep is run. One recorded history is followed per selected terminal.
-All live compressed candidate representatives and symmetry blocks are included;
-the pipeline does not enumerate atom permutations. Candidate previews during
-growth can change as refinement proceeds. The selected saved branch determines
+Growth frames show one feasible witness. Saturation frames include every
+canonical placement, its local relation and the shared global placement action,
+without enumerating atom permutations. Displayed target options include the
+other components represented by that action; these are correlated alternatives,
+not independent atom choices. A growth witness can change when an extension needs reassignment. The selected saved branch determines
 which placement is committed before the next fragment starts.
 
 ## Build any saved case
@@ -25,7 +27,7 @@ which placement is committed before the next fragment starts.
 From the repository root, using its Python environment:
 
 ```bash
-python tools/build_search_trajectory.py manifest.json output_directory
+python tools/build_search_trajectory.py manifest.json output_directory --open
 ```
 
 A minimal manifest is:
@@ -54,55 +56,111 @@ Optional manifest fields:
 | `key_atoms` | Reactant atom indices labeled by default |
 | `watch_targets` | Product atom indices whose occupancy is shown below the structures |
 | `event_tolerance` | Bond-order event display threshold, default 0.5 |
+| `geometry_cache` | Optional display-conformer cache, relative to the manifest |
 | `selections[].terminals` | Specific terminals; defaults to all terminals in that context |
 | `selections[].label` | Run button label |
 | `selections[].path_labels` | Object mapping terminal IDs to display labels |
 | `selections[].default_terminal` | Branch selected when opening this run |
+| `selections[].expected_transitions` | Optional terminal-ID to transition-list map; rejects a different recorded history |
 | `selections[].focus` | Optional jump point: `{"source_edge": [a, b], "target": p}` |
 
-Capture runs in a separate process because its diagnostic observers temporarily
-wrap the matcher. The actual matching functions decide compatibility; a replay
-that differs from the saved placement fails. The bundle records archive hashes,
+Capture runs in a separate process and reads the matcher's own trace events.
+The actual matching functions decide compatibility; a replay
+that differs from the saved fragment or shared placement relationship fails. The bundle records archive hashes,
 runtime source hashes, and validation results. Native archives use the matching
 Python trace implementation and must pass the same placement verification.
 
+## Saved work-pool cuts
+
+Instead of `archive`, a selection can reference the original typed `SearchInput`
+and `CutResult` byte ranges. Paths are relative to the manifest; the loader checks
+each range's SHA-256 before reading it. No new search or catalogue reconstruction
+is needed:
+
+```json
+{
+  "geometry_cache": "../geometry",
+  "selections": [{
+    "saved_cut": {
+      "input": {"path": "saved.bundle", "offset": 0, "size": 123, "sha256": "INPUT_SHA256"},
+      "cut": {"path": "saved.bundle", "offset": 123, "size": 456, "sha256": "CUT_SHA256"}
+    },
+    "context": 0,
+    "terminals": [42],
+    "expected_transitions": {"42": [0, 3, 8]}
+  }]
+}
+```
+
+The values above illustrate the schema; use the saved references and provenance.
+For benchmark catalogues, a family's provenance identifies its cut, context,
+terminal and transitions. The completed `MatchingResult` supplies that cut's
+reference and its original input reference. Retrieve only those ranges when the
+results live remotely, preserving checksums and keeping operational paths private.
+Catalogue families alone cannot reconstruct a growth trajectory.
+
+The adapter preserves the original graph, configuration and endpoints. Its
+placeholder metrics are explicitly unmeasured. Capture records the source ranges
+and validates the selected history, fragments, deferred edges and placement groups.
+The branch diagram includes the selected histories; saturation retains all
+compressed candidates of each replayed operation, including local relations and
+shared placement actions.
+
+## Graph-only inputs and 3D display
+
+Use `geometry_cache` in the manifest, or `--geometry-cache DIRECTORY` on the build
+command. The existing `mappa.presentation.geometry` owner generates and caches
+display conformers from indexed chemistry metadata. It preserves atom order,
+bond weights and specified stereochemistry. Coordinates remain fixed in playback.
+`trace.json` retains scientific coordinates; `display-trace.json` records the
+rendering copy and geometry provenance. These conformers are illustrative, not
+experimental structures, and do not participate in matching.
+
+For an older trace without indexed chemistry metadata, render with
+`--geometry-input original-endpoints.json --geometry-cache DIRECTORY`. The
+endpoint file must contain matching `reactant` and `product` records; mismatched
+atom order or weights are rejected.
+
 ## Re-render an existing trace
+
+For generated display conformers, reuse the rendering copy:
+
+```bash
+PYTHONPATH=src python tools/render_search_trajectory.py output_directory/display-trace.json output_directory/algorithm_trajectory.html
+```
+
+For native 3D coordinates, use the scientific trace directly:
 
 ```bash
 PYTHONPATH=src python tools/render_search_trajectory.py output_directory/trace.json output_directory/algorithm_trajectory.html
 ```
 
+Do not render an all-zero scientific trace without `--geometry-cache DIRECTORY`;
+that would discard the generated display geometry.
+
 This stage does not replay matching or load the original archives. The generated
 HTML embeds its molecular renderer, shared stylesheet, and trace, so it works
 offline. Playback supports frame stepping, scrubbing, candidate selection,
-target-trial inspection, branch selection, focus/reset, and final bond overlays.
-Final events use red losses on R and green gains on P. Black/gray dashed bonds
+witness inspection, branch selection, focus/reset, and final bond overlays.
+Use **Growth fragment** to jump to a locking stage and **Final mapping** to inspect
+the recorded terminal. Fragment labels count newly assigned atoms, including
+hydrogens; joined growth stages need not equal the final fragment partition.
+Final events use red losses on R and green gains on P, including mapped/unmatched
+boundary bonds in partial mappings. Black/gray dashed bonds
 mark the tested edge, sweep cuts, or deferred search boundaries.
 
 ```bash
 PYTHONPATH=src python tools/check_search_trajectory.py output_directory
 ```
 
+When rendering generated geometry, add `--trace display-trace.json` so the browser
+check compares against the actual display coordinates. Opening an existing HTML
+requires neither capture nor rendering. `validation.json` records capture and
+render times; browser checks produce a separate receipt.
+
 The browser check needs Playwright and Chromium. `MANUSCRIPT_BROWSER` can select
 an installed Chromium executable. It checks playback, candidates, fixed endpoint
 coordinates, final event colors, offline operation, and mobile width.
-
-## PR7 example
-
-The committed example on `paper/continuous-fragment-growth` is
-`reports/pr7_search_trajectory_20260911/manifest.json`. It selects both branches
-of the one-seed R18–R21 cut and all three retained branches for order 15 of the
-30-seed run with the same cut. The latter starts at O21 and includes the recovered
-C–O-cleavage alternative. All 19 distinct fragment-call replays match their saved
-placements exactly.
-
-```bash
-python tools/build_search_trajectory.py reports/pr7_search_trajectory_20260911/manifest.json reports/pr7_search_trajectory_20260911
-```
-
-Open `reports/pr7_search_trajectory_20260911/algorithm_trajectory.html`. It starts
-at the P9 decision. **Replay from start** follows growth atom by atom; the
-**O21 first** button opens the corresponding successful saved branch.
 
 `tests/test_search_trajectory.py` also exercises a separate four-atom example,
 non-default matching settings, JSON/checkpoint loading, input preservation,

@@ -21,7 +21,7 @@
         "finished": 1788828580.8270223
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/19/evaluation.json"
+    "evaluation": "private-reference-c12baa219da03137135e"
   },
   {
     "index": 590,
@@ -45,7 +45,7 @@
         "finished": 1788828636.6144207
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/590/evaluation.json"
+    "evaluation": "private-reference-035f85530d9727564f40"
   },
   {
     "index": 603,
@@ -69,7 +69,7 @@
         "finished": 1788828128.649703
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/603/evaluation.json"
+    "evaluation": "private-reference-6e2b21880d10aee7baab"
   },
   {
     "index": 780,
@@ -93,7 +93,7 @@
         "finished": 1788828623.490971
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/780/evaluation.json"
+    "evaluation": "private-reference-c5c3ebbb248c3a1fb8b5"
   },
   {
     "index": 833,
@@ -117,7 +117,7 @@
         "finished": 1788828282.4141917
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/833/evaluation.json"
+    "evaluation": "private-reference-6f33e03612a6e3ff1125"
   },
   {
     "index": 845,
@@ -141,7 +141,7 @@
         "finished": 1788828135.8417218
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/845/evaluation.json"
+    "evaluation": "private-reference-0af75b6d653bab4a33e7"
   },
   {
     "index": 865,
@@ -165,7 +165,7 @@
         "finished": 1788828147.1577759
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/865/evaluation.json"
+    "evaluation": "private-reference-43433bba26d99322e3cc"
   },
   {
     "index": 867,
@@ -189,7 +189,7 @@
         "finished": 1788828140.6849656
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/867/evaluation.json"
+    "evaluation": "private-reference-83d1f957185cec8376e9"
   },
   {
     "index": 871,
@@ -213,7 +213,7 @@
         "finished": 1788828632.9560997
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/871/evaluation.json"
+    "evaluation": "private-reference-b4198f7c575dadd6bc0e"
   },
   {
     "index": 1033,
@@ -237,7 +237,7 @@
         "finished": 1788828136.804229
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/1033/evaluation.json"
+    "evaluation": "private-reference-9e7e171a97914196bf75"
   },
   {
     "index": 1228,
@@ -261,7 +261,7 @@
         "finished": 1788828370.587121
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/1228/evaluation.json"
+    "evaluation": "private-reference-b110d4150bc91b91a469"
   },
   {
     "index": 1358,
@@ -285,7 +285,7 @@
         "finished": 1788828634.761541
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/1358/evaluation.json"
+    "evaluation": "private-reference-ddc7e970c8ae603e29db"
   },
   {
     "index": 1377,
@@ -309,7 +309,7 @@
         "finished": 1788828576.8653526
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/1377/evaluation.json"
+    "evaluation": "private-reference-17dcf148eb9623e16eeb"
   },
   {
     "index": 1380,
@@ -333,7 +333,7 @@
         "finished": 1788828608.5078895
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/1380/evaluation.json"
+    "evaluation": "private-reference-b8ad8a91227c4bb95277"
   },
   {
     "index": 1568,
@@ -357,7 +357,7 @@
         "finished": 1788828634.7871428
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/1568/evaluation.json"
+    "evaluation": "private-reference-1f57f61149de33e0668a"
   },
   {
     "index": 1574,
@@ -381,6 +381,6 @@
         "finished": 1788828168.0405726
       }
     },
-    "evaluation": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fullnode_cap2000_20260907/1574/evaluation.json"
+    "evaluation": "private-reference-4ad679be86b76b1ead83"
   }
 ]

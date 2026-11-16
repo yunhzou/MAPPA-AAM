@@ -1,0 +1,680 @@
+{
+  "schema": "mappa.unique_fragment_reduction_validation/v1",
+  "implementation_parent_revision": "9b6ee478f7b14d7867b200409cfca6491264b67e",
+  "source_identity": "bc0d6aee9893fa53489b5a80a8382deabd88059b5d6c4aec3569bd6469eee29f",
+  "recorded_native_identity": "a934a7030baa3a34da59839c8f0795eb1e12957534418d69c85ed865799559d4",
+  "method": {
+    "runner": "bench/performance.py",
+    "matching_repeated": false,
+    "old_code_repeated": false,
+    "fresh_process_per_case": true,
+    "numerical_threads": 1,
+    "memory_guard_bytes": 2147483648,
+    "watchdog_seconds": 150,
+    "rss_sampling_seconds": 0.05,
+    "observations_per_configuration": 1
+  },
+  "validation": {
+    "full_suite": {
+      "passed": 1307,
+      "seconds": 123.28
+    },
+    "tiny_mapping_oracles": {
+      "cases": 64,
+      "contract": "All retained mappings remain valid and original atom-set branches remain. Selecting one original record does not preserve the union of all discarded growth relations.",
+      "unchanged_mapping_union": 60,
+      "reduced_mapping_union": 4,
+      "changed_cases": [
+        {
+          "seed": 5,
+          "mixed": false,
+          "raw_mappings": 16,
+          "retained_mappings": 12
+        },
+        {
+          "seed": 16,
+          "mixed": false,
+          "raw_mappings": 20,
+          "retained_mappings": 8
+        },
+        {
+          "seed": 21,
+          "mixed": false,
+          "raw_mappings": 20,
+          "retained_mappings": 16
+        },
+        {
+          "seed": 31,
+          "mixed": false,
+          "raw_mappings": 24,
+          "retained_mappings": 8
+        }
+      ]
+    },
+    "critical_cases": [
+      "One record for different witnesses and growth constraints on the same atom sets",
+      "A discarded better witness is rediscovered through bounded starting search in the triangle-tail fixture",
+      "Branches share the retained fragment and its witness, including relabelled target frames",
+      "Selected-path reduction cannot borrow its representative from an excluded path",
+      "2**20 alternative histories with different discovery records remain compressed",
+      "Round trips, ordered placements, sweep coupling and event-window queries"
+    ]
+  },
+  "observations": [
+    {
+      "case": "01763/reverse/seeds10",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "input_hashes": {
+        "matching": "0d3e85ffbfd923fb26102f9f9535c85a7a2f7e27baf13ba8d9440982a53e91aa",
+        "reference": "a4938d50b793ad9a04eedea47de32f3c673ac709489fdf05623dad3804044a45"
+      },
+      "current": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.7660229999999997,
+            "wall_seconds": 0.7665472105145454,
+            "process_lifetime_peak_rss_bytes_after": 131825664
+          },
+          "reduction": {
+            "cpu_seconds": 0.5833909999999999,
+            "wall_seconds": 0.5838648315984756,
+            "process_lifetime_peak_rss_bytes_after": 131842048
+          },
+          "verification": {
+            "cpu_seconds": 0.06932300000000002,
+            "wall_seconds": 0.07498808298259974,
+            "process_lifetime_peak_rss_bytes_after": 157876224
+          },
+          "decoding": {
+            "cpu_seconds": 3.595991,
+            "wall_seconds": 3.599629541160539,
+            "process_lifetime_peak_rss_bytes_after": 278691840
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.00527700000000042,
+            "wall_seconds": 0.005285625113174319,
+            "process_lifetime_peak_rss_bytes_after": 278708224
+          },
+          "export": {
+            "cpu_seconds": 0.9907070000000004,
+            "wall_seconds": 0.9913057091180235,
+            "process_lifetime_peak_rss_bytes_after": 304201728
+          },
+          "serialization": {
+            "cpu_seconds": 0.10818299999999947,
+            "wall_seconds": 0.10828883294016123,
+            "process_lifetime_peak_rss_bytes_after": 376569856
+          },
+          "restoration": {
+            "cpu_seconds": 0.08541999999999916,
+            "wall_seconds": 0.08552304096519947,
+            "process_lifetime_peak_rss_bytes_after": 479772672
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 52,
+        "seed_searches": 520,
+        "branches": 4532,
+        "families": 5032,
+        "fragments": 731,
+        "paths": 41010,
+        "branch_composition_sha256": "95d0ecbb480ef0c868c5a945c77e27f7ba732bd63fb52d125e665923ccc64d3b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 6,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 6,
+        "minimum_proven": true,
+        "serialized_bytes": 11572062,
+        "process_lifetime_peak_rss_bytes": 479772672
+      },
+      "recorded_native": {
+        "branches": 4532,
+        "families": 4893,
+        "fragments": 731,
+        "paths": 41010,
+        "branch_composition_sha256": "95d0ecbb480ef0c868c5a945c77e27f7ba732bd63fb52d125e665923ccc64d3b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 6,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "minimum_events": 6,
+        "minimum_proven": true,
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.8018649999999999,
+            "wall_seconds": 0.8023486619349569,
+            "process_lifetime_peak_rss_bytes_after": 111853568
+          },
+          "reduction": {
+            "cpu_seconds": 0.2513859999999992,
+            "wall_seconds": 0.25163412652909756,
+            "process_lifetime_peak_rss_bytes_after": 111853568
+          },
+          "verification": {
+            "cpu_seconds": 0.00048800000000004395,
+            "wall_seconds": 0.0004890419077128172,
+            "process_lifetime_peak_rss_bytes_after": 111984640
+          },
+          "decoding": {
+            "cpu_seconds": 4.864459999999999,
+            "wall_seconds": 4.869346625171602,
+            "process_lifetime_peak_rss_bytes_after": 300859392
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0052240000000001174,
+            "wall_seconds": 0.005229958100244403,
+            "process_lifetime_peak_rss_bytes_after": 300859392
+          },
+          "export": {
+            "cpu_seconds": 1.8199449999999997,
+            "wall_seconds": 1.820969874970615,
+            "process_lifetime_peak_rss_bytes_after": 352567296
+          },
+          "serialization": {
+            "cpu_seconds": 0.10032599999999992,
+            "wall_seconds": 0.10038708290085196,
+            "process_lifetime_peak_rss_bytes_after": 434143232
+          },
+          "restoration": {
+            "cpu_seconds": 0.10861700000000063,
+            "wall_seconds": 0.10878004203550518,
+            "process_lifetime_peak_rss_bytes_after": 571408384
+          }
+        }
+      },
+      "status": "ok",
+      "sampled_peak_rss_bytes": 479772672,
+      "process_wall_seconds": 6.752167416037992,
+      "final_lookup_change_differences": []
+    },
+    {
+      "case": "01640/forward/seeds10",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "input_hashes": {
+        "matching": "33b63ca427ea72df69a0b1c2f149c28b57767950fbaf31395da0038831fc6c18",
+        "reference": "d64436608b903973fea2429487ca73be9f424edb47f2e350fd803556881ed9f9"
+      },
+      "current": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.7486450000000004,
+            "wall_seconds": 0.7528041230980307,
+            "process_lifetime_peak_rss_bytes_after": 205406208
+          },
+          "reduction": {
+            "cpu_seconds": 0.11375600000000041,
+            "wall_seconds": 0.11391354585066438,
+            "process_lifetime_peak_rss_bytes_after": 205455360
+          },
+          "verification": {
+            "cpu_seconds": 0.23477599999999987,
+            "wall_seconds": 0.24072183389216661,
+            "process_lifetime_peak_rss_bytes_after": 238141440
+          },
+          "decoding": {
+            "cpu_seconds": 7.173045000000001,
+            "wall_seconds": 7.179577166913077,
+            "process_lifetime_peak_rss_bytes_after": 381370368
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0012059999999998183,
+            "wall_seconds": 0.0012069169897586107,
+            "process_lifetime_peak_rss_bytes_after": 381370368
+          },
+          "export": {
+            "cpu_seconds": 0.3368659999999988,
+            "wall_seconds": 0.3370542919728905,
+            "process_lifetime_peak_rss_bytes_after": 528023552
+          },
+          "serialization": {
+            "cpu_seconds": 0.06508999999999965,
+            "wall_seconds": 0.0650991250295192,
+            "process_lifetime_peak_rss_bytes_after": 590430208
+          },
+          "restoration": {
+            "cpu_seconds": 0.08148599999999995,
+            "wall_seconds": 0.0815161659847945,
+            "process_lifetime_peak_rss_bytes_after": 788135936
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 95,
+        "seed_searches": 950,
+        "branches": 1232,
+        "families": 1315,
+        "fragments": 876,
+        "paths": 2563,
+        "branch_composition_sha256": "05113bed9590d0f2b80e029a1c062e0acc3a23a774939378c69a2f89e16c87af",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 5,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 35715981,
+        "process_lifetime_peak_rss_bytes": 788135936
+      },
+      "recorded_native": {
+        "branches": 1232,
+        "families": 1253,
+        "fragments": 876,
+        "paths": 2563,
+        "branch_composition_sha256": "05113bed9590d0f2b80e029a1c062e0acc3a23a774939378c69a2f89e16c87af",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 5,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.6980620000000002,
+            "wall_seconds": 0.6984697533771396,
+            "process_lifetime_peak_rss_bytes_after": 160874496
+          },
+          "reduction": {
+            "cpu_seconds": 0.214263,
+            "wall_seconds": 0.21452191355638206,
+            "process_lifetime_peak_rss_bytes_after": 160874496
+          },
+          "verification": {
+            "cpu_seconds": 0.0005709999999998772,
+            "wall_seconds": 0.0005714159924536943,
+            "process_lifetime_peak_rss_bytes_after": 161005568
+          },
+          "decoding": {
+            "cpu_seconds": 15.672591,
+            "wall_seconds": 15.683054625056684,
+            "process_lifetime_peak_rss_bytes_after": 1130725376
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0010290000000026112,
+            "wall_seconds": 0.001032290980219841,
+            "process_lifetime_peak_rss_bytes_after": 1130725376
+          },
+          "export": {
+            "cpu_seconds": 1.0493780000000008,
+            "wall_seconds": 1.049996083136648,
+            "process_lifetime_peak_rss_bytes_after": 1520680960
+          },
+          "serialization": {
+            "cpu_seconds": 0.5194469999999995,
+            "wall_seconds": 0.5197187908925116,
+            "process_lifetime_peak_rss_bytes_after": 1773158400
+          },
+          "restoration": {
+            "cpu_seconds": 0.3560350000000021,
+            "wall_seconds": 0.35624537500552833,
+            "process_lifetime_peak_rss_bytes_after": 2331967488
+          }
+        }
+      },
+      "status": "ok",
+      "sampled_peak_rss_bytes": 788135936,
+      "process_wall_seconds": 9.328423290979117,
+      "final_lookup_change_differences": []
+    },
+    {
+      "case": "01763/reverse/seeds1",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 1,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "input_hashes": {
+        "matching": "549e830c9d8ff88a2ca50ddb39f8966a92f589d5da73681b942593a76b1a14a2",
+        "reference": "a4938d50b793ad9a04eedea47de32f3c673ac709489fdf05623dad3804044a45"
+      },
+      "current": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.060687999999999936,
+            "wall_seconds": 0.06096149957738817,
+            "process_lifetime_peak_rss_bytes_after": 84295680
+          },
+          "reduction": {
+            "cpu_seconds": 0.1270410000000001,
+            "wall_seconds": 0.1272064216900617,
+            "process_lifetime_peak_rss_bytes_after": 84295680
+          },
+          "verification": {
+            "cpu_seconds": 0.076708,
+            "wall_seconds": 0.08072333317250013,
+            "process_lifetime_peak_rss_bytes_after": 113180672
+          },
+          "decoding": {
+            "cpu_seconds": 2.460952,
+            "wall_seconds": 2.4638960838783532,
+            "process_lifetime_peak_rss_bytes_after": 201752576
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.005393000000000203,
+            "wall_seconds": 0.005398374982178211,
+            "process_lifetime_peak_rss_bytes_after": 201752576
+          },
+          "export": {
+            "cpu_seconds": 0.572416,
+            "wall_seconds": 0.5727194999344647,
+            "process_lifetime_peak_rss_bytes_after": 216285184
+          },
+          "serialization": {
+            "cpu_seconds": 0.03203699999999987,
+            "wall_seconds": 0.032065958017483354,
+            "process_lifetime_peak_rss_bytes_after": 251494400
+          },
+          "restoration": {
+            "cpu_seconds": 0.02999599999999969,
+            "wall_seconds": 0.03000100003555417,
+            "process_lifetime_peak_rss_bytes_after": 298483712
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 52,
+        "seed_searches": 52,
+        "branches": 2792,
+        "families": 2798,
+        "fragments": 657,
+        "paths": 4124,
+        "branch_composition_sha256": "171a88cd36bf056363f034fc58ec03fbfb95263dade811cb1190dcf06ef0362b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 6,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 6,
+        "minimum_proven": true,
+        "serialized_bytes": 5161768,
+        "process_lifetime_peak_rss_bytes": 298483712
+      },
+      "recorded_native": {
+        "branches": 2792,
+        "families": 2792,
+        "fragments": 657,
+        "paths": 4124,
+        "branch_composition_sha256": "171a88cd36bf056363f034fc58ec03fbfb95263dade811cb1190dcf06ef0362b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 6,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "minimum_events": 6,
+        "minimum_proven": true,
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.06813199999999994,
+            "wall_seconds": 0.06814820575527847,
+            "process_lifetime_peak_rss_bytes_after": 73957376
+          },
+          "reduction": {
+            "cpu_seconds": 0.059888,
+            "wall_seconds": 0.05996950366534293,
+            "process_lifetime_peak_rss_bytes_after": 73957376
+          },
+          "verification": {
+            "cpu_seconds": 0.0004109999999999947,
+            "wall_seconds": 0.00041129114106297493,
+            "process_lifetime_peak_rss_bytes_after": 74088448
+          },
+          "decoding": {
+            "cpu_seconds": 3.0456149999999997,
+            "wall_seconds": 3.050242541823536,
+            "process_lifetime_peak_rss_bytes_after": 200474624
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.005592000000000041,
+            "wall_seconds": 0.0055994160939008,
+            "process_lifetime_peak_rss_bytes_after": 200474624
+          },
+          "export": {
+            "cpu_seconds": 0.9714619999999998,
+            "wall_seconds": 0.9718404579907656,
+            "process_lifetime_peak_rss_bytes_after": 230653952
+          },
+          "serialization": {
+            "cpu_seconds": 0.04129500000000075,
+            "wall_seconds": 0.04135483386926353,
+            "process_lifetime_peak_rss_bytes_after": 270286848
+          },
+          "restoration": {
+            "cpu_seconds": 0.04934299999999947,
+            "wall_seconds": 0.04942416702397168,
+            "process_lifetime_peak_rss_bytes_after": 334823424
+          }
+        }
+      },
+      "status": "ok",
+      "sampled_peak_rss_bytes": 298483712,
+      "process_wall_seconds": 3.837662125006318,
+      "final_lookup_change_differences": []
+    },
+    {
+      "case": "01640/forward/seeds1",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 1,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "input_hashes": {
+        "matching": "a75dc016ab861b6f31c2c6f61471fe2f5ce43275368dccfdcb8f4c1595a33081",
+        "reference": "d64436608b903973fea2429487ca73be9f424edb47f2e350fd803556881ed9f9"
+      },
+      "current": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.06021400000000002,
+            "wall_seconds": 0.06025683297775686,
+            "process_lifetime_peak_rss_bytes_after": 86081536
+          },
+          "reduction": {
+            "cpu_seconds": 0.015359999999999957,
+            "wall_seconds": 0.015404583653435111,
+            "process_lifetime_peak_rss_bytes_after": 86081536
+          },
+          "verification": {
+            "cpu_seconds": 0.25658200000000003,
+            "wall_seconds": 0.2610566671937704,
+            "process_lifetime_peak_rss_bytes_after": 127090688
+          },
+          "decoding": {
+            "cpu_seconds": 1.3917329999999999,
+            "wall_seconds": 1.3941656248643994,
+            "process_lifetime_peak_rss_bytes_after": 157564928
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.017013999999999863,
+            "wall_seconds": 0.01703741680830717,
+            "process_lifetime_peak_rss_bytes_after": 159039488
+          },
+          "export": {
+            "cpu_seconds": 0.06544700000000003,
+            "wall_seconds": 0.0655236670281738,
+            "process_lifetime_peak_rss_bytes_after": 192299008
+          },
+          "serialization": {
+            "cpu_seconds": 0.012118999999999991,
+            "wall_seconds": 0.012132874922826886,
+            "process_lifetime_peak_rss_bytes_after": 207650816
+          },
+          "restoration": {
+            "cpu_seconds": 0.015332999999999819,
+            "wall_seconds": 0.015336083015426993,
+            "process_lifetime_peak_rss_bytes_after": 248266752
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 95,
+        "seed_searches": 95,
+        "branches": 186,
+        "families": 188,
+        "fragments": 261,
+        "paths": 216,
+        "branch_composition_sha256": "8e08ff2566a69dc171229d1315708895535a71f650f80e5b90481d4812637932",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 5,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 8115393,
+        "process_lifetime_peak_rss_bytes": 248283136
+      },
+      "recorded_native": {
+        "branches": 186,
+        "families": 186,
+        "fragments": 261,
+        "paths": 216,
+        "branch_composition_sha256": "8e08ff2566a69dc171229d1315708895535a71f650f80e5b90481d4812637932",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 5,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.05144600000000002,
+            "wall_seconds": 0.051467205164954066,
+            "process_lifetime_peak_rss_bytes_after": 80183296
+          },
+          "reduction": {
+            "cpu_seconds": 0.049111000000000044,
+            "wall_seconds": 0.049159165704622865,
+            "process_lifetime_peak_rss_bytes_after": 80183296
+          },
+          "verification": {
+            "cpu_seconds": 0.0005689999999999862,
+            "wall_seconds": 0.0005691249389201403,
+            "process_lifetime_peak_rss_bytes_after": 80347136
+          },
+          "decoding": {
+            "cpu_seconds": 3.007944,
+            "wall_seconds": 3.011042624944821,
+            "process_lifetime_peak_rss_bytes_after": 257703936
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0016159999999998398,
+            "wall_seconds": 0.0016171669121831656,
+            "process_lifetime_peak_rss_bytes_after": 257851392
+          },
+          "export": {
+            "cpu_seconds": 0.23881600000000036,
+            "wall_seconds": 0.23897229204885662,
+            "process_lifetime_peak_rss_bytes_after": 343359488
+          },
+          "serialization": {
+            "cpu_seconds": 0.06917000000000018,
+            "wall_seconds": 0.06929420796222985,
+            "process_lifetime_peak_rss_bytes_after": 379109376
+          },
+          "restoration": {
+            "cpu_seconds": 0.07418900000000006,
+            "wall_seconds": 0.07425016700290143,
+            "process_lifetime_peak_rss_bytes_after": 503119872
+          }
+        }
+      },
+      "status": "ok",
+      "sampled_peak_rss_bytes": 223395840,
+      "process_wall_seconds": 2.2236953747924417,
+      "final_lookup_change_differences": []
+    }
+  ],
+  "limitations": [
+    "Selected local validation covers two directions at one and ten seeds, not the full Golden dataset.",
+    "Representative selection is not an exhaustive union of raw discovery histories; bounded starting search does not guarantee a global optimum.",
+    "Reduction alone remains slower than the recorded reconstructed-catalogue implementation for 1763; reduction plus decoding is faster in all four configurations.",
+    "Historical native measurements used an 8 GiB guard; the current guard is 2 GiB. These are single observations, not statistical speed estimates.",
+    "The full one-seed and ten-seed validation has not been restarted."
+  ]
+}

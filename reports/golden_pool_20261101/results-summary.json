@@ -1,0 +1,219 @@
+{
+  "observed_utc": "2026-11-01T06:10:47.608739+00:00",
+  "counts": [
+    {
+      "stage": "decoding",
+      "state": "complete",
+      "count": 3702
+    },
+    {
+      "stage": "deduplication",
+      "state": "complete",
+      "count": 3702
+    },
+    {
+      "stage": "matching",
+      "state": "complete",
+      "count": 3702
+    },
+    {
+      "stage": "verification",
+      "state": "complete",
+      "count": 3702
+    }
+  ],
+  "reference_directions": {
+    "recovered": 3617,
+    "not_recovered": 85
+  },
+  "reference_reactions": {
+    "recovered": 1830,
+    "not_recovered": 21
+  },
+  "stage_metrics": {
+    "deduplication": {
+      "tasks": 3702,
+      "cpu_seconds": 2886.490053526004,
+      "compute_cpu_seconds": 2822.626719771008,
+      "peak_sampled_worker_rss_bytes": 272531456,
+      "peak_process_lifetime_rss_bytes": 289239040
+    },
+    "decoding": {
+      "tasks": 3702,
+      "cpu_seconds": 14473.031371539993,
+      "compute_cpu_seconds": 13899.63511755499,
+      "peak_sampled_worker_rss_bytes": 2186715136,
+      "peak_process_lifetime_rss_bytes": 1929080832
+    },
+    "verification": {
+      "tasks": 3702,
+      "cpu_seconds": 1310.3849627429995,
+      "compute_cpu_seconds": 1306.1240262079991,
+      "peak_sampled_worker_rss_bytes": 1219067904,
+      "peak_process_lifetime_rss_bytes": 1929080832
+    }
+  },
+  "failures": [],
+  "fresh_decoder_retry": {
+    "fd8f409f362343ff9dc89054f3e37106/01561/forward/decoding": {
+      "state": "memory_limit",
+      "result": {
+        "cpu_seconds": 89.853663184,
+        "compute_seconds": 89.90094655693974,
+        "peak_tree_rss_bytes": 2169737216,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 1752473600,
+          "publication": 2169737216
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 91.39999999999999,
+        "memory_samples": 457,
+        "phase_at_exit": "publication",
+        "worker": "private-reference-e0a9c97a2ba05010e9ca:2663296:0ad911b60777493a9e0e348cbb528f23",
+        "monitoring_seconds": 0.1273404115345329,
+        "elapsed_seconds": 91.4526191909099
+      }
+    }
+  },
+  "independent_verification": {
+    "memory_bytes": 2147483648,
+    "counts": [
+      {
+        "stage": "decoding",
+        "state": "complete",
+        "count": 739
+      },
+      {
+        "stage": "decoding",
+        "state": "error",
+        "count": 1
+      },
+      {
+        "stage": "deduplication",
+        "state": "complete",
+        "count": 740
+      },
+      {
+        "stage": "matching",
+        "state": "complete",
+        "count": 740
+      },
+      {
+        "stage": "verification",
+        "state": "complete",
+        "count": 740
+      }
+    ],
+    "elapsed_seconds": 51.55831744999159,
+    "note": "Independent catalogue reference verification; original decoder failure preserved"
+  },
+  "historical_decoder_failures": [
+    {
+      "case": "01561/forward",
+      "stage": "decoding",
+      "state": "error",
+      "error": "{\"bb2dd08f2f9c4bc6b806932310cd26d1/01561/forward/decoding\": \"memory_limit\"}",
+      "audit": {
+        "path": "private-reference-1ba0f0da046b6540da7e",
+        "offset": 1634950,
+        "size": 995,
+        "sha256": "d9b460e73d8a52a0e2f61712aa6a096a372f424b5eb443afaa203683370cba3c"
+      },
+      "metrics": {
+        "cpu_seconds": 92.411822208,
+        "compute_seconds": 92.41870696400292,
+        "peak_tree_rss_bytes": 2186715136,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 1752666112,
+          "publication": 2186715136
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 93.79,
+        "memory_samples": 469,
+        "phase_at_exit": "publication",
+        "worker": "private-reference-c446f3acf119471a4d55:3978013:67ce35eaa66a4f0ea950880cd86bfb3c",
+        "monitoring_seconds": 0.08041833818424493,
+        "elapsed_seconds": 93.96972445002757
+      }
+    }
+  ],
+  "complete": true,
+  "decoder_recovery": {
+    "observed_utc": "2026-11-01T06:10:47.608739+00:00",
+    "case": "01561/forward",
+    "source_commit": "5fd12602addfb597bcad422fc5abc132594dd7d4",
+    "memory_bytes": 2147483648,
+    "manifest": {
+      "schema": "mappa.stage/v1",
+      "stage": "decoding",
+      "source": "d94b00946cf79fa39e9208c9af6b187527052cdd5ed705e553be5ada906b905d",
+      "results": {
+        "01561/forward": {
+          "path": "private-reference-730ae33eda1ec792ecd9",
+          "offset": 0,
+          "size": 4592181,
+          "sha256": "b63de1fe927fa0fcea9ee0b0414da47525ab157c73c7a3e0d4280de12bf1b8a9"
+        }
+      }
+    },
+    "audit": {
+      "path": "private-reference-2c8e751817c51baae2d5",
+      "offset": 0,
+      "size": 1176,
+      "sha256": "17fa8bb933ad8ed45f4e0ad96ef017b0bc5d2104bb3f325d838adec013a0abaa"
+    },
+    "metrics": {
+      "cpu_seconds": 94.225303212,
+      "compute_seconds": 94.30908186687157,
+      "publish_seconds": 1.7699576809536666,
+      "publish_cpu_seconds": 1.760439264999988,
+      "total_cpu_seconds": 95.986624926,
+      "process_lifetime_peak_rss_bytes": 1224773632,
+      "peak_tree_rss_bytes": 1224773632,
+      "phase_peak_tree_rss_bytes": {
+        "compute": 1000181760,
+        "publication": 1224773632
+      },
+      "memory_guard_bytes": 2147483648,
+      "memory_sample_interval_seconds": 0.2,
+      "sampled_cpu_seconds": 95.83,
+      "memory_samples": 479,
+      "phase_at_exit": "publication",
+      "worker": "private-reference-07b233731762c156fc79:3827104:5d4018188b134decb3c0964eed297cf0",
+      "monitoring_seconds": 0.18473962717689574,
+      "elapsed_seconds": 96.0812770370394
+    },
+    "reason": "Unique-fragment decoder refactor 5fd12602addfb597bcad422fc5abc132594dd7d4; complete expanded-record equality verified locally; retry completed at the unchanged 2 GiB worker guard in Slurm private-reference-f3edf5763db71b4ed260",
+    "counts": [
+      {
+        "stage": "decoding",
+        "state": "complete",
+        "count": 3702
+      },
+      {
+        "stage": "deduplication",
+        "state": "complete",
+        "count": 3702
+      },
+      {
+        "stage": "matching",
+        "state": "complete",
+        "count": 3702
+      },
+      {
+        "stage": "verification",
+        "state": "complete",
+        "count": 3702
+      }
+    ],
+    "failures": [],
+    "prior_failure_preserved": "Batch 1 ledger retries table; original audit references retained"
+  },
+  "stage_metrics_scope": "Original campaign attempts; failed decoder audit retained in historical_decoder_failures. Successful retry metrics are recorded separately in decoder_recovery.",
+  "privacy_projection": {
+    "original_sha256": "b108cd36575ec80c27d7ed353c387d77af094b09a8ea8c6be31f14fbde4cc521",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
+}

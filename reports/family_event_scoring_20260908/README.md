@@ -47,7 +47,7 @@ Arc-consistency/forced-image support pruning was tested on exactly the same 192 
 
 ## Timing and scope
 
-Each batch used six concurrent single-process cases on six allocated CPUs of bosque79 (64 GiB allocation). Initial targeted batch: 42 s elapsed; blind batch: 76 s; pruning experiment: 80 s. These batch times include loading/startup. Archives took 1.5–14.5 s to load per case; peak process RSS of roughly 0.5–3.7 GiB includes the complete pre-existing AAM archive.
+Each batch used six concurrent single-process cases. Initial targeted batch: 42 s elapsed; blind batch: 76 s; pruning experiment: 80 s. These batch times include loading/startup. Archives took 1.5–14.5 s to load per case; peak process RSS of roughly 0.5–3.7 GiB includes the complete pre-existing AAM archive.
 
 The per-path timers include validation, invariance testing, constraint/objective construction, solving and witness checks. They exclude archive loading, path indexing and initial library import. Summed per-path wall times are not parallel batch latency. This experiment establishes neither a full-reaction/global minimum over all paths nor a new 99% bond-window metric. A full ranking would still need to account for all competitive families and unresolved searches. No speedup multiplier against a like-for-like previous optimizer has been measured.
 
@@ -57,7 +57,4 @@ The per-path timers include validation, invariance testing, constraint/objective
 
 `summary.json` and `per_family.csv` hold measurements and proof bounds. Source snapshots, settings, concrete witnesses and logs:
 
-- `/project/yunhengzou/coordinate_alignment/aam_benchmarks/family_event_scoring_20260908` — targeted, job 452124
-- `/project/yunhengzou/coordinate_alignment/aam_benchmarks/family_event_scoring_blind_20260908` — blind baseline, job 452125
-- `/project/yunhengzou/coordinate_alignment/aam_benchmarks/family_event_scoring_pruned_20260908` — rejected pruning, job 452126
-- `/project/yunhengzou/coordinate_alignment/aam_benchmarks/family_event_scoring_profile_20260908` — outlier profile, job 452127
+Full artifacts and raw operational records are retained privately.

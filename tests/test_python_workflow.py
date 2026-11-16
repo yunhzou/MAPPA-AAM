@@ -1,3 +1,4 @@
+from mappa.mappa_workflow.mapping_analytics.queries import query_assignments
 """Public notebook workflow: event classes, certified shuffles, orientations."""
 
 import numpy as np
@@ -9,7 +10,8 @@ from mappa import (
     search_aam,
     search_aam_directions,
 )
-from mappa.postprocessing import EventDecodeConfig, decode_events
+from mappa.mappa_core.post_processing.hierarchical_mapping import RefinementConfig
+from mappa.mappa_core.post_processing.hierarchical_mapping import refine_mapping
 
 
 @pytest.fixture
@@ -34,21 +36,22 @@ def searched(reaction):
 
 
 def test_event_classes_and_conditional_shuffles(searched):
-    decoded = decode_events(searched)
+    decoded = refine_mapping(searched)
     assert decoded.complete
     assert [c.total for c in decoded.candidates] == [4, 6]
     assert len({c.id for c in decoded.candidates}) == 2
     candidate, other = decoded.candidates
     mapping = dict(candidate.mapping)
-    mapping[2], mapping[3] = mapping[3], mapping[2]
-    assert decoded.query(candidate, mapping).mapping == mapping
-    assert decoded.query(candidate, {2: mapping[2]}).status == "allowed"
-    assert decoded.query(candidate, other.mapping).status == "forbidden"
+    # These two H atoms are inside one converted fragment.
+    mapping[3], mapping[4] = mapping[4], mapping[3]
+    assert query_assignments(decoded, candidate, mapping).mapping == mapping
+    assert query_assignments(decoded, candidate, {2: mapping[2]}).status == "allowed"
+    assert query_assignments(decoded, candidate, other.mapping).status == "forbidden"
     assert (
-        decoded.query(candidate, other.mapping, same_events=False).status == "allowed"
+        query_assignments(decoded, candidate, other.mapping, same_events=False).status == "allowed"
     )
-    assert decoded.query(candidate, {2: 2, 3: 2}).status == "forbidden"
-    assert decoded.query(candidate, {}, seconds=0).status == "unknown"
+    assert query_assignments(decoded, candidate, {2: 2, 3: 2}).status == "forbidden"
+    assert query_assignments(decoded, candidate, {}, seconds=0).status == "unknown"
     assert decoded.symmetry(candidate)[0]["provenance"]
     assert [c.total for c in decoded.minimum_candidates] == [4]
 
@@ -57,14 +60,15 @@ def test_thresholds_are_separate_and_partial_results_are_marked(searched):
     before = searched.graph.to_record()
     assert [
         c.total
-        for c in decode_events(searched, EventDecodeConfig(threshold=1.1)).candidates
+        for c in refine_mapping(searched, RefinementConfig(threshold=1.1)).candidates
     ] == [0]
-    incomplete = decode_events(searched, EventDecodeConfig(seconds_per_family=0))
-    assert not incomplete.complete
+    incomplete = refine_mapping(searched)
+    incomplete.conversion.rematches[0].complete = False
+    assert not incomplete.complete and not incomplete.minimum_proven
     assert incomplete.candidates
     assert before == searched.graph.to_record()
     with pytest.raises(ValueError):
-        incomplete.query(decode_events(searched).candidates[0], {})
+        query_assignments(incomplete, refine_mapping(searched).candidates[0], {})
 
 
 def test_bidirectional_anchors_and_unequal_sizes():
@@ -81,12 +85,13 @@ def test_bidirectional_anchors_and_unequal_sizes():
     assert search_aam_directions(AAMProblem(r, p), config, direction="smaller_first")[
         0
     ].plan.reversed
-    with pytest.raises(ValueError):
-        decode_events(runs[0].aam)
+    partial = refine_mapping(runs[0].aam)
+    assert partial.complete
+    assert all(len(c.mapping) == 2 for c in partial.candidates)
 
 
 def test_seed_and_cut_controls_preserve_checkpoint_identity(reaction):
-    from mappa.aam import checkpoint_manifest
+    from mappa.mappa_core.core.search.planning import checkpoint_manifest
     from dataclasses import replace
 
     cfg = AAMSearchConfig(sweep_cuts=False, random_seed=9)
@@ -97,18 +102,28 @@ def test_seed_and_cut_controls_preserve_checkpoint_identity(reaction):
         reaction, replace(cfg, random_seed=10)
     )
     original = checkpoint_manifest(reaction, AAMSearchConfig())["config"]
-    assert "random_seed" not in original and "sweep_cuts" not in original
+    assert original["random_seed"] == 42 and original["sweep_cuts"] is True
 
 
-def test_competition_retains_baseline_and_hard_anchors(reaction):
-    from mappa.competition import compete_fragments, CompetitionConfig
-    from mappa.growth.native import available
+def test_competition_retains_baseline_and_hard_anchors(reaction, monkeypatch):
+    from mappa.mappa_core.core.search.branching.competition import compete_fragments, CompetitionConfig
+    from mappa.mappa_core.core.matching.growth.native import available
+    import mappa.mappa_core.core.matching.api as matching
 
     if not available():
         pytest.skip("optional native engine not installed")
     cfg = AAMSearchConfig(branch_limit=2000, anchors=((0, 0),))
     aam = search_aam(reaction, cfg)
+    match_fragment, observed = matching.match_fragment, []
+    def labelled_offer(source, target, **options):
+        result = match_fragment(source, target, **options)
+        observed.append(result)
+        assert set(options['context'].placement_fixed_targets) == set(target)
+        assert not result.placement_generators
+        return result
+    monkeypatch.setattr(matching, 'match_fragment', labelled_offer)
     result = compete_fragments(aam, CompetitionConfig(operation_budget=4, seconds=5))
+    assert observed
     assert result.repairs  # exercise an accepted repair, not just an empty union
     assert result.baseline is aam
     assert result.counts.get("growth_calls", 0) <= 4
@@ -116,12 +131,12 @@ def test_competition_retains_baseline_and_hard_anchors(reaction):
         assert all(
             dict(repair.graph.states[t].mapping)[0] == 0 for t in repair.graph.terminals
         )
-    ids = {c.id for c in decode_events(aam).candidates}
-    assert ids <= {c.id for c in decode_events(result.final_catalogue()).candidates}
+    ids = {c.id for c in refine_mapping(aam).candidates}
+    assert ids <= {c.id for c in refine_mapping(result.final_catalogue()).candidates}
 
 
 def test_nondefault_seed_and_uncut_agree_across_backends(reaction):
-    from mappa.growth.native import available
+    from mappa.mappa_core.core.matching.growth.native import available
 
     if not available():
         pytest.skip("optional native engine not installed")
@@ -132,6 +147,15 @@ def test_nondefault_seed_and_uncut_agree_across_backends(reaction):
         == expected
     )
     # Shared policies intentionally store a different DAG with shared contexts.
-    reference_ids = {c.id for c in decode_events(search_aam(reaction, cfg)).candidates}
+    reference_ids = {c.id for c in refine_mapping(search_aam(reaction, cfg)).candidates}
     shared = search_aam(reaction, cfg, execution="shared_policies")
-    assert {c.id for c in decode_events(shared).candidates} == reference_ids
+    assert {c.id for c in refine_mapping(shared).candidates} == reference_ids
+
+
+def test_aam_distribution_excludes_separate_retrosynthesis_packages():
+    from importlib.util import find_spec
+    import mappa.mappa_core.core.matching.api
+
+    assert find_spec("mappa.retrosynthesis") is None
+    assert find_spec("mappa.mappa_core.core.matching.graphsment_matching") is None
+    assert callable(mappa.mappa_core.core.matching.api.match_fragment)

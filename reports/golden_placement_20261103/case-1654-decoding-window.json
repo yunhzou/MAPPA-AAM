@@ -1,0 +1,185 @@
+{
+  "case": 1654,
+  "direction": "forward",
+  "scientific_input_revision": "0349a8c90c9ef845528d901fc38decc0adb1e87c",
+  "source_engine_identity": "f1d6947ca729977515f6d8f5a3ae2dd149c827f6cd0c5e9306686e923b8178ff",
+  "protocol": {
+    "seed_count": 1,
+    "branch_cap": 100,
+    "iso_tolerance": 1,
+    "self_tolerance": 1,
+    "full_cut_sweep": true,
+    "matching": "Reused the same completed catalogue; matching was not rerun",
+    "families": 2289,
+    "platform": "Local Mac",
+    "timing": "One process; decode plus export; input loading excluded",
+    "memory": "Process peak RSS, including catalogue loading"
+  },
+  "unrestricted_before": {
+    "families": 2289,
+    "cpu_seconds": 25.158286,
+    "wall_seconds": 25.18439962505363,
+    "maxrss_bytes": 2154184704
+  },
+  "unrestricted_after": {
+    "families": 2289,
+    "cpu_seconds": 20.954888,
+    "wall_seconds": 20.963544292142615,
+    "maxrss_bytes": 2151383040,
+    "record_identical": true,
+    "neighborhood_kernel": {
+      "actual_neighborhoods": 87,
+      "repetitions_per_sample": 10,
+      "samples": 5,
+      "median_cpu_seconds": {
+        "previous_python": 0.21287199999999995,
+        "native": 0.07397600000000004
+      },
+      "speedup": 2.877581918460039,
+      "all_pairs_identical": true
+    }
+  },
+  "windows": [
+    {
+      "status": "complete",
+      "slack": 0,
+      "preparation_seconds": 1.4538278749678284,
+      "tables": 14,
+      "responses": 8,
+      "selection": {
+        "minimum": 3,
+        "limit": 3,
+        "retained_family_ids": 14,
+        "lower_bounds": {
+          "6": 31,
+          "3": 14,
+          "44": 60,
+          "8": 9,
+          "11": 39,
+          "14": 93,
+          "31": 192,
+          "16": 8,
+          "22": 120,
+          "4": 10,
+          "25": 96,
+          "7": 15,
+          "26": 122,
+          "9": 3,
+          "13": 13,
+          "15": 33,
+          "20": 224,
+          "5": 2,
+          "10": 4,
+          "32": 186,
+          "28": 180,
+          "36": 60,
+          "38": 120,
+          "18": 6,
+          "19": 81,
+          "17": 48,
+          "23": 38,
+          "37": 60,
+          "12": 6,
+          "33": 80,
+          "34": 96,
+          "27": 60,
+          "24": 24,
+          "39": 96,
+          "21": 60
+        },
+        "witness_family": 3,
+        "solver_queries": 0,
+        "bound_pruned_families": 2275,
+        "slack": 0
+      },
+      "wall_seconds": 2.6945192078128457,
+      "cpu_seconds": 2.685798,
+      "peak_rss_bytes": 475398144,
+      "metrics": {}
+    },
+    {
+      "status": "complete",
+      "slack": 2,
+      "preparation_seconds": 9.469665125012398,
+      "tables": 26,
+      "responses": 10,
+      "selection": {
+        "minimum": 3,
+        "limit": 5,
+        "retained_family_ids": 26,
+        "lower_bounds": {
+          "6": 31,
+          "3": 14,
+          "44": 60,
+          "8": 9,
+          "11": 39,
+          "14": 93,
+          "31": 192,
+          "16": 8,
+          "22": 120,
+          "4": 10,
+          "25": 96,
+          "7": 15,
+          "26": 122,
+          "9": 3,
+          "13": 13,
+          "15": 33,
+          "20": 224,
+          "5": 2,
+          "10": 4,
+          "32": 186,
+          "28": 180,
+          "36": 60,
+          "38": 120,
+          "18": 6,
+          "19": 81,
+          "17": 48,
+          "23": 38,
+          "37": 60,
+          "12": 6,
+          "33": 80,
+          "34": 96,
+          "27": 60,
+          "24": 24,
+          "39": 96,
+          "21": 60
+        },
+        "witness_family": 3,
+        "solver_queries": 1,
+        "bound_pruned_families": 2263,
+        "slack": 2
+      },
+      "wall_seconds": 11.379439917160198,
+      "cpu_seconds": 11.215789,
+      "peak_rss_bytes": 774782976,
+      "metrics": {
+        "_lower_bound": {
+          "calls": 1,
+          "seconds": 0.032111958134919405
+        },
+        "compile_path": {
+          "calls": 1,
+          "seconds": 0.5458037909120321
+        },
+        "_event_model": {
+          "calls": 1,
+          "seconds": 1.7588944588787854
+        },
+        "within": {
+          "calls": 1,
+          "seconds": 5.212213666178286
+        }
+      }
+    }
+  ],
+  "validation": {
+    "status": "Final regression checks pending"
+  },
+  "scope": [
+    "Unrestricted exported scientific records are identical before and after acceleration.",
+    "Windowed outputs retain every permitted choice inside the inclusive original-WBO count window.",
+    "The full catalogue is retained separately for external reference verification.",
+    "The minimum is proved over the saved catalogue, not beyond capped matching scope.",
+    "These are single-case timing measurements, not a general speed guarantee."
+  ]
+}

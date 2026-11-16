@@ -1,18 +1,7 @@
 {
-  "job": "455951",
-  "command": [
-    "sbatch",
-    "--parsable",
-    "--partition=cpunodes",
-    "--nodelist=bosque11",
-    "--cpus-per-task=1",
-    "--mem=6G",
-    "--time=00:05:00",
-    "--array=0-29%30",
-    "--job-name=ts_score",
-    "--output=/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run/status/score_%A_%a.out",
-    "--wrap",
-    "env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONHASHSEED=0 PYTHONPATH=/project/yunhengzou/coordinate_alignment/aam_benchmarks/slap_guided_pilot_20260909/dependencies:/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run/engine/src:/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run/engine/bench timeout --kill-after=5s 180 /h/399/yunhengzou/coordinate_alignment/.venv/bin/python /project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run/score_real_ts_families.py --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run --slot \"$SLURM_ARRAY_TASK_ID\""
-  ],
-  "driver_sha256": "fd2e4f09ef0067b20c4ce270b649a9e8aaabf1cf07aaea7c811b2d42db45665d"
+  "driver_sha256": "fd2e4f09ef0067b20c4ce270b649a9e8aaabf1cf07aaea7c811b2d42db45665d",
+  "privacy_projection": {
+    "original_sha256": "f8db75472c88fed53fdbc6db3778f251da8b38d3a70d0fae64270214b31291bb",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

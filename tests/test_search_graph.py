@@ -8,15 +8,13 @@ import numpy as np
 import pytest
 
 from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
-from mappa.aam import finalize_graph_symmetry
-from mappa.artifacts import aam_from_record, aam_record
-from mappa.alignment.branch import _Branch, find_islands
-from mappa.analytical import _payload_key, compile_mapping_families
-from mappa.frag import build_graph
-from mappa.fragment import FragmentPlacement, FragmentMatchConfig, FragmentMatchContext, match_fragment
-from mappa.growth.result import IslandBranchLimitExceeded
-from mappa.matcher import _nauty_orbits
-from mappa.search_graph import AAMSearchGraph, SearchContext, SearchGraphBuilder
+from mappa.mappa_core.utils.io.records import aam_from_record, aam_record
+from mappa.mappa_core.core.search.branching.construction import _Branch, find_islands
+from mappa.mappa_core.core.matching.graphs import build_graph
+from mappa.mappa_core.core.matching.representation.records import Fragment, FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult
+from mappa.mappa_core.core.matching.api import match_fragment
+from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded
+from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchGraphBuilder
 
 
 def network(elements, bonds=()):
@@ -27,8 +25,16 @@ def network(elements, bonds=()):
 
 
 def iso(mapping):
-    return FragmentPlacement(dict(mapping), frozenset(mapping), frozenset(),
-                             {'witness': mapping, 'blocks': []}, ())
+    from mappa.mappa_core.core.symmetry.structure import binary_symmetry
+    from mappa.mappa_core.core.symmetry.relations import RelaxedIsomorphism
+    source, target = tuple(sorted(mapping)), tuple(sorted(mapping.values()))
+    base = binary_symmetry(('C',) * len(source), np.zeros((len(source), len(source))))
+    return Fragment(RelaxedIsomorphism(replace(base, atoms=source), replace(base, atoms=target),
+        tuple(mapping.items()), (), tuple((atom, target) for atom in source), (), (), .2))
+
+
+def growth_result(*fragments):
+    return FragmentMatchResult(fragments, False, len(fragments), 100, 0.)
 
 
 def problem():
@@ -37,11 +43,21 @@ def problem():
     return AAMProblem(endpoint, endpoint, 'hydrogen')
 
 
+def path_signatures(graph):
+    return [(path.context, tuple(path.mapping.items()), tuple(
+        (edge.seed, edge.step, edge.match, edge.island)
+        for edge in (graph.transitions[index] for index in path.transitions)))
+        for path in graph.paths()]
+
+
 def test_prefix_fork_reconvergence_does_not_copy_or_cross_contexts():
     graph = network(['C'] * 4)
     recorder = SearchGraphBuilder(SearchContext(tuple(graph), tuple(graph), (0, 1, 2, 3)))
     prefix = _Branch(recorder)
     prefix.commit(iso({0: 0}))
+    discarded = prefix.fork()
+    discarded.commit(iso({2: 3}))
+    recorder.stop(discarded, 'capped', stage='combined_live_leaves', count=3, limit=2)
     left, right = prefix.fork(), prefix.fork()
     left.commit(iso({1: 1}))
     left.commit(iso({2: 2}))
@@ -51,7 +67,15 @@ def test_prefix_fork_reconvergence_does_not_copy_or_cross_contexts():
     left.merge_exact_paths(right)
     left.commit(iso({3: 3}))
     recorder.stop(left, 'objective_met')
+    expected = path_signatures(recorder.finish())
+    recorder.retain([left])
     result = recorder.finish()
+    assert path_signatures(result) == expected
+    assert all(edge.match is None or dict(edge.match.witness) != {2: 3}
+               for edge in result.transitions)
+    assert result.states[left.node].mapping == tuple(sorted(left.mapping.items()))
+    cap, = [stop for stop in result.stops if stop.reason == 'capped']
+    assert (cap.state, result.stop_context(cap), cap.occurrences) == (None, 0, 1)
     paths = tuple(result.paths())
     assert len(paths) == 2
     assert all(p.transitions[0] == 0 for p in paths)
@@ -67,14 +91,70 @@ def test_prefix_fork_reconvergence_does_not_copy_or_cross_contexts():
     assert len(combined.literal_branches()) == 2
 
 
+def test_rejected_subtree_removes_its_history_without_losing_shared_survivor(monkeypatch):
+    import mappa.mappa_core.core.search.branching.construction as construction
+    from mappa.mappa_core.core.matching.representation.records import FragmentMatchResult
+
+    def grow(source, target, *, seed, context, config, **kwargs):
+        placements = ([iso({0: 0, 1: 1}), iso({0: 0, 1: 2}), iso({0: 0})]
+                      if seed == 0 else
+                      [iso({0: 0, 1: value}) for value in (1, 3, 4)])
+        return FragmentMatchResult(tuple(placements), False, len(placements),
+                                   config.branch_limit, 0.)
+
+    monkeypatch.setattr(construction, 'match_fragment', grow)
+    source = network(['C', 'O'])
+    target = network(['C', 'O', 'O', 'O', 'O'])
+    result = find_islands(source, target, [0, 1], max_branches=3)
+    paths = list(result.paths())
+    assert [path.mapping for path in paths] == [{0: 0, 1: 1}, {0: 0, 1: 2}]
+    assert [[list(edge.match.source_atoms) for edge in
+             (result.transitions[index] for index in path.transitions) if edge.match]
+            for path in paths] == [[[0, 1]], [[0, 1]]]
+    assert all(state.mapping in ((), ((0, 0), (1, 1)), ((0, 0), (1, 2)))
+               for state in result.states)
+    cap, = [stop for stop in result.stops if stop.reason == 'capped']
+    assert (cap.state, result.stop_context(cap), cap.seed, cap.step, cap.stage,
+            cap.count, cap.limit, cap.occurrences) == (
+                None, 0, 1, (1, 1), 'combined_live_leaves', 4, 3, 1)
+
+
+def test_retention_releases_discarded_payloads_and_aggregates_stop_evidence():
+    import gc
+    import weakref
+
+    recorder = SearchGraphBuilder(SearchContext((0, 1), tuple(range(102)), (0, 1)))
+    live = _Branch(recorder)
+    live.commit(iso({0: 0}))
+    payloads = []
+    for target in range(1, 101):
+        discarded = live.fork()
+        match = iso({1: target})
+        payloads.append(weakref.ref(match))
+        discarded.commit(match)
+        recorder.stop(discarded, 'capped', stage='combined_live_leaves', count=2, limit=1)
+        recorder.retain([live])
+        assert len(recorder.states) == 2 and len(recorder.transitions) == 1
+        del discarded, match
+    gc.collect()
+    assert all(reference() is None for reference in payloads)
+    result = recorder.finish()
+    cap, = result.stops
+    assert (cap.state, cap.count, cap.limit, cap.occurrences) == (None, 2, 1, 100)
+    assert not result.terminals and not list(result.paths())
+    recorder.stop(live, 'stalled')
+    recorder.retain([])
+    assert [path.mapping for path in recorder.finish().paths()] == [{0: 0}]
+
+
 def test_online_admission_reuses_equal_continuation(monkeypatch):
-    import mappa.fragment as fragment_module
+    import mappa.mappa_core.core.matching.api as fragment_module
     calls = []
     def grow(source, target, seed, mapping, **kwargs):
         calls.append((seed, tuple(mapping)))
         if seed == 0:
-            return [iso({0: 0}), iso({0: 0})]
-        return [iso({1: 1})]
+            return growth_result(iso({0: 0}), iso({0: 0}))
+        return growth_result(iso({1: 1}))
     monkeypatch.setattr(fragment_module, 'grow_island', grow)
     graph = network(['C', 'O'])
     result = find_islands(graph, graph, [0, 1], max_branches=1)
@@ -104,27 +184,25 @@ def test_sibling_commits_share_snapshots_without_mutating_the_parent():
     assert len(parent.graph.states) == 3
 
 
-def test_deferred_bond_storage_is_shared_without_changing_records():
+def test_deferred_bonds_belong_to_continuation_states():
     parent = _Branch()
     for mapping, cuts in [({0: 1}, ((0, 2), (1, 3))),
                           ({0: 2}, ((0, 2), (1, 3))),
                           ({0: 3}, ((0, 2),))]:
         branch = parent.fork()
-        branch.commit(FragmentPlacement(mapping, frozenset(mapping), frozenset(cuts),
-                       {'witness': mapping, 'blocks': []}, ()))
-        parent.graph.stop(branch, 'capped', count=2, limit=1)
+        branch.commit(iso(mapping), deferred_edges=cuts)
+        parent.graph.stop(branch, 'stalled')
     graph = parent.graph.finish()
-    a, b, c = [e.match['deferred_edges'] for e in graph.transitions]
-    assert a is b and a[0] is c[0]
-    assert a == [[0, 2], [1, 3]]
-    assert len(graph.stops) == 3  # discarded-path diagnostics are preserved
+    a, b, c = [graph.states[e.target].deferred_edges for e in graph.transitions]
+    assert a == b == ((0, 2), (1, 3))
+    assert c == ((0, 2),)
+    assert all(not hasattr(e.match, 'deferred_edges') for e in graph.transitions)
+    assert len(graph.stops) == 3  # retained partial results keep their own records
     record = graph.to_record()
     restored = AAMSearchGraph.from_record(json.loads(json.dumps(record)), copy=False)
     assert restored.to_record() == record
-    x, y, z = [e.match['deferred_edges'] for e in restored.transitions]
+    x, y, z = [restored.states[e.target].deferred_edges for e in restored.transitions]
     assert x is y and x[0] is z[0]
-    record['transitions'][0]['match']['deferred_edges'][0][0] = 99
-    assert a[0][0] == x[0][0] == 0  # public conversion owns its copy
 
 
 @pytest.mark.parametrize('seed', range(20))
@@ -141,8 +219,8 @@ def test_cached_partitions_and_events_match_literal_commit(seed):
         selected = rng.sample(atoms, rng.randrange(1, 6))
         pairs = {a: assignment[a] for a in selected}
         new_cuts = frozenset({tuple(sorted(rng.sample(atoms, 2)))})
-        match = FragmentPlacement(pairs, frozenset(pairs), new_cuts,
-                                  {'witness': pairs, 'blocks': []}, ())
+        match = iso(pairs)
+        pairs = dict(match.witness)
         touched = {islands[a] for a in pairs if a in islands}
         iid = min(touched) if touched else next_iid
         added, relabeled = [], []
@@ -165,11 +243,12 @@ def test_cached_partitions_and_events_match_literal_commit(seed):
         next_iid = len(groups) + 1
         cuts.update(new_cuts)
         expected_event = dict(type='island_locked', island_idx=iid, pairs=added,
-                              merged_with=sorted(touched - {iid}), relabeled=relabeled,
+                              merged_with=sorted(touched - {iid}), relabeled=sorted(relabeled),
                               mapped_total=len(mapping))
         events = []
-        branch.commit(match, events=events)
-        assert events == [expected_event]
+        branch.commit(match, events=events, deferred_edges=new_cuts)
+        assert [{**event, 'relabeled': sorted(event['relabeled'])}
+                for event in events] == [expected_event]
         assert branch.mapping == mapping
         assert list(branch.islands_R.items()) == list(islands.items())
         assert branch.islands_P == {mapping[a]: label for a, label in islands.items()}
@@ -178,107 +257,75 @@ def test_cached_partitions_and_events_match_literal_commit(seed):
                                       tuple(sorted(islands.items())), tuple(sorted(cuts)))
 
 
-@pytest.mark.parametrize('seed', range(10))
-def test_fragment_bonds_match_whole_graph_definition(seed):
-    from mappa.growth.result import _IsoResult
-    rng = random.Random(seed)
-    graph = network(['C'] * 18)
-    for a in graph:
-        for b in range(a, 18):
-            if rng.random() < .2:
-                graph.add_edge(a, b)
-    atoms = frozenset(rng.sample(list(graph), 9))
-    cuts = frozenset(tuple(sorted(edge)) for edge in rng.sample(list(graph.edges()), 4))
-    raw = _IsoResult({a: a + 100 for a in atoms}, fragment=atoms, deferred_edges=cuts)
-    expected = tuple(sorted(tuple(sorted((a, b))) for a, b in graph.edges()
-                            if a in atoms and b in atoms and tuple(sorted((a, b))) not in cuts))
-    result = FragmentPlacement.from_match(raw, graph)
-    assert result.preserved_bonds == expected
 
-
-def test_symmetry_finalization_preserves_history_but_only_evaluates_result_ancestry():
-    target = network(['C'] * 3)
-    recorder = SearchGraphBuilder(SearchContext(tuple(target), tuple(target), (0, 1, 2)))
+def test_graph_hierarchy_references_prepared_fragments_without_reconstruction():
+    graph = network(['C'] * 3)
+    recorder = SearchGraphBuilder(SearchContext(tuple(graph), tuple(graph), (0, 1, 2)))
     prefix = _Branch(recorder)
-    prefix.commit(iso({0: 0}))
+    first = iso({0: 0})
+    prefix.commit(first)
     live, capped = prefix.fork(), prefix.fork()
-    live.commit(iso({1: 1}))
+    second = iso({1: 1})
+    live.commit(second)
     capped.commit(iso({2: 2}))
     recorder.stop(live, 'objective_met')
     recorder.stop(capped, 'capped')
-    raw = recorder.finish()
-    selected = raw.ancestor_transitions(raw.terminals)
-    assert len(selected) == 2
-    result, metrics = finalize_graph_symmetry(raw, target, iso_tolerance=.5)
-    assert metrics['completed_candidate_group_requests'] == 2
-    assert result.states == raw.states and result.stops == raw.stops
-    assert len(result.transitions) == len(raw.transitions)
+    recorder.retain([live])
+    result = recorder.finish()
+    assert len(result.transitions) == 2
     assert result.capped
-    for edge in result.transitions:
-        assert (edge.match['symmetry'].get('automorph_group_source')
-                == 'conditioned_search_transition') == (edge.id in selected)
-    complete, metrics = finalize_graph_symmetry(result, target, iso_tolerance=.5,
-                                               states=range(len(result.states)))
-    assert metrics['completed_candidate_group_requests'] == 1
-    for edge_id in selected:
-        assert complete.transitions[edge_id].match == result.transitions[edge_id].match
-    again, metrics = finalize_graph_symmetry(complete, target, iso_tolerance=.5)
-    assert metrics['completed_candidate_group_requests'] == 0
-    assert again == complete
+    assert result.ancestor_transitions(result.terminals) == frozenset({0, 1})
+    path = next(result.paths())
+    assert path.hierarchy.fragments[0] is first
+    assert path.hierarchy.fragments[1] is second
+    combined = AAMSearchGraph.combine((result, result))
+    assert combined.transitions[0].match is combined.transitions[2].match is first
     restored = AAMSearchGraph.from_record(json.loads(json.dumps(result.to_record())))
-    assert next(restored.paths()).hierarchy == next(result.paths()).hierarchy
+    assert next(restored.paths()).hierarchy == path.hierarchy
 
 
-def test_graph_shares_generator_values_and_typed_prefix_groups(monkeypatch):
-    import mappa.search_symmetry as symmetry
-    target = network(['C'] * 3)
-    recorder = SearchGraphBuilder(SearchContext(tuple(target), tuple(target), (0, 1, 2)))
-    branch = _Branch(recorder)
-    branch.commit(iso({0: 0}))
-    branch.commit(iso({1: 1}))
-    recorder.stop(branch, 'objective_met')
-    # Fresh equal arrays from separate conditioned calculations must be interned.
-    monkeypatch.setattr(symmetry._CandidateAutomorphismCanonicalizer,
-                        'atom_generators', lambda *a, **k: [list(range(3))])
-    graph, _ = finalize_graph_symmetry(recorder.finish(), target, iso_tolerance=.5)
-    first, second = graph.transitions
-    assert first.match['symmetry']['automorph_generators'] is second.match['symmetry']['automorph_generators']
-    paths = [next(graph.paths()), next(graph.paths())]
-    a, b = paths[0].hierarchy.fragments
-    assert a.target_generators[0] is b.target_generators[0]
-    assert a.target_generators is paths[1].hierarchy.fragments[0].target_generators
-    assert [f.fragment_index for f in paths[0].hierarchy.fragments] == [0, 1]
-
-
-@pytest.mark.parametrize('stage', ['fragment_growth', 'combined_live_leaves'])
-def test_cap_is_recorded_without_claiming_a_match(monkeypatch, stage):
-    import mappa.fragment as fragment_module
+def test_completed_fragment_cap_is_recorded_without_claiming_a_match(monkeypatch):
+    import mappa.mappa_core.core.matching.api as fragment_module
     def grow(source, target, seed, mapping, **kwargs):
-        if stage == 'fragment_growth':
-            raise IslandBranchLimitExceeded(2, 1, seed=seed)
-        return [iso({0: 0}), iso({0: 1})]
+        raise IslandBranchLimitExceeded(2, 1, seed=seed)
     monkeypatch.setattr(fragment_module, 'grow_island', grow)
     graph = network(['C', 'C'])
     result = find_islands(graph, graph, [0], max_branches=1)
     assert not result.terminals
     assert result.capped
-    assert all(s.stage == stage and s.count == 2 and s.limit == 1 for s in result.stops)
+    assert all(s.stage == 'fragment_growth' and s.count == 2 and s.limit == 1
+               for s in result.stops)
+    assert len(result.states) == 1 and not result.transitions
+    assert all(s.state is None and result.stop_context(s) == 0 for s in result.stops)
+    assert sum(s.occurrences for s in result.stops) == 1
+
+
+def test_combined_cap_preserves_partial_matches_and_stall_status():
+    source = network(['C', 'O', 'H'])
+    target = network(['C', 'C', 'O', 'O', 'N', 'F', 'Cl', 'Br'],
+                     [(0, 4), (1, 5), (2, 6), (3, 7)])
+    result = find_islands(source, target, [0, 1, 2], iso_tol=.1, max_branches=3)
+    assert [path.mapping for path in result.paths()] == [
+        {0: 0, 1: 2}, {0: 0, 1: 3}]
+    cap, = [stop for stop in result.stops if stop.reason == 'capped']
+    assert (cap.stage, cap.count, cap.limit, cap.occurrences) == (
+        'combined_live_leaves', 4, 3, 1)
+    assert [stop.reason for stop in result.stops if stop.state is not None] == [
+        'stalled', 'stalled']
 
 
 def test_partial_fragment_api_and_sparse_original_atom_indices():
     source = network(['C', 'O', 'H'], [(0, 1), (0, 2)]).subgraph([0, 2]).copy()
     target = network(['C', 'O', 'H', 'C', 'H'], [(0, 2), (3, 4)]).subgraph([0, 2, 3, 4]).copy()
     config = FragmentMatchConfig()
-    context = FragmentMatchContext(source_orbits=_nauty_orbits(source, wbo_tol=.5),
-                                   target_orbits=_nauty_orbits(target, wbo_tol=.5))
+    context = FragmentMatchContext()
     result = match_fragment(source, target, seed=0, context=context, config=config)
     assert result.matches and not result.capped
-    assert all(set(m) == {0, 2} for m in result.matches)
+    assert all(set(m.source_atoms) == {0, 2} for m in result.matches)
     graph = AAMSearchGraph.initial_fragment_search(source, target, 0, result, config)
-    finalized, _ = finalize_graph_symmetry(graph, target, iso_tolerance=.5)
-    restored = AAMSearchGraph.from_record(json.loads(json.dumps(finalized.to_record())))
+    restored = AAMSearchGraph.from_record(json.loads(json.dumps(graph.to_record())))
     for path in restored.paths():
-        realization = path.sample(random.Random(7))
+        realization = path.realize()
         mapping = dict(realization.mapping)
         assert set(mapping) == {0, 2}
         assert target.has_edge(mapping[0], mapping[2])
@@ -288,15 +335,14 @@ def test_tiny_exact_symmetry_matches_exhaustive_ring_automorphisms():
     bonds = [(0, 1), (1, 2), (2, 3), (3, 0)]
     graph = network(['C'] * 4, bonds)
     result = find_islands(graph, graph, [0], iso_tol=.5)
-    result, _ = finalize_graph_symmetry(result, graph, iso_tolerance=.5)
     path = next(result.paths())
     edge = next(e for e in result.transitions if e.match is not None)
-    generators = edge.placement.target_generators
+    generators = edge.match.target_symmetry.generators
     orbit = {tuple(path.mapping[a] for a in range(4))}
     queue = list(orbit)
     for mapping in queue:
         for generator in generators:
-            moved = tuple(generator.images[a] for a in mapping)
+            moved = tuple(generator[a] for a in mapping)
             if moved not in orbit:
                 orbit.add(moved)
                 queue.append(moved)
@@ -305,15 +351,16 @@ def test_tiny_exact_symmetry_matches_exhaustive_ring_automorphisms():
     assert orbit == exact
     assert len(exact) == 8
     for seed in range(10):
-        sample = path.sample(random.Random(seed), steps_per_fragment=4)
+        word = tuple(1 + random.Random(seed + i).randrange(len(generators)) for i in range(4))
+        sample = path.realize({edge.id: {'target_word': word}})
         assert tuple(dict(sample.mapping)[a] for a in range(4)) in exact
 
 
 def test_saved_raw_aam_is_independent_of_postprocessing(tmp_path, monkeypatch):
-    import mappa.mechanisms as mechanisms
+    import mappa.mappa_core.post_processing.decoder.api as postprocessing
     def forbidden(*args, **kwargs):
         raise AssertionError('raw search must not score mechanisms')
-    monkeypatch.setattr(mechanisms, '_score_branch_mapping', forbidden)
+    monkeypatch.setattr(postprocessing, 'decode_events', forbidden)
     base = problem()
     enriched = AAMProblem(replace(base.reactant, energy=-1.2, metadata={'origin': 'saved-test'}),
                           base.product)
@@ -323,21 +370,9 @@ def test_saved_raw_aam_is_independent_of_postprocessing(tmp_path, monkeypatch):
     assert restored.problem.reactant.metadata['origin'] == 'saved-test'
     assert restored.graph.to_record() == aam_from_record(
         json.loads(json.dumps(aam_record(result)))).graph.to_record()
-    assert list(tmp_path.glob('cut_*.json'))
+    assert list(tmp_path.glob('*.bundle'))
+    assert not list(tmp_path.glob('cut_*'))
     assert len(restored.branches) == len(result.branches)
-    compiled = compile_mapping_families(restored)
-    assert compiled.branches
-    assert compiled.branches[0].aam_branch.path_provenance[0]['search_paths']
-
-
-def test_same_source_atoms_are_not_an_exact_relation_dedup_key():
-    fragment = {'fragment': [0], 'deferred_edges': [],
-                'symmetry': {'witness': {0: 0}, 'blocks': []}}
-    left = {'mapping': {0: 0}, 'hierarchy': {'fragments': [fragment]}}
-    right = {'mapping': {0: 0}, 'hierarchy': {'fragments': [
-        {**fragment, 'symmetry': {**fragment['symmetry'],
-          'blocks': [{'r_atoms': [0], 'p_atoms': [0, 1]}]}}]}}
-    assert _payload_key(left) != _payload_key(right)
 
 
 def test_serial_and_workers_produce_identical_search_graphs():
@@ -347,30 +382,35 @@ def test_serial_and_workers_produce_identical_search_graphs():
     assert serial.graph.to_record() == parallel.graph.to_record()
 
 
-def test_later_generator_is_transported_with_earlier_fragment():
-    graph = network(['C'] * 3)
-    recorder = SearchGraphBuilder(SearchContext(tuple(graph), tuple(graph), (0, 1, 2)))
+def test_local_relation_choices_transport_witnesses_and_preserve_anchors():
+    from mappa.mappa_core.core.symmetry.structure import binary_symmetry
+    from mappa.mappa_core.core.symmetry.relations import RelaxedIsomorphism
+    graph = network(['C'] * 4)
+    recorder = SearchGraphBuilder(SearchContext(tuple(graph), tuple(graph), (0, 2)))
     branch = _Branch(recorder)
-    for atom, generators in [(0, [[1, 0, 2]]), (1, [[0, 2, 1]]), (2, [])]:
-        placement = iso({atom: atom})
-        placement.symmetry['automorph_generators'] = generators
-        branch.commit(placement)
+    branch.commit(iso({0: 0, 1: 1}))
+    anchored = binary_symmetry(('C',) * 4, np.zeros((4, 4)),  anchors=(0, 1))
+    later = Fragment(RelaxedIsomorphism(anchored, anchored, tuple(enumerate(range(4))),
+        ((0, 0), (1, 1)), ((0, (0,)), (1, (1,)), (2, (2, 3)), (3, (2, 3))), (), (), .2))
+    branch.commit(later)
     recorder.stop(branch, 'objective_met')
     path = next(recorder.finish().paths())
-    sample = path.realize({0: (0,), 1: (0,)})
-    assert dict(sample.mapping) == {0: 1, 1: 2, 2: 0}
-    # The second choice must not move the already selected first assignment.
-    assert dict(sample.hierarchy.fragments[0].representative_assignments) == {0: 1}
+    sample = path.realize({0: {'discovery': {0: 1, 1: 0}},
+                           1: {'discovery': {0: 0, 1: 1, 2: 3, 3: 2}}})
+    assert dict(sample.mapping) == {0: 1, 1: 0, 2: 3, 3: 2}
+    assert dict(sample.hierarchy.fragments[0].witness) == {0: 1, 1: 0}
+    with pytest.raises(ValueError, match='domain|anchor'):
+        path.realize({1: {'discovery': {0: 1, 1: 0, 2: 2, 3: 3}}})
 
 
 def test_capped_sibling_does_not_discard_a_successful_path(monkeypatch):
-    import mappa.fragment as fragment_module
+    import mappa.mappa_core.core.matching.api as fragment_module
     def grow(source, target, seed, mapping, **kwargs):
         if seed == 0:
-            return [iso({0: 0}), iso({0: 1})]
+            return growth_result(iso({0: 0}), iso({0: 1}))
         if mapping[0] == 0:
             raise IslandBranchLimitExceeded(3, 2, seed=seed)
-        return [iso({1: 0})]
+        return growth_result(iso({1: 0}))
     monkeypatch.setattr(fragment_module, 'grow_island', grow)
     graph = network(['C', 'C'])
     result = find_islands(graph, graph, [0, 1], max_branches=2)
@@ -378,48 +418,12 @@ def test_capped_sibling_does_not_discard_a_successful_path(monkeypatch):
     assert [p.mapping for p in result.paths()] == [{0: 1, 1: 0}]
 
 
-def test_fragment_archive_and_target_action_preserve_evidence():
-    from mappa.smiles import smiles_to_weighted_graph
-    from mappa.fragment_matching import detect_fragments, materialize_target_coverage_orbit
-    from mappa.fragment_matching.serialization import (
-        fragment_candidate_from_record, fragment_candidate_to_record,
-        fragment_detection_to_record)
-    source = smiles_to_weighted_graph('CO')
-    target = smiles_to_weighted_graph('COC')
-    result = detect_fragments(source, target)
-    candidate = result.candidates[0]
-    variants = materialize_target_coverage_orbit(candidate, target)
-    assert {dict(v.mapping)[0] for v in variants} == {0, 2}
-    for variant in variants:
-        assignments = {a: b for fragment in variant.aam_hierarchy.fragments
-                        for a, b in fragment.representative_assignments if a in variant.retained_atoms}
-        assert assignments == dict(variant.mapping)
-        record = json.loads(json.dumps(fragment_candidate_to_record(variant)))
-        restored = fragment_candidate_from_record(record)
-        assert restored.mapping == variant.mapping
-        assert restored.aam_hierarchy == variant.aam_hierarchy
-        derivation = restored.derivations[0]
-        action = dict(derivation.target_action)
-        witness = {a: b for path in derivation.initial_paths[:1] + derivation.residual_paths
-                   for a, b in path.mapping.items() if a in variant.retained_atoms}
-        assert {a: action.get(b, b) for a, b in witness.items()} == assignments
-    record = json.loads(json.dumps(fragment_detection_to_record(
-        result, row_index=0, representation='CO')))
-    from mappa.fragment_matching.serialization import fragment_archive_from_record
-    graphs, fragments = fragment_archive_from_record(record)
-    assert all('search_graphs' not in c for c in record['candidates'])
-    restored = fragment_candidate_from_record(record['candidates'][0], search_graphs=graphs,
-                                              hierarchy_fragments=fragments)
-    graph_id = record['candidates'][0]['derivations'][0]['initial_paths'][0]['graph']
-    assert restored.derivations[0].initial_paths[0].graph is graphs[graph_id]
-
-
 def test_offline_viewer_uses_saved_graph_without_new_matching(tmp_path, monkeypatch):
     import re
     import shutil
     import subprocess
-    import mappa.fragment as fragment_module
-    from mappa.artifacts import write_aam_bundle
+    import mappa.mappa_core.core.matching.api as fragment_module
+    from mappa.presentation.viewers import write_aam_bundle
     result = search_aam(problem(), AAMSearchConfig(seed_count=1))
     def forbidden(*args, **kwargs):
         raise AssertionError('viewer must not invoke AAM')

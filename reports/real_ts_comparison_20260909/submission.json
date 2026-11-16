@@ -1,17 +1,6 @@
 {
-  "job": "455891",
-  "command": [
-    "sbatch",
-    "--parsable",
-    "--partition=cpunodes",
-    "--nodelist=bosque7",
-    "--cpus-per-task=1",
-    "--mem=6G",
-    "--time=00:10:00",
-    "--array=0-29%30",
-    "--job-name=ts_compare",
-    "--output=/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run/status/%A_%a.out",
-    "--wrap",
-    "env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONHASHSEED=0 RXN_CORE_NATIVE=1 PYTHONPATH=/project/yunhengzou/coordinate_alignment/aam_benchmarks/slap_guided_pilot_20260909/dependencies:/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run/engine/src:/project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run/engine/bench timeout --kill-after=5s 300 /h/399/yunhengzou/coordinate_alignment/.venv/bin/python /project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run/engine/bench/compare_real_ts_mappings.py task --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/real_ts_compare_20260909_EwGzgT/run --slot \"$SLURM_ARRAY_TASK_ID\""
-  ]
+  "privacy_projection": {
+    "original_sha256": "c08485a5f3ab7a3b2ede031dff5d15d4ea04880aa8428b87187de3ffb8875ce0",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

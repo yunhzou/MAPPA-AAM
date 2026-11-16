@@ -1,0 +1,31 @@
+{
+  "observed_utc": "2026-11-01T05:04:46.808324+00:00",
+  "matching_batches": [
+    {
+      "batch": 0,
+      "directions": 742,
+      "tasks": 35562,
+      "workers_used": 100,
+      "peak_overlapping_tasks": 100,
+      "task_span_seconds": 70.72273707389832,
+      "total_worker_cpu_seconds": 1391.862313910005,
+      "mean_compute_cpus": 19.68054930418835,
+      "peak_worker_rss_bytes": 266731520,
+      "cache_errors": 0,
+      "cache_hits": 15062167
+    },
+    {
+      "batch": 1,
+      "directions": 740,
+      "tasks": 35593,
+      "workers_used": 100,
+      "peak_overlapping_tasks": 100,
+      "task_span_seconds": 81.49986958503723,
+      "total_worker_cpu_seconds": 1491.2917985220079,
+      "mean_compute_cpus": 18.29808815787109,
+      "peak_worker_rss_bytes": 333619200,
+      "cache_errors": 0,
+      "cache_hits": 23237409
+    }
+  ]
+}

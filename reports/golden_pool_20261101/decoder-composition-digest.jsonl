@@ -1,0 +1,26 @@
+{"stage": "catalogue_loaded", "seconds": 0.33182525006122887, "rss_bytes": 216989696, "families": 14132, "branches": 11899, "cuts": 192}
+{"stage": "catalogue_deduplication", "seconds": 0.3792349579744041, "rss_bytes": 217333760, "saved_type": "CatalogueResult", "input_paths": 14132, "unique_family_keys": 14132, "duplicate_family_keys": 0, "unique_representative_mappings": 14130}
+{"stage": "session_ready", "seconds": 0.3806547080166638, "rss_bytes": 217530368}
+{"stage": "actions_ready", "seconds": 0.7361822919920087, "rss_bytes": 237223936}
+{"stage": "building_record", "seconds": 1.4696961669251323, "rss_bytes": 265043968, "family": 1000, "tables": 1000}
+{"stage": "building_record", "seconds": 2.131090958137065, "rss_bytes": 304889856, "family": 2000, "tables": 2000}
+{"stage": "building_record", "seconds": 2.7467416669242084, "rss_bytes": 343539712, "family": 3000, "tables": 3000}
+{"stage": "building_record", "seconds": 3.4187949169427156, "rss_bytes": 386695168, "family": 4000, "tables": 4000}
+{"stage": "building_record", "seconds": 4.097774958005175, "rss_bytes": 427704320, "family": 5000, "tables": 5000}
+{"stage": "building_record", "seconds": 4.881678374949843, "rss_bytes": 474611712, "family": 6000, "tables": 6000}
+{"stage": "building_record", "seconds": 5.620388332987204, "rss_bytes": 516702208, "family": 7000, "tables": 7000}
+{"stage": "building_record", "seconds": 6.2822643329855055, "rss_bytes": 560758784, "family": 8000, "tables": 8000}
+{"stage": "building_record", "seconds": 7.066105208126828, "rss_bytes": 601489408, "family": 9000, "tables": 9000}
+{"stage": "building_record", "seconds": 7.713578958064318, "rss_bytes": 642629632, "family": 10000, "tables": 10000}
+{"stage": "building_record", "seconds": 8.46424024994485, "rss_bytes": 684507136, "family": 11000, "tables": 11000}
+{"stage": "building_record", "seconds": 9.125289125135168, "rss_bytes": 728940544, "family": 12000, "tables": 12000}
+{"stage": "building_record", "seconds": 9.901237166952342, "rss_bytes": 769146880, "family": 13000, "tables": 13000}
+{"stage": "building_record", "seconds": 10.517438957933336, "rss_bytes": 810827776, "family": 14000, "tables": 14000}
+{"stage": "record_built_with_live_tables", "seconds": 10.591977542033419, "rss_bytes": 822755328, "tables": 14132, "responses": 13}
+{"stage": "timing_breakdown", "seconds": 10.595928292023018, "rss_bytes": 822755328, "inclusive": true, "functions": {"inventory": {"calls": 1, "seconds": 0.21274391608312726}, "inventory_and_action_annotations": {"calls": 1, "seconds": 0.35549504216760397}, "family_table_assembly": {"calls": 14132, "seconds": 9.25477951974608}, "fragment_lookup_and_decode": {"calls": 252442, "seconds": 1.3064644311089069}, "representative_descriptions": {"calls": 0, "seconds": 0.0}, "representative_validation": {"calls": 0, "seconds": 0.0}, "whole_reaction_description": {"calls": 0, "seconds": 0.0}, "whole_reaction_bond_classification": {"calls": 0, "seconds": 0.0}, "event_identity_and_description": {"calls": 0, "seconds": 0.0}, "whole_reaction_count_check": {"calls": 0, "seconds": 0.0}}, "unique_fragments": 2441, "fragment_occurrences": 252442, "decoded_fragment_contexts": 4472, "local_bond_contexts": 18460}
+{"stage": "operation_returned", "seconds": 10.658356874948367, "rss_bytes": 814415872}
+{"stage": "record_shape", "seconds": 10.756908708019182, "rss_bytes": 814415872, "terms": 1006967, "term_dictionary_bytes_excluding_values": 273895024, "domain_entries": 1512124, "projected_pair_states": 344944}
+{"stage": "shared_record_shape", "seconds": 10.876828582957387, "rss_bytes": 814415872, "unique_term_records": 13342, "unique_term_dictionary_bytes_excluding_values": 3629024}
+{"stage": "record_digest", "seconds": 26.90549183310941, "rss_bytes": 814415872, "sha256": "6f67159f8a07143ba94a67f5534159e52d543a36b99f7be492cad3980802bad6", "schema": "mappa.decoded_events/v4"}
+{"stage": "baseline_comparison", "seconds": 43.8950746669434, "rss_bytes": 825196544, "baseline": "out/golden_decoder_1561/dfw-decoded.bundle", "removed_reports": 14132, "normalized_sha256": "6f67159f8a07143ba94a67f5534159e52d543a36b99f7be492cad3980802bad6", "all_other_fields_identical": true}
+{"stage": "guard", "memory_bytes": 2147483648, "peak_rss_bytes": 858226688, "exit_code": 0}

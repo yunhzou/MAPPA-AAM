@@ -1,0 +1,2143 @@
+{
+  "plan_sha256": "8d147a2b1c03f2434242f5c263aeb21c19698ca9b102a470a11f0d3791d7351e",
+  "expected_reactions": 8,
+  "common_completed_cases": [
+    0,
+    7,
+    19,
+    90,
+    895,
+    1261,
+    1361,
+    1841
+  ],
+  "paired_search": {
+    "mappa": {
+      "reactions": 8,
+      "total_cpu_seconds": 14.461328930999994,
+      "mean_cpu_seconds": 1.807666116374999,
+      "median_cpu_seconds": 1.391982566499999,
+      "p95_cpu_seconds": 4.1231219522499964
+    },
+    "slap": {
+      "reactions": 8,
+      "total_cpu_seconds": 49.299877327000004,
+      "mean_cpu_seconds": 6.1624846658750005,
+      "median_cpu_seconds": 5.279202137000002,
+      "p95_cpu_seconds": 12.224100137399995
+    }
+  },
+  "catalogue_recovery": {
+    "mappa": {
+      "recovered": 6,
+      "not_recovered": 2
+    },
+    "slap": {
+      "recovered": 6,
+      "not_recovered": 2
+    }
+  },
+  "complete": true,
+  "elapsed_seconds": 28.127139057032764,
+  "source_sha256": "915379853b2092272f29703555090b82674c6411824ce099d456da2c25d81db5",
+  "scope": "Eight-case pilot; excluded from full-run timings.",
+  "cpu_model": "Intel Xeon Gold 6442Y",
+  "direction_results": [
+    {
+      "name": "mappa/00019/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.005172527000000038,
+          "wall_seconds": 0.010472889058291912
+        },
+        "preparation": {
+          "cpu_seconds": 0.001542700000000008,
+          "wall_seconds": 0.001543545862659812
+        },
+        "matching": {
+          "cpu_seconds": 0.22489905400000032,
+          "wall_seconds": 0.22595337429083884
+        },
+        "reduction": {
+          "cpu_seconds": 0.06792277299999927,
+          "wall_seconds": 0.06796209001913667
+        },
+        "audit": {
+          "cpu_seconds": 0.0024046280000000753,
+          "wall_seconds": 0.0024190384428948164
+        },
+        "publication": {
+          "cpu_seconds": 0.056048502,
+          "wall_seconds": 0.0634886680636555
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00090/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0034166659999999016,
+          "wall_seconds": 0.004703348036855459
+        },
+        "preparation": {
+          "cpu_seconds": 0.0016234929999999759,
+          "wall_seconds": 0.0016249921172857285
+        },
+        "matching": {
+          "cpu_seconds": 0.23949019699999985,
+          "wall_seconds": 0.2399616134352982
+        },
+        "reduction": {
+          "cpu_seconds": 0.1248945159999999,
+          "wall_seconds": 0.1249468878377229
+        },
+        "audit": {
+          "cpu_seconds": 0.002238104999999546,
+          "wall_seconds": 0.0022478101309388876
+        },
+        "publication": {
+          "cpu_seconds": 0.025991442999999892,
+          "wall_seconds": 0.02968928311020136
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00007/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.004146596000000002,
+          "wall_seconds": 0.004146328894421458
+        },
+        "preparation": {
+          "cpu_seconds": 0.0026034389999999297,
+          "wall_seconds": 0.0026041569653898478
+        },
+        "matching": {
+          "cpu_seconds": 0.43731176599999944,
+          "wall_seconds": 0.4378791251219809
+        },
+        "reduction": {
+          "cpu_seconds": 0.1110861430000003,
+          "wall_seconds": 0.11122394911944866
+        },
+        "audit": {
+          "cpu_seconds": 0.0034309939999997985,
+          "wall_seconds": 0.003447572700679302
+        },
+        "publication": {
+          "cpu_seconds": 0.06568387700000011,
+          "wall_seconds": 0.07113159797154367
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00895/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0027808730000000725,
+          "wall_seconds": 0.003138137049973011
+        },
+        "preparation": {
+          "cpu_seconds": 0.0013742900000000002,
+          "wall_seconds": 0.0013743259478360415
+        },
+        "matching": {
+          "cpu_seconds": 0.21165214099999918,
+          "wall_seconds": 0.211768759181723
+        },
+        "reduction": {
+          "cpu_seconds": 0.07842568000000094,
+          "wall_seconds": 0.07849642098881304
+        },
+        "audit": {
+          "cpu_seconds": 0.002364356999998929,
+          "wall_seconds": 0.0023740865290164948
+        },
+        "publication": {
+          "cpu_seconds": 0.01984033900000015,
+          "wall_seconds": 0.02176747703924775
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00007/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.003621865999999918,
+          "wall_seconds": 0.003761881962418556
+        },
+        "preparation": {
+          "cpu_seconds": 0.0020466220000000535,
+          "wall_seconds": 0.002047437010332942
+        },
+        "matching": {
+          "cpu_seconds": 0.719103113,
+          "wall_seconds": 0.7195923975668848
+        },
+        "reduction": {
+          "cpu_seconds": 0.13015610800000033,
+          "wall_seconds": 0.1302758667152375
+        },
+        "audit": {
+          "cpu_seconds": 0.00362294099999938,
+          "wall_seconds": 0.003675192128866911
+        },
+        "publication": {
+          "cpu_seconds": 0.08094508700000014,
+          "wall_seconds": 0.08758402592502534
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00895/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.004825581999999828,
+          "wall_seconds": 0.009600009070709348
+        },
+        "preparation": {
+          "cpu_seconds": 0.11440962000000021,
+          "wall_seconds": 0.1491802290547639
+        },
+        "matching": {
+          "cpu_seconds": 0.7345708390000001,
+          "wall_seconds": 0.7350295598153025
+        },
+        "reduction": {
+          "cpu_seconds": 0.008320875000001449,
+          "wall_seconds": 0.008336925646290183
+        },
+        "publication": {
+          "cpu_seconds": 0.0018622349999999344,
+          "wall_seconds": 0.0036612008698284626
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00019/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0034365869999999354,
+          "wall_seconds": 0.0037630980368703604
+        },
+        "preparation": {
+          "cpu_seconds": 0.0013792009999999966,
+          "wall_seconds": 0.001379205146804452
+        },
+        "matching": {
+          "cpu_seconds": 0.8360048580000004,
+          "wall_seconds": 0.8365481228101999
+        },
+        "reduction": {
+          "cpu_seconds": 0.47553588300000016,
+          "wall_seconds": 0.4757873797789216
+        },
+        "audit": {
+          "cpu_seconds": 0.0051398509999996955,
+          "wall_seconds": 0.005155853694304824
+        },
+        "publication": {
+          "cpu_seconds": 0.0779823249999998,
+          "wall_seconds": 0.08696438884362578
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/01261/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0019124720000001094,
+          "wall_seconds": 0.0038346219807863235
+        },
+        "preparation": {
+          "cpu_seconds": 0.06281060900000113,
+          "wall_seconds": 0.0833229860290885
+        },
+        "matching": {
+          "cpu_seconds": 0.40614410299999903,
+          "wall_seconds": 0.40640430827625096
+        },
+        "reduction": {
+          "cpu_seconds": 0.004178714999999,
+          "wall_seconds": 0.0041918628849089146
+        },
+        "publication": {
+          "cpu_seconds": 0.0013179750000000823,
+          "wall_seconds": 0.0036510848440229893
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/01261/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0018353900000001033,
+          "wall_seconds": 0.002273589838296175
+        },
+        "preparation": {
+          "cpu_seconds": 0.0011025799999999641,
+          "wall_seconds": 0.001102567883208394
+        },
+        "matching": {
+          "cpu_seconds": 0.12410525099999892,
+          "wall_seconds": 0.12416566954925656
+        },
+        "reduction": {
+          "cpu_seconds": 0.07983086900000047,
+          "wall_seconds": 0.07993802824057639
+        },
+        "audit": {
+          "cpu_seconds": 0.001810842999998341,
+          "wall_seconds": 0.0018182252533733845
+        },
+        "publication": {
+          "cpu_seconds": 0.012846633000000107,
+          "wall_seconds": 0.015011422103270888
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00895/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.001886974999999902,
+          "wall_seconds": 0.0022513519506901503
+        },
+        "preparation": {
+          "cpu_seconds": 0.0013332280000000196,
+          "wall_seconds": 0.0013330879155546427
+        },
+        "matching": {
+          "cpu_seconds": 0.5158003260000004,
+          "wall_seconds": 0.5160258824471384
+        },
+        "reduction": {
+          "cpu_seconds": 0.29058855400000017,
+          "wall_seconds": 0.2907852770294994
+        },
+        "audit": {
+          "cpu_seconds": 0.003864976000000908,
+          "wall_seconds": 0.003879684256389737
+        },
+        "publication": {
+          "cpu_seconds": 0.04939752499999983,
+          "wall_seconds": 0.05182419600896537
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/01261/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0015715459999996462,
+          "wall_seconds": 0.003031170926988125
+        },
+        "preparation": {
+          "cpu_seconds": 0.0007074810000000653,
+          "wall_seconds": 0.0007074649911373854
+        },
+        "matching": {
+          "cpu_seconds": 0.09483821500000067,
+          "wall_seconds": 0.09494059276767075
+        },
+        "reduction": {
+          "cpu_seconds": 0.03852435199999826,
+          "wall_seconds": 0.03856278536841273
+        },
+        "audit": {
+          "cpu_seconds": 0.0013561719999990451,
+          "wall_seconds": 0.0013599225785583258
+        },
+        "publication": {
+          "cpu_seconds": 0.011284077999999642,
+          "wall_seconds": 0.01315877097658813
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00895/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0016622250000000172,
+          "wall_seconds": 0.002068534027785063
+        },
+        "preparation": {
+          "cpu_seconds": 0.07124348800000124,
+          "wall_seconds": 0.10177765297703445
+        },
+        "matching": {
+          "cpu_seconds": 0.9469228219999977,
+          "wall_seconds": 0.9472872992046177
+        },
+        "reduction": {
+          "cpu_seconds": 0.006426815000000197,
+          "wall_seconds": 0.00644302973523736
+        },
+        "publication": {
+          "cpu_seconds": 0.001561193999999766,
+          "wall_seconds": 0.003105658106505871
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/01261/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0018353460000000155,
+          "wall_seconds": 0.0022059311158955097
+        },
+        "preparation": {
+          "cpu_seconds": 0.08868914099999792,
+          "wall_seconds": 0.11719562532380223
+        },
+        "matching": {
+          "cpu_seconds": 0.4284004480000001,
+          "wall_seconds": 0.42859708960168064
+        },
+        "reduction": {
+          "cpu_seconds": 0.004341623999998934,
+          "wall_seconds": 0.004379641031846404
+        },
+        "publication": {
+          "cpu_seconds": 0.001299137999999811,
+          "wall_seconds": 0.0027893250808119774
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00019/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.003688487000000018,
+          "wall_seconds": 0.0038780008908361197
+        },
+        "preparation": {
+          "cpu_seconds": 0.13245313799999936,
+          "wall_seconds": 0.3030332194175571
+        },
+        "matching": {
+          "cpu_seconds": 1.907335425000002,
+          "wall_seconds": 1.9099156123120338
+        },
+        "reduction": {
+          "cpu_seconds": 0.011383366999999311,
+          "wall_seconds": 0.011412445921450853
+        },
+        "publication": {
+          "cpu_seconds": 0.0018333340000000753,
+          "wall_seconds": 0.005778286140412092
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00000/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0050734909999999855,
+          "wall_seconds": 0.012781010009348392
+        },
+        "preparation": {
+          "cpu_seconds": 0.0017010520000000362,
+          "wall_seconds": 0.0017023589462041855
+        },
+        "matching": {
+          "cpu_seconds": 1.935697529999998,
+          "wall_seconds": 1.9369842323940247
+        },
+        "reduction": {
+          "cpu_seconds": 0.8050206819999977,
+          "wall_seconds": 0.8059035916812718
+        },
+        "audit": {
+          "cpu_seconds": 0.0075855979999992496,
+          "wall_seconds": 0.007612391607835889
+        },
+        "publication": {
+          "cpu_seconds": 0.08361513600000015,
+          "wall_seconds": 0.0938663249835372
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00000/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.003136491000000019,
+          "wall_seconds": 0.0032478240318596363
+        },
+        "preparation": {
+          "cpu_seconds": 0.18466408300000237,
+          "wall_seconds": 0.34530096664093435
+        },
+        "matching": {
+          "cpu_seconds": 2.4372184629999993,
+          "wall_seconds": 2.4380331488791853
+        },
+        "reduction": {
+          "cpu_seconds": 0.020970516999999966,
+          "wall_seconds": 0.021005892427638173
+        },
+        "publication": {
+          "cpu_seconds": 0.0023726120000002737,
+          "wall_seconds": 0.005932989995926619
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00019/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.003278582999999946,
+          "wall_seconds": 0.0034150280989706516
+        },
+        "preparation": {
+          "cpu_seconds": 0.11724561300000158,
+          "wall_seconds": 0.279448710847646
+        },
+        "matching": {
+          "cpu_seconds": 2.3751342639999984,
+          "wall_seconds": 2.3773565602023154
+        },
+        "reduction": {
+          "cpu_seconds": 0.010179681000000218,
+          "wall_seconds": 0.010206230217590928
+        },
+        "publication": {
+          "cpu_seconds": 0.0019422520000000887,
+          "wall_seconds": 0.20539779891259968
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00090/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0034944120000000023,
+          "wall_seconds": 0.0037577939219772816
+        },
+        "preparation": {
+          "cpu_seconds": 0.13347622500000111,
+          "wall_seconds": 0.2799627613276243
+        },
+        "matching": {
+          "cpu_seconds": 1.6223735950000007,
+          "wall_seconds": 1.624553695321083
+        },
+        "reduction": {
+          "cpu_seconds": 0.015049635000001227,
+          "wall_seconds": 0.01508138794451952
+        },
+        "publication": {
+          "cpu_seconds": 0.0025326419999998073,
+          "wall_seconds": 0.8931326069869101
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00090/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.003231285000000028,
+          "wall_seconds": 0.00358688086271286
+        },
+        "preparation": {
+          "cpu_seconds": 0.001541520000000074,
+          "wall_seconds": 0.0015418129041790962
+        },
+        "matching": {
+          "cpu_seconds": 0.18705297299999935,
+          "wall_seconds": 0.19455679436214268
+        },
+        "reduction": {
+          "cpu_seconds": 0.044134559999999934,
+          "wall_seconds": 0.04417275940068066
+        },
+        "audit": {
+          "cpu_seconds": 0.002146098999999846,
+          "wall_seconds": 0.0021561458706855774
+        },
+        "publication": {
+          "cpu_seconds": 0.016344738999999997,
+          "wall_seconds": 2.5623899470083416
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/01841/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0012314440000000815,
+          "wall_seconds": 0.0015687369741499424
+        },
+        "preparation": {
+          "cpu_seconds": 0.0014913099999995794,
+          "wall_seconds": 0.001491564093157649
+        },
+        "matching": {
+          "cpu_seconds": 0.6226687100000001,
+          "wall_seconds": 0.6231223300565034
+        },
+        "reduction": {
+          "cpu_seconds": 0.31426881299999865,
+          "wall_seconds": 0.3143814594950527
+        },
+        "audit": {
+          "cpu_seconds": 0.004599493000000177,
+          "wall_seconds": 0.004621176281943917
+        },
+        "publication": {
+          "cpu_seconds": 0.05374438599999998,
+          "wall_seconds": 0.056356478948146105
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/01841/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0018896689999999827,
+          "wall_seconds": 0.002265188144519925
+        },
+        "preparation": {
+          "cpu_seconds": 0.002239195000000027,
+          "wall_seconds": 0.0022396061103791
+        },
+        "matching": {
+          "cpu_seconds": 0.27571483299999977,
+          "wall_seconds": 0.2757143792696297
+        },
+        "reduction": {
+          "cpu_seconds": 0.1652750810000001,
+          "wall_seconds": 0.16537365154363215
+        },
+        "audit": {
+          "cpu_seconds": 0.003236377999999873,
+          "wall_seconds": 0.003249064087867737
+        },
+        "publication": {
+          "cpu_seconds": 0.02469900199999997,
+          "wall_seconds": 0.026706771925091743
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/01361/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.003938375999999799,
+          "wall_seconds": 0.004267198033630848
+        },
+        "preparation": {
+          "cpu_seconds": 0.004770891000000166,
+          "wall_seconds": 0.0047694179229438305
+        },
+        "matching": {
+          "cpu_seconds": 1.3887009310000011,
+          "wall_seconds": 1.3891097723972052
+        },
+        "reduction": {
+          "cpu_seconds": 0.18366885200000116,
+          "wall_seconds": 0.18391848704777658
+        },
+        "audit": {
+          "cpu_seconds": 0.007198519000000125,
+          "wall_seconds": 0.007233423879370093
+        },
+        "publication": {
+          "cpu_seconds": 0.16211710299999993,
+          "wall_seconds": 0.17520741187036037
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00000/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.004266023000000008,
+          "wall_seconds": 0.004576888866722584
+        },
+        "preparation": {
+          "cpu_seconds": 0.21399601500000076,
+          "wall_seconds": 0.35549135133624077
+        },
+        "matching": {
+          "cpu_seconds": 3.122791967,
+          "wall_seconds": 3.12421341589652
+        },
+        "reduction": {
+          "cpu_seconds": 0.02503174100000216,
+          "wall_seconds": 0.025066723115742207
+        },
+        "publication": {
+          "cpu_seconds": 0.002324035000000002,
+          "wall_seconds": 0.008544787997379899
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/01361/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.002644849000000171,
+          "wall_seconds": 0.002842162037268281
+        },
+        "preparation": {
+          "cpu_seconds": 0.0026867770000000846,
+          "wall_seconds": 0.0026867520064115524
+        },
+        "matching": {
+          "cpu_seconds": 1.5172155509999974,
+          "wall_seconds": 1.5186919781845063
+        },
+        "reduction": {
+          "cpu_seconds": 0.5641785469999987,
+          "wall_seconds": 0.564403829164803
+        },
+        "audit": {
+          "cpu_seconds": 0.007712397999999787,
+          "wall_seconds": 0.007738484302535653
+        },
+        "publication": {
+          "cpu_seconds": 0.09480521500000005,
+          "wall_seconds": 0.09802995785139501
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00000/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0037597430000000376,
+          "wall_seconds": 0.0037598300259560347
+        },
+        "preparation": {
+          "cpu_seconds": 0.0026137920000000037,
+          "wall_seconds": 0.0026137479580938816
+        },
+        "matching": {
+          "cpu_seconds": 1.1733810890000007,
+          "wall_seconds": 1.181490278802812
+        },
+        "reduction": {
+          "cpu_seconds": 0.453423409,
+          "wall_seconds": 0.4536814277525991
+        },
+        "audit": {
+          "cpu_seconds": 0.005360254999999703,
+          "wall_seconds": 0.005379110807552934
+        },
+        "publication": {
+          "cpu_seconds": 0.0868270550000001,
+          "wall_seconds": 1.5166071618441492
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00090/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0024669810000000902,
+          "wall_seconds": 0.002588964067399502
+        },
+        "preparation": {
+          "cpu_seconds": 0.11582966399999939,
+          "wall_seconds": 0.26579651166684926
+        },
+        "matching": {
+          "cpu_seconds": 1.5852775160000017,
+          "wall_seconds": 1.5859540270175785
+        },
+        "reduction": {
+          "cpu_seconds": 0.013723162999999872,
+          "wall_seconds": 0.013751025777310133
+        },
+        "publication": {
+          "cpu_seconds": 0.0022508540000001354,
+          "wall_seconds": 2.1141815511509776
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00007/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0038849589999999656,
+          "wall_seconds": 0.004036955069750547
+        },
+        "preparation": {
+          "cpu_seconds": 0.2596917979999982,
+          "wall_seconds": 0.41206818842329085
+        },
+        "matching": {
+          "cpu_seconds": 4.8945832829999985,
+          "wall_seconds": 4.900373644195497
+        },
+        "reduction": {
+          "cpu_seconds": 0.031095721999997883,
+          "wall_seconds": 0.031161358347162604
+        },
+        "publication": {
+          "cpu_seconds": 0.0027977239999996684,
+          "wall_seconds": 0.006361969048157334
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/01841/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.001737201000000077,
+          "wall_seconds": 0.0020638341084122658
+        },
+        "preparation": {
+          "cpu_seconds": 0.046772484000001224,
+          "wall_seconds": 0.0468517541885376
+        },
+        "matching": {
+          "cpu_seconds": 3.008126978000002,
+          "wall_seconds": 3.010213166475296
+        },
+        "reduction": {
+          "cpu_seconds": 0.020591018000000183,
+          "wall_seconds": 0.02062993124127388
+        },
+        "publication": {
+          "cpu_seconds": 0.002725090999999402,
+          "wall_seconds": 0.011632926994934678
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00007/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0035677210000000237,
+          "wall_seconds": 0.0035686390474438667
+        },
+        "preparation": {
+          "cpu_seconds": 0.23642375399999704,
+          "wall_seconds": 0.39059675578027964
+        },
+        "matching": {
+          "cpu_seconds": 6.182038098,
+          "wall_seconds": 6.188191305845976
+        },
+        "reduction": {
+          "cpu_seconds": 0.030424517000002704,
+          "wall_seconds": 0.030499061103910208
+        },
+        "publication": {
+          "cpu_seconds": 0.003199749000000196,
+          "wall_seconds": 0.007611443987116218
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/01841/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0012742210000000753,
+          "wall_seconds": 0.001653112005442381
+        },
+        "preparation": {
+          "cpu_seconds": 0.07243072600000033,
+          "wall_seconds": 0.07249265653081238
+        },
+        "matching": {
+          "cpu_seconds": 5.022507773000002,
+          "wall_seconds": 5.023876340361312
+        },
+        "reduction": {
+          "cpu_seconds": 0.03289011699999911,
+          "wall_seconds": 0.0329404475633055
+        },
+        "publication": {
+          "cpu_seconds": 0.0035949290000001355,
+          "wall_seconds": 0.009700966998934746
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/01361/forward",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0035020420000000385,
+          "wall_seconds": 0.0038863730151206255
+        },
+        "preparation": {
+          "cpu_seconds": 0.3383796210000014,
+          "wall_seconds": 0.338703375775367
+        },
+        "matching": {
+          "cpu_seconds": 5.686902071000005,
+          "wall_seconds": 5.688140640500933
+        },
+        "reduction": {
+          "cpu_seconds": 0.046736829999998175,
+          "wall_seconds": 0.047695928486064076
+        },
+        "publication": {
+          "cpu_seconds": 0.002860320999999999,
+          "wall_seconds": 0.005297554889693856
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/01361/reverse",
+      "stage": "matching",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.00261802599999994,
+          "wall_seconds": 0.002947234082967043
+        },
+        "preparation": {
+          "cpu_seconds": 0.2779565150000054,
+          "wall_seconds": 0.27806111541576684
+        },
+        "matching": {
+          "cpu_seconds": 6.146767731999995,
+          "wall_seconds": 6.148322554770857
+        },
+        "reduction": {
+          "cpu_seconds": 0.044965118999992004,
+          "wall_seconds": 0.047014768701046705
+        },
+        "publication": {
+          "cpu_seconds": 0.00307183199999983,
+          "wall_seconds": 1.7014922250527889
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/01261/forward",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.024175789999999697,
+          "wall_seconds": 0.02417589700780809
+        },
+        "decoding": {
+          "cpu_seconds": 0.184972916,
+          "wall_seconds": 0.18539005797356367
+        },
+        "publication": {
+          "cpu_seconds": 0.010700017000000006,
+          "wall_seconds": 0.01324522984214127
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/01261/reverse",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.03138116000000002,
+          "wall_seconds": 0.03140699095092714
+        },
+        "decoding": {
+          "cpu_seconds": 0.21053111800000002,
+          "wall_seconds": 0.21090151299722493
+        },
+        "publication": {
+          "cpu_seconds": 0.012577651999999606,
+          "wall_seconds": 0.014532885048538446
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00895/forward",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.023142126000000207,
+          "wall_seconds": 0.02314232778735459
+        },
+        "decoding": {
+          "cpu_seconds": 0.25976314999999994,
+          "wall_seconds": 0.26087816897779703
+        },
+        "publication": {
+          "cpu_seconds": 0.009712663000000177,
+          "wall_seconds": 0.011737346882000566
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00019/reverse",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.13876936399999984,
+          "wall_seconds": 0.13943872600793839
+        },
+        "decoding": {
+          "cpu_seconds": 0.4423233,
+          "wall_seconds": 0.4425270489882678
+        },
+        "publication": {
+          "cpu_seconds": 0.03652634600000004,
+          "wall_seconds": 0.03919224115088582
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00090/forward",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.054538492000000716,
+          "wall_seconds": 0.05511800409294665
+        },
+        "decoding": {
+          "cpu_seconds": 0.5739803080000003,
+          "wall_seconds": 0.5742617440409958
+        },
+        "publication": {
+          "cpu_seconds": 0.021119176000000017,
+          "wall_seconds": 0.02309705992229283
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00019/forward",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.052290235000000074,
+          "wall_seconds": 0.05281132902018726
+        },
+        "decoding": {
+          "cpu_seconds": 0.6823568990000002,
+          "wall_seconds": 0.6825868750456721
+        },
+        "publication": {
+          "cpu_seconds": 0.0204805480000001,
+          "wall_seconds": 0.02268369891680777
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00895/reverse",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.14429184900000003,
+          "wall_seconds": 0.14437594101764262
+        },
+        "decoding": {
+          "cpu_seconds": 0.6446525689999998,
+          "wall_seconds": 0.6451181829907
+        },
+        "publication": {
+          "cpu_seconds": 0.027478985000000122,
+          "wall_seconds": 0.029407944064587355
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/01841/forward",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.2767931680000002,
+          "wall_seconds": 0.28061212692409754
+        },
+        "decoding": {
+          "cpu_seconds": 0.609982713,
+          "wall_seconds": 0.6105502848513424
+        },
+        "publication": {
+          "cpu_seconds": 0.040595322999999794,
+          "wall_seconds": 0.043582043843343854
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00000/reverse",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.17661525300000003,
+          "wall_seconds": 0.17728297598659992
+        },
+        "decoding": {
+          "cpu_seconds": 1.030513532,
+          "wall_seconds": 1.0309695180039853
+        },
+        "publication": {
+          "cpu_seconds": 0.04441595599999992,
+          "wall_seconds": 0.04714578413404524
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00000/forward",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.319990043999999,
+          "wall_seconds": 0.32142388401553035
+        },
+        "decoding": {
+          "cpu_seconds": 0.99648614,
+          "wall_seconds": 0.9970962309744209
+        },
+        "publication": {
+          "cpu_seconds": 0.0635251979999989,
+          "wall_seconds": 0.34829379594884813
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00090/reverse",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.026242696000000176,
+          "wall_seconds": 0.026701919035986066
+        },
+        "decoding": {
+          "cpu_seconds": 0.342142843,
+          "wall_seconds": 0.3430521390400827
+        },
+        "publication": {
+          "cpu_seconds": 0.010187331000000022,
+          "wall_seconds": 1.2866731609683484
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00007/forward",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.2511550869999999,
+          "wall_seconds": 0.2517548738978803
+        },
+        "decoding": {
+          "cpu_seconds": 1.4749736809999998,
+          "wall_seconds": 1.4756628451868892
+        },
+        "publication": {
+          "cpu_seconds": 0.06991728900000016,
+          "wall_seconds": 0.07247607409954071
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/01841/reverse",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.11903306800000024,
+          "wall_seconds": 0.11925366893410683
+        },
+        "decoding": {
+          "cpu_seconds": 1.9598077199999988,
+          "wall_seconds": 1.961084360955283
+        },
+        "publication": {
+          "cpu_seconds": 0.03436882399999952,
+          "wall_seconds": 0.03959533595480025
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/01361/reverse",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.579188534,
+          "wall_seconds": 0.5793839839752764
+        },
+        "decoding": {
+          "cpu_seconds": 1.7946899730000005,
+          "wall_seconds": 1.795061144977808
+        },
+        "publication": {
+          "cpu_seconds": 0.08910216099999957,
+          "wall_seconds": 0.09388208203017712
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/01361/forward",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.1937644409999999,
+          "wall_seconds": 0.19399584596976638
+        },
+        "decoding": {
+          "cpu_seconds": 2.4072687669999997,
+          "wall_seconds": 2.4095048611052334
+        },
+        "publication": {
+          "cpu_seconds": 0.10474588200000134,
+          "wall_seconds": 0.10821482283063233
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00007/reverse",
+      "stage": "decoding",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.11324479900000028,
+          "wall_seconds": 0.1137316981330514
+        },
+        "decoding": {
+          "cpu_seconds": 2.435243205,
+          "wall_seconds": 2.439704454038292
+        },
+        "publication": {
+          "cpu_seconds": 0.07082412599999977,
+          "wall_seconds": 2.841876176185906
+        }
+      },
+      "verification": null,
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00000/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.004045547999999677,
+          "wall_seconds": 0.005827381974086165
+        },
+        "verification": {
+          "cpu_seconds": 0.004240248999999974,
+          "wall_seconds": 0.004241483984515071
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00007/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.004123003000000125,
+          "wall_seconds": 0.005655934102833271
+        },
+        "verification": {
+          "cpu_seconds": 0.0034187000000001078,
+          "wall_seconds": 0.0034197920467704535
+        }
+      },
+      "verification": {
+        "status": "not_recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00007/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.004258624999999849,
+          "wall_seconds": 0.0052683858666568995
+        },
+        "verification": {
+          "cpu_seconds": 0.0029228890000001506,
+          "wall_seconds": 0.0029236602131277323
+        }
+      },
+      "verification": {
+        "status": "not_recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00019/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0031038460000001322,
+          "wall_seconds": 0.0043764300644397736
+        },
+        "verification": {
+          "cpu_seconds": 0.003137761999999711,
+          "wall_seconds": 0.003138334024697542
+        }
+      },
+      "verification": {
+        "status": "not_recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00019/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.004492475000000162,
+          "wall_seconds": 0.006155044073238969
+        },
+        "verification": {
+          "cpu_seconds": 0.01269636899999993,
+          "wall_seconds": 0.012696997029706836
+        }
+      },
+      "verification": {
+        "status": "not_recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00090/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0029553959999999435,
+          "wall_seconds": 0.0039996199775487185
+        },
+        "verification": {
+          "cpu_seconds": 0.0009659360000000561,
+          "wall_seconds": 0.0009665910620242357
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00895/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0024118170000004824,
+          "wall_seconds": 0.002617534017190337
+        },
+        "verification": {
+          "cpu_seconds": 0.0034293730000003464,
+          "wall_seconds": 0.003430390963330865
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00895/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0027153169999998283,
+          "wall_seconds": 0.0030189170502126217
+        },
+        "verification": {
+          "cpu_seconds": 0.0030033459999998513,
+          "wall_seconds": 0.0030043029692023993
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/01261/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0017646280000001013,
+          "wall_seconds": 0.002136664930731058
+        },
+        "verification": {
+          "cpu_seconds": 0.000722925000000707,
+          "wall_seconds": 0.0007242138963192701
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/01261/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.002201748000000059,
+          "wall_seconds": 0.0025443239137530327
+        },
+        "verification": {
+          "cpu_seconds": 0.000770268999999324,
+          "wall_seconds": 0.0007707320619374514
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/01361/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.004644773999999963,
+          "wall_seconds": 0.0049072569236159325
+        },
+        "verification": {
+          "cpu_seconds": 0.004930995999999688,
+          "wall_seconds": 0.004932133015245199
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/00090/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.036585140999999766,
+          "wall_seconds": 0.03753695008344948
+        },
+        "verification": {
+          "cpu_seconds": 0.0009946979999999606,
+          "wall_seconds": 0.0009959652088582516
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/01361/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.004240907999999877,
+          "wall_seconds": 0.0045592160895466805
+        },
+        "verification": {
+          "cpu_seconds": 0.015402403000000398,
+          "wall_seconds": 0.015402555000036955
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "slap/01841/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0035468630000003998,
+          "wall_seconds": 0.004074438940733671
+        },
+        "verification": {
+          "cpu_seconds": 0.008645261999999931,
+          "wall_seconds": 0.008646555012091994
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00090/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.056349416999999846,
+          "wall_seconds": 0.05831506894901395
+        },
+        "verification": {
+          "cpu_seconds": 0.0964832069999999,
+          "wall_seconds": 0.2656955658458173
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.11597986399999982,
+          "wall_seconds": 0.11839917907491326
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.015580734000000263,
+          "wall_seconds": 0.015580927953124046
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": {
+        "status": "recovered"
+      }
+    },
+    {
+      "name": "mappa/01261/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.024720266000000102,
+          "wall_seconds": 0.02522086794488132
+        },
+        "verification": {
+          "cpu_seconds": 0.08113582600000013,
+          "wall_seconds": 0.26730850897729397
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.08425901199999997,
+          "wall_seconds": 0.08509813086129725
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.009697173999999809,
+          "wall_seconds": 0.009697441011667252
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": {
+        "status": "recovered"
+      }
+    },
+    {
+      "name": "mappa/01261/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.033335415999999896,
+          "wall_seconds": 0.033506060019135475
+        },
+        "verification": {
+          "cpu_seconds": 0.0843042249999999,
+          "wall_seconds": 0.24422596488147974
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.08766670599999982,
+          "wall_seconds": 0.08830840000882745
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.005890380999999945,
+          "wall_seconds": 0.005890744039788842
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": {
+        "status": "recovered"
+      }
+    },
+    {
+      "name": "slap/01841/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.002668803000000164,
+          "wall_seconds": 0.003637943882495165
+        },
+        "verification": {
+          "cpu_seconds": 0.0017107859999998531,
+          "wall_seconds": 0.001711888937279582
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00019/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.04794220999999954,
+          "wall_seconds": 0.04886479093693197
+        },
+        "verification": {
+          "cpu_seconds": 0.11510996099999993,
+          "wall_seconds": 0.19666893896646798
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.19267007100000022,
+          "wall_seconds": 0.19329964998178184
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.08639281299999979,
+          "wall_seconds": 0.08638604590669274
+        }
+      },
+      "verification": {
+        "status": "not_recovered"
+      },
+      "decoded_verification": {
+        "status": "not_recovered"
+      }
+    },
+    {
+      "name": "mappa/00090/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.07462610199999986,
+          "wall_seconds": 0.07499577896669507
+        },
+        "verification": {
+          "cpu_seconds": 0.0966982759999997,
+          "wall_seconds": 0.2561492978129536
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.20594723800000025,
+          "wall_seconds": 0.20654665189795196
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.009706012999998848,
+          "wall_seconds": 0.00970632303506136
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": {
+        "status": "recovered"
+      }
+    },
+    {
+      "name": "mappa/00895/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.13979903900000057,
+          "wall_seconds": 0.14131016796454787
+        },
+        "verification": {
+          "cpu_seconds": 0.060353595999999676,
+          "wall_seconds": 0.14747577696107328
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.2686416850000004,
+          "wall_seconds": 0.2686688448302448
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.012547827000000566,
+          "wall_seconds": 0.012547667138278484
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": {
+        "status": "recovered"
+      }
+    },
+    {
+      "name": "mappa/01841/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.15138369200000046,
+          "wall_seconds": 0.15232203202322125
+        },
+        "verification": {
+          "cpu_seconds": 0.12813277299999992,
+          "wall_seconds": 0.13128296216018498
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.3889551139999998,
+          "wall_seconds": 0.38958794507198036
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.021627157000000174,
+          "wall_seconds": 0.021654538810253143
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": {
+        "status": "recovered"
+      }
+    },
+    {
+      "name": "mappa/01841/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.0679380169999999,
+          "wall_seconds": 0.06872350396588445
+        },
+        "verification": {
+          "cpu_seconds": 0.06615760599999998,
+          "wall_seconds": 0.0661087860353291
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.31165407499999986,
+          "wall_seconds": 0.31244345498271286
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.015950152000000273,
+          "wall_seconds": 0.01595036080107093
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": {
+        "status": "recovered"
+      }
+    },
+    {
+      "name": "mappa/00007/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.20719758300000013,
+          "wall_seconds": 0.20880162296816707
+        },
+        "verification": {
+          "cpu_seconds": 0.23266243600000003,
+          "wall_seconds": 0.23550513805821538
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.5232523999999996,
+          "wall_seconds": 0.5234120658133179
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.0006519660000003924,
+          "wall_seconds": 0.0006522450130432844
+        }
+      },
+      "verification": {
+        "status": "not_recovered"
+      },
+      "decoded_verification": {
+        "status": "not_recovered"
+      }
+    },
+    {
+      "name": "mappa/00007/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.1419638800000005,
+          "wall_seconds": 0.14272293588146567
+        },
+        "verification": {
+          "cpu_seconds": 0.34966279300000025,
+          "wall_seconds": 0.35712542897090316
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.5587823780000001,
+          "wall_seconds": 0.5597579961176962
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.002245647000000517,
+          "wall_seconds": 0.002245575888082385
+        }
+      },
+      "verification": {
+        "status": "not_recovered"
+      },
+      "decoded_verification": {
+        "status": "not_recovered"
+      }
+    },
+    {
+      "name": "mappa/00895/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.02695050699999868,
+          "wall_seconds": 0.027520569041371346
+        },
+        "verification": {
+          "cpu_seconds": 0.07017491799999931,
+          "wall_seconds": 0.2783241458237171
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.1740129209999992,
+          "wall_seconds": 0.17462969291955233
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.015473162999999346,
+          "wall_seconds": 0.015473722014576197
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": {
+        "status": "recovered"
+      }
+    },
+    {
+      "name": "slap/00000/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.003916273000000192,
+          "wall_seconds": 0.005034687230363488
+        },
+        "verification": {
+          "cpu_seconds": 0.005869259999999876,
+          "wall_seconds": 0.005870109889656305
+        }
+      },
+      "verification": {
+        "status": "not_recovered"
+      },
+      "decoded_verification": null
+    },
+    {
+      "name": "mappa/00000/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.29641314899999927,
+          "wall_seconds": 0.29756912193261087
+        },
+        "verification": {
+          "cpu_seconds": 0.4668444919999999,
+          "wall_seconds": 0.4702075649984181
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.48845712500000005,
+          "wall_seconds": 0.48915315279737115
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.057958292000000355,
+          "wall_seconds": 0.05797753296792507
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": {
+        "status": "recovered"
+      }
+    },
+    {
+      "name": "mappa/00019/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.25656927700000054,
+          "wall_seconds": 0.2577137239277363
+        },
+        "verification": {
+          "cpu_seconds": 0.5451228170000011,
+          "wall_seconds": 0.5487318821251392
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.38043073399999905,
+          "wall_seconds": 0.3812396149151027
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.07381905300000113,
+          "wall_seconds": 0.07381368684582412
+        }
+      },
+      "verification": {
+        "status": "not_recovered"
+      },
+      "decoded_verification": {
+        "status": "not_recovered"
+      }
+    },
+    {
+      "name": "mappa/00000/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.2708347189999998,
+          "wall_seconds": 0.27185553312301636
+        },
+        "verification": {
+          "cpu_seconds": 0.35479989200000084,
+          "wall_seconds": 0.36087126308120787
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.7006490280000008,
+          "wall_seconds": 0.7013645379338413
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.031155371000000542,
+          "wall_seconds": 0.03115392103791237
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": {
+        "status": "recovered"
+      }
+    },
+    {
+      "name": "mappa/01361/forward",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.19746507899999965,
+          "wall_seconds": 0.19807502906769514
+        },
+        "verification": {
+          "cpu_seconds": 0.630056239,
+          "wall_seconds": 0.6341509090270847
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.6142751120000005,
+          "wall_seconds": 0.6150300318840891
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.03485604100000028,
+          "wall_seconds": 0.03485512197948992
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": {
+        "status": "recovered"
+      }
+    },
+    {
+      "name": "mappa/01361/reverse",
+      "stage": "verification",
+      "state": "complete",
+      "metrics": {
+        "loading": {
+          "cpu_seconds": 0.3468935809999998,
+          "wall_seconds": 0.34745313902385533
+        },
+        "verification": {
+          "cpu_seconds": 0.45144819100000033,
+          "wall_seconds": 0.4603838138282299
+        },
+        "decoded_loading": {
+          "cpu_seconds": 0.9057862170000002,
+          "wall_seconds": 0.9065017879474908
+        },
+        "decoded_verification": {
+          "cpu_seconds": 0.045454195000000475,
+          "wall_seconds": 0.04546634899452329
+        }
+      },
+      "verification": {
+        "status": "recovered"
+      },
+      "decoded_verification": {
+        "status": "recovered"
+      }
+    }
+  ]
+}

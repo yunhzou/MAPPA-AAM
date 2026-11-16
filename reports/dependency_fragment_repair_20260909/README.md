@@ -13,7 +13,7 @@ Four directional cases, ten parallel seed workers per case, every sweep cut,
 branch cap 100, matching tolerance 1.0, event tolerance 0.5, bond floor 0.2,
 explicit hydrogen. **Existing cut-specific random seed orders are unchanged.**
 Each fresh/optimized pair ran sequentially in the same ten-CPU allocation on
-bosque7 (Xeon Gold 6248R); pair order was counterbalanced. All four allocations
+a machine with an Intel Xeon Gold 6248R; pair order was counterbalanced. All four allocations
 finished successfully in under 146 seconds, including both methods and I/O.
 Each method had a 300-second watchdog; allocations had ten-minute limits.
 
@@ -111,12 +111,7 @@ tables, selected vanadium mappings, input data, frozen experimental sources,
 manifests, native hashes, build/test logs and Slurm accounting. Full compressed
 graphs remain in these cluster folders:
 
-```text
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_dependency_20260909_TVriiX
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_repair_pilot_20260909_bHAccT
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_paired_20260909_tqGrV4
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU
-```
+Full artifacts and raw operational records are retained privately.
 
 Full ten-seed graphs:
 `results/<index>/<direction>/<policy>/seed_XX/cut_NNNN.pkl.gz`.
@@ -136,8 +131,8 @@ ablations; `bench/profile_fragment_pipeline.py` records phase/function profiles.
 Always use a new run directory for fresh computation. For saved-data analysis:
 
 ```bash
-PYTHONPATH=bench .venv/bin/python bench/cut_replay_pilot.py report --run /project/yunhengzou/coordinate_alignment/aam_benchmarks/fragment_native_final_20260909_JGOrLU
+PYTHONPATH=bench .venv/bin/python bench/cut_replay_pilot.py report --run /path/to/fragment_native_final_20260909_JGOrLU
 ```
 
 Full report path:
-`/h/399/yunhengzou/coordinate_alignment/reports/dependency_fragment_repair_20260909/README.md`
+Full artifacts and raw operational records are retained privately.

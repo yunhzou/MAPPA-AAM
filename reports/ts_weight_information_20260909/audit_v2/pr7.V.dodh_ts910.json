@@ -1017,7 +1017,7 @@
           0.0
         ]
       ],
-      "xyz": "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr7.V.dodh_ts910/endpoints/R/reactant_combined.xyz"
+      "xyz": "private-reference-1444920da3d26cfba1e9"
     },
     "TS": {
       "elements": [
@@ -2034,17 +2034,17 @@
           0.0
         ]
       ],
-      "xyz": "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr7.V.dodh_ts910/targets/GT_sp/ts_groundtruth_01_reference_ts_01_ts9-10_benzene.xyz"
+      "xyz": "private-reference-cfe97c06362222d1b52a"
     }
   },
   "sha256": {
     "R": {
-      "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr7.V.dodh_ts910/endpoints/R/reactant_combined.xyz": "5aefbee5761d887a294b9a343f63a989117222ad45c9c474220b86c35265739a",
-      "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr7.V.dodh_ts910/endpoints/R/wbo": "716d85c3467819a04580c3c3a2568d01f51c258d07b840963c48d935ace5b302"
+      "private-reference-1444920da3d26cfba1e9": "5aefbee5761d887a294b9a343f63a989117222ad45c9c474220b86c35265739a",
+      "private-reference-f129a8a6bbde545bd627": "716d85c3467819a04580c3c3a2568d01f51c258d07b840963c48d935ace5b302"
     },
     "TS": {
-      "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr7.V.dodh_ts910/targets/GT_sp/ts_groundtruth_01_reference_ts_01_ts9-10_benzene.xyz": "fa7c301ffa1e8708285c75dfe623bb748cf5d33581921b0b1edbd2945384b8f5",
-      "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr7.V.dodh_ts910/targets/GT_sp/wbo": "8408b22c97a4e84fdeb1f2e659ceccb8a64137ab7cb33549c8e4e093cb0f5f03"
+      "private-reference-cfe97c06362222d1b52a": "fa7c301ffa1e8708285c75dfe623bb748cf5d33581921b0b1edbd2945384b8f5",
+      "private-reference-da7593f75c81699c9511": "8408b22c97a4e84fdeb1f2e659ceccb8a64137ab7cb33549c8e4e093cb0f5f03"
     }
   },
   "costs": [
@@ -2817,7 +2817,7 @@
       "examples": []
     }
   ],
-  "archived_event_source": "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/stages/pr7.V.dodh_ts910/ts_stage.json",
+  "archived_event_source": "private-reference-d05da547b3e6b27569ed",
   "archived_event_sha256": "b8c276d5060187409b71751086be5edb6dcaf01ae547f5c0e760dfde5222a716",
   "event_examples": [
     {
@@ -3045,5 +3045,9 @@
       "archived_ts_progress": 0.4415767358873174
     }
   ],
-  "archived_mechanisms_without_ts_assignment": []
+  "archived_mechanisms_without_ts_assignment": [],
+  "privacy_projection": {
+    "original_sha256": "283bf6666bf142d41b240ba532eebdff7d1c6575297c0e3d11698e42770b9af3",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

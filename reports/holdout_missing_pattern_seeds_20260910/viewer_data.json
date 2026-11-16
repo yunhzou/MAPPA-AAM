@@ -12160,7 +12160,7 @@
     ],
     "records": [
       {
-        "name": "AAM \u00b7 1 seed \u00b7 alternative 1",
+        "name": "AAM · 1 seed · alternative 1",
         "role": "aam",
         "pattern": "5bbdb74e069b681b7afe0240ede55b1a6a6082e28a1caa553a92d911a0c4b9a7",
         "mapping": [
@@ -12309,7 +12309,7 @@
         },
         "total": 4,
         "provenance": {
-          "source": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/holdout_forward_cap1000_seed1_20260910/per_case.json",
+          "source": "private-reference-4f9fd4f6c078c218c4ce",
           "direction": "R_to_P",
           "seeds": 1,
           "cap": 1000
@@ -12321,7 +12321,7 @@
         }
       },
       {
-        "name": "SLAP + sweep \u00b7 missing at 1 seed",
+        "name": "SLAP + sweep · missing at 1 seed",
         "role": "missing",
         "pattern": "604a2c308aac059d027d3e78a7f544adc7ab9d1652bda0960fb237cc038d1e1b",
         "mapping": [
@@ -12470,7 +12470,7 @@
         },
         "total": 4,
         "provenance": {
-          "source": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/holdout_forward_cap1000_seed1_20260910/enumeration.json.gz",
+          "source": "private-reference-24cb5dbb6ce9424788d5",
           "candidate": 0,
           "sources": [
             {
@@ -14159,7 +14159,7 @@
     ],
     "records": [
       {
-        "name": "AAM \u00b7 1 seed \u00b7 alternative 1",
+        "name": "AAM · 1 seed · alternative 1",
         "role": "aam",
         "pattern": "813601b86a448a82726192afd93f123f7b401e4a24a2e273f9c7396a3a456da5",
         "mapping": [
@@ -14267,7 +14267,7 @@
         },
         "total": 5,
         "provenance": {
-          "source": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/holdout_forward_cap1000_seed1_20260910/per_case.json",
+          "source": "private-reference-4f9fd4f6c078c218c4ce",
           "direction": "R_to_P",
           "seeds": 1,
           "cap": 1000
@@ -14279,7 +14279,7 @@
         }
       },
       {
-        "name": "AAM \u00b7 1 seed \u00b7 alternative 2",
+        "name": "AAM · 1 seed · alternative 2",
         "role": "aam",
         "pattern": "fa68e8e19531442cc675d2aa5b3fbb27e644b166df3d25f7cbc3a881473fde55",
         "mapping": [
@@ -14387,7 +14387,7 @@
         },
         "total": 5,
         "provenance": {
-          "source": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/holdout_forward_cap1000_seed1_20260910/per_case.json",
+          "source": "private-reference-4f9fd4f6c078c218c4ce",
           "direction": "R_to_P",
           "seeds": 1,
           "cap": 1000
@@ -14399,7 +14399,7 @@
         }
       },
       {
-        "name": "SLAP + sweep \u00b7 missing at 1 seed",
+        "name": "SLAP + sweep · missing at 1 seed",
         "role": "missing",
         "pattern": "fd46d8cab1e4fac4649ef6a05bec03ce695fe9ccbf206436dbe807d31064ab7b",
         "mapping": [
@@ -14507,7 +14507,7 @@
         },
         "total": 5,
         "provenance": {
-          "source": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/holdout_forward_cap1000_seed1_20260910/enumeration.json.gz",
+          "source": "private-reference-24cb5dbb6ce9424788d5",
           "candidate": 23,
           "sources": [
             {
@@ -16595,7 +16595,7 @@
     ],
     "records": [
       {
-        "name": "AAM \u00b7 1 seed \u00b7 alternative 1",
+        "name": "AAM · 1 seed · alternative 1",
         "role": "aam",
         "pattern": "26a8510fc54516bc25d2f752f4ed5fdb19f2ced9dc542865bcd4214124ede328",
         "mapping": [
@@ -16698,7 +16698,7 @@
         },
         "total": 4,
         "provenance": {
-          "source": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/holdout_forward_cap1000_seed1_20260910/per_case.json",
+          "source": "private-reference-4f9fd4f6c078c218c4ce",
           "direction": "R_to_P",
           "seeds": 1,
           "cap": 1000
@@ -16710,7 +16710,7 @@
         }
       },
       {
-        "name": "SLAP + sweep \u00b7 missing at 1 seed",
+        "name": "SLAP + sweep · missing at 1 seed",
         "role": "missing",
         "pattern": "3156ce99399fff86c89dddd8c70f436a671a80c27ff6c44274802bdd31ec5514",
         "mapping": [
@@ -16813,7 +16813,7 @@
         },
         "total": 4,
         "provenance": {
-          "source": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/holdout_forward_cap1000_seed1_20260910/enumeration.json.gz",
+          "source": "private-reference-24cb5dbb6ce9424788d5",
           "candidate": 0,
           "sources": [
             {
@@ -17029,7 +17029,7 @@
         }
       },
       {
-        "name": "AAM \u00b7 10 seeds \u00b7 recovered alternative",
+        "name": "AAM · 10 seeds · recovered alternative",
         "role": "recovered",
         "pattern": "3156ce99399fff86c89dddd8c70f436a671a80c27ff6c44274802bdd31ec5514",
         "mapping": [
@@ -17132,11 +17132,11 @@
         },
         "total": 4,
         "provenance": {
-          "source": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/holdout_missing_pattern_seeds_20260910/per_case.json",
+          "source": "private-reference-e7313ff63560b6c2fba2",
           "seeds": 10,
           "cap": 1000,
           "direction": "R_to_P",
-          "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_missing_pattern_seeds_20260910/runs/seed_10/results/holdout/101/R_to_P/original/cuts/aam.pkl.gz",
+          "archive": "private-reference-882e04ffd5d3af7b6f93",
           "archive_sha256": "f37bae0454e38a324b7f74e87a7c9438efd0cd98dbbdaf13dd0dd8ee4f9c7ef5",
           "terminal": 2380
         },
@@ -17147,7 +17147,7 @@
         }
       },
       {
-        "name": "AAM \u00b7 30 seeds \u00b7 recovered alternative",
+        "name": "AAM · 30 seeds · recovered alternative",
         "role": "recovered",
         "pattern": "3156ce99399fff86c89dddd8c70f436a671a80c27ff6c44274802bdd31ec5514",
         "mapping": [
@@ -17250,11 +17250,11 @@
         },
         "total": 4,
         "provenance": {
-          "source": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/holdout_missing_pattern_seeds_20260910/per_case.json",
+          "source": "private-reference-e7313ff63560b6c2fba2",
           "seeds": 30,
           "cap": 1000,
           "direction": "R_to_P",
-          "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_missing_pattern_seeds_20260910/runs/seed_30/results/holdout/101/R_to_P/original/cuts/aam.pkl.gz",
+          "archive": "private-reference-ef2f693208bb4f656e5c",
           "archive_sha256": "7640def53d05f8ae7f79d3e542f87b32a289a5f385b9f794738f0c3dc8c5492c",
           "terminal": 5914
         },

@@ -1,0 +1,142 @@
+"""Share exact representative-constraint checks without unfolding valid DAG paths."""
+
+from collections import Counter
+import numpy as np
+
+
+class RepresentativeValidationWorkspace:
+    """Reaction-local reuse; no event thresholds or symmetry equivalence assumptions.
+
+    All histories ending at a state share its representative mapping. Checking
+    that mapping against the union of ancestor preservation constraints proves
+    every incoming path valid. Otherwise, the same cached constraint checker
+    evaluates each history to distinguish valid and invalid paths.
+    """
+
+    def __init__(self, problem, *, cache_entries=4096):
+        self.problem = problem
+        self.n = problem.source_atom_count
+        self.a, self.b = np.triu_indices(self.n, 1)
+        self.weights = problem.reactant.wbo[self.a, self.b]
+        self.pair_bits = {
+            (int(a), int(b)): 1 << i for i, (a, b) in enumerate(zip(self.a, self.b))
+        }
+        self.r_elements = np.asarray(problem.reactant.elements)
+        self.p_elements = np.asarray(problem.product.elements)
+        self.fragment_masks = {}
+        self.mask_arrays = {}
+        self.cache_entries = cache_entries
+        self.stats = Counter()
+
+    def _remember(self, cache, key, value):
+        if len(cache) >= self.cache_entries:
+            cache.clear()
+        cache[key] = value
+        return value
+
+    def _edge_mask(self, edge, context):
+        if edge.match is None:
+            return 0
+        key = edge.match.accepted_edges
+        if key in self.fragment_masks:
+            self.stats["fragment_mask_hits"] += 1
+            return self.fragment_masks[key]
+        self.stats["fragment_mask_builds"] += 1
+        mask = 0
+        for a, b in key:
+            mask |= self.pair_bits[min(a, b), max(a, b)]
+        return self._remember(self.fragment_masks, key, mask)
+
+    def validate_path(self, path):
+        """Validate a single complete path using cached preservation masks."""
+        mask = 0
+        context = path.context
+        for edge_id in path.transitions:
+            mask |= self._edge_mask(path.graph.transitions[edge_id], context)
+        self.stats["path_checks"] += 1
+        assert self._valid(path.graph.states[path.terminal], mask, context)
+
+    def _arrays(self, mask):
+        if mask in self.mask_arrays:
+            self.stats["constraint_array_hits"] += 1
+            return self.mask_arrays[mask]
+        self.stats["constraint_array_builds"] += 1
+        bits, ids = mask, []
+        while bits:
+            bit = bits & -bits
+            ids.append(bit.bit_length() - 1)
+            bits -= bit
+        ids = np.asarray(ids, dtype=int)
+        return self._remember(
+            self.mask_arrays, mask, (self.a[ids], self.b[ids], self.weights[ids])
+        )
+
+    def _valid(self, state, mask, context):
+        pairs = dict(state.mapping)
+        if not set(pairs) <= set(range(self.n)):
+            return False
+        atoms = np.asarray(sorted(pairs), dtype=int)
+        values = np.asarray([pairs[i] for i in atoms], dtype=int)
+        if len(set(values)) != len(values) or np.any(values < 0) or np.any(values >= self.problem.target_atom_count):
+            return False
+        if not np.all(self.r_elements[atoms] == self.p_elements[values]):
+            return False
+        a, b, weights = self._arrays(mask)
+        relevant = np.asarray([int(x) in pairs and int(y) in pairs for x, y in zip(a, b)], dtype=bool)
+        a, b, weights = a[relevant], b[relevant], weights[relevant]
+        target = self.problem.product.wbo[[pairs[int(x)] for x in a], [pairs[int(y)] for y in b]]
+        return bool(
+            np.all(target >= context.graph_floor)
+            and np.all(np.abs(weights - target) <= context.iso_tolerance + 1e-9)
+        )
+
+    def _pathwise(self, graph, terminal=None):
+        valid, invalid = 0, []
+        for path in graph.paths(terminal):
+            if len(path.mapping) != self.n:
+                continue
+            self.stats["individual_path_checks"] += 1
+            try:
+                self.validate_path(path)
+                valid += 1
+            except AssertionError:
+                invalid.append(path.terminal)
+        return valid, invalid
+
+    def validate_graph(self, graph):
+        """Return (valid full-path count, invalid terminal IDs with multiplicity)."""
+        # Union certificates require one context and topological state IDs.
+        # Other layouts use the same path checker without this certificate.
+        if len(graph.contexts) != 1 or any(
+            e.source >= e.target for e in graph.transitions
+        ):
+            return self._pathwise(graph)
+        roots = set(graph.roots)
+        incoming = [[] for _ in graph.states]
+        for edge in graph.transitions:
+            incoming[edge.target].append(edge)
+        masks, paths = [0] * len(graph.states), [0] * len(graph.states)
+        context = graph.contexts[0]
+        for state in graph.states:
+            if state.id in roots:
+                paths[state.id] = 1
+                continue
+            for edge in incoming[state.id]:
+                if not paths[edge.source]:
+                    continue
+                paths[state.id] += paths[edge.source]
+                masks[state.id] |= masks[edge.source] | self._edge_mask(edge, context)
+        valid, invalid = 0, []
+        for terminal in graph.terminals:
+            state = graph.states[terminal]
+            if len(state.mapping) != self.n or not paths[terminal]:
+                continue
+            self.stats["terminal_checks"] += 1
+            if self._valid(state, masks[terminal], context):
+                valid += paths[terminal]
+                self.stats["certified_paths"] += paths[terminal]
+            else:
+                good, bad = self._pathwise(graph, terminal)
+                valid += good
+                invalid.extend(bad)
+        return valid, invalid

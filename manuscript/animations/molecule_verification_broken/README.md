@@ -6,7 +6,7 @@ A **30-second 3D negative control** accompanying the [successful verification fi
 
 ![A broken candidate retains every atom but fails connectivity verification](broken-molecule-verification-preview.gif)
 
-[Full-resolution MP4](broken-molecule-verification.mp4) · [Offline interactive film](index.html) · [Runnable XYZ example](../../../examples/molecule_verification/README.md)
+[Full-resolution MP4](broken-molecule-verification.mp4) · [Offline interactive film](index.html) · [Historical inputs and reproduction](https://github.com/yunhzou/MAPPA-AAM/tree/b13898ad97311ffcb47d6b9fb78d7d8d4a160e42/examples/molecule_verification)
 
 The actual unswept MAPPA search returns a complete diagnostic witness in **two fragments: 114 + 21 atoms**. It has **one missing connection and zero extra connections**. The original target has 148 inferred connections and one component; the broken candidate has 147 connections and two components. These graph invariants establish the mismatch independently of which symmetry-related atom mapping is chosen.
 
@@ -18,20 +18,8 @@ The opening coordinate separation is an illustration of input preparation, not d
 
 [Verification result](verification.json) · [Recorded trajectory](trajectory.json.gz) · [Scientific validation](science-validation.json) · [Browser validation](browser-validation.json) · [Media validation](media-validation.json) · [Film data](film-data.json)
 
-```bash
-python examples/molecule_verification/verify.py \
-  --candidate examples/molecule_verification/candidate-broken.xyz \
-  --output verification-broken-output --capture
-python manuscript/scripts/verification_broken_film/build.py \
-  --run verification-broken-output \
-  --library src/mappa/static/3Dmol-min.js \
-  --preparation examples/molecule_verification/break-preparation.json \
-  --intact examples/molecule_verification/candidate.xyz \
-  --output manuscript/animations/molecule_verification_broken
-node manuscript/scripts/verification_broken_film/render.cjs \
-  manuscript/animations/molecule_verification_broken --video
-python manuscript/scripts/verification_broken_film/export_gif.py \
-  manuscript/animations/molecule_verification_broken
-```
+The original preparation and verification commands are preserved in the
+[recorded example revision](https://github.com/yunhzou/MAPPA-AAM/tree/b13898ad97311ffcb47d6b9fb78d7d8d4a160e42/examples/molecule_verification). Run those commands from that
+revision; the example runner is no longer shipped on main.
 
 Rendering uses Playwright, Chrome and FFmpeg. The MP4 is 1440 × 900 at 24 fps and the GIF is 960 × 600 at 12 fps. The HTML contains its viewer library and data for offline use. The builder verifies the returned witness and each displayed growth frame against the saved trace. Browser validation confirms that all atom placements appear and that the full-coverage state still receives the failed verdict.

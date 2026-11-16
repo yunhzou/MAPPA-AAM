@@ -1,4 +1,8 @@
 {
-  "raw_run": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/metal_binary_20260911",
-  "publisher_sha256": "00583080685b86729b97aa79115e497712c15060a6132121b7af2f9046daff94"
+  "raw_run": "private-reference-fc49f58af366db3a0fa0",
+  "publisher_sha256": "00583080685b86729b97aa79115e497712c15060a6132121b7af2f9046daff94",
+  "privacy_projection": {
+    "original_sha256": "6e0a2dcb7917f8c3658e0336763b95665b31d84c26333ccee01e419aea59659b",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

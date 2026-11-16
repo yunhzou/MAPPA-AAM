@@ -1,6 +1,6 @@
 {
   "index": 1665,
-  "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/empty1665_seeds100_cap100/cuts/aam.pkl.gz",
+  "archive": "private-reference-ea3e8ed40f11aa7157da",
   "records": [
     {
       "label": "Reference",
@@ -1732,5 +1732,9 @@
       "bond_order_changed": 0
     }
   },
-  "cap_stops": 65498
+  "cap_stops": 65498,
+  "privacy_projection": {
+    "original_sha256": "bd1ece6cb9771a3536b627489501f4ea915c2aa118134fef589609fb07208910",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

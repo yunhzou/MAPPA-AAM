@@ -1,0 +1,387 @@
+"""Ordered binary symmetry actions with shared, sparse original-weight costs.
+
+Each action retains its own choice. Their disjoint permutation frames are a
+direct product; applying them still follows the saved order. Taking the closure
+of all target generators together would instead invent additional mappings.
+"""
+from dataclasses import dataclass
+from functools import cached_property
+from time import perf_counter
+
+import numpy as np
+
+from .groups import permutation_group
+from .minimum import _Search, SymmetryWork
+from .queries import EventSelection
+
+
+@dataclass(frozen=True)
+class EventTerm:
+    atoms: tuple
+    weight: float
+    threshold: float
+    scope: tuple
+    excluded_pairs: frozenset | None = None
+
+    def __iter__(self):
+        return iter(self.scope)
+
+
+@dataclass(frozen=True)
+class BoundEventTerm:
+    """One prepared cost, referencing the same choices in a larger program."""
+    response: object
+    term: object
+    positions: tuple
+    scope: tuple
+
+    def __iter__(self):
+        return iter(self.scope)
+
+
+@dataclass(frozen=True)
+class ProgramMinimum:
+    witness: tuple
+    choices: tuple
+    event_count: int
+    lower_bound: int
+    complete: bool
+    search_seconds: float
+    work: SymmetryWork
+
+
+class OrderedSymmetryEvents:
+    """An event projection of shared fragment responses and placement actions.
+
+    ``actions`` contains (saved action, prepared fragment response or None).
+    Only variable pair terms enter search. No discovery variables or complete
+    atom-assignment tables are reconstructed here.
+    """
+    def __init__(self, mapping, actions, target_weights, terms,
+                 *, fixed_events=0, sweep=None, projections=()):
+        self.base = tuple(mapping)
+        self.actions = tuple(actions)
+        self.target = target_weights
+        self.deadline = None
+        self.binary = None
+        frames, size = [], 0
+        for (kind, data), prepared in actions:
+            if kind == 'relation':
+                frame = (), prepared.size
+            elif kind == 'group':
+                atoms = tuple(sorted({a for g in data for a, b in enumerate(g) if a != b}))
+                frame = atoms, len(atoms)
+            else:
+                raise ValueError(f'Unsupported symmetry action: {kind}')
+            frames.append((size, *frame))
+            size += frame[1]
+        self.frames, self.size = tuple(frames), size
+        scopes = self._endpoint_scopes()
+        self.scopes = scopes
+        self.fixed_events = fixed_events
+        pairs = []
+        for atoms, weight, threshold, constant in terms:
+            if constant is not None:
+                self.fixed_events += int(bool(constant))
+            else:
+                scope = tuple(sorted(set(scopes[atoms[0]]) | set(scopes[atoms[1]])))
+                pairs.append(EventTerm(atoms, weight, threshold, scope))
+        self.projections = []
+        for response, binding in projections:
+            local_frames = (response.frames if isinstance(response, OrderedSymmetryEvents)
+                            else ((0, (), response.size),))
+            positions = tuple(self.frames[outer][0] + i for outer, (_, _, degree)
+                              in zip(binding, local_frames) for i in range(degree))
+            self.fixed_events += response.fixed_events
+            self.projections.append((response, positions))
+            pairs.extend(BoundEventTerm(response, term, positions,
+                                       tuple(positions[i] for i in term)) for term in response.pairs)
+        if sweep is not None:
+            atoms, weight, threshold, reserve, boundary_pairs = sweep
+            scope = tuple(sorted(set(scopes[atoms[0]]) | set(scopes[atoms[1]])))
+            pairs.append(EventTerm(atoms, weight, threshold, scope))
+            if reserve:
+                pairs.append(EventTerm(atoms, 0., 0., scope, boundary_pairs))
+        self.pairs = tuple(pairs)
+
+    @cached_property
+    def factor_graph(self):
+        """Retain structural dependence inside each prepared action frame.
+
+        Every choice preserves this disjoint graph. Its adjacency can therefore
+        rule out impossible independent factors without rebuilding stabilizers.
+        A placement can reuse its weights only when its generators preserve
+        them. This certificate guides factorization, not search ordering.
+        """
+        graph = np.zeros((self.size, self.size))
+        for ((kind, data), prepared), (start, atoms, degree) in zip(self.actions, self.frames):
+            if prepared is not None:
+                local = prepared.factor_graph
+            else:
+                positions = {atom: i for i, atom in enumerate(atoms)}
+                local = self.target[np.ix_(atoms, atoms)]
+                images = [[positions[g[a]] for a in atoms] for g in data]
+                if any(not np.array_equal(local, local[np.ix_(image, image)]) for image in images):
+                    continue
+            graph[start:start + degree, start:start + degree] = local
+        return graph
+
+    def _endpoint_scopes(self):
+        """Trace just the positions that can determine each endpoint image."""
+        from .actions import _action_orbits
+        rows = []
+        for ((kind, data), prepared), (start, atoms, _) in zip(self.actions, self.frames):
+            if kind == 'group':
+                orbits = _action_orbits((kind, data), len(self.target))
+                rows.append({atom: ((start + i,), orbits[atom]) for i, atom in enumerate(atoms)})
+            else:
+                n = len(prepared.witness)
+                row = {}
+                for atom, image in data.witness:
+                    i = prepared.fragment.source_atoms.index(atom)
+                    origins = prepared.source_group.orbit(i) if prepared.two_sided else (i,)
+                    offset = n if prepared.two_sided else 0
+                    reached = {p - offset for j in origins for p in prepared.group.orbit(offset + j)}
+                    targets = {prepared.fragment.target_atoms[prepared.witness[p]] for p in reached}
+                    scope = tuple(start + p for p in prepared.condition_scope(atom))
+                    row[image] = scope, targets
+                rows.append(row)
+        scopes = {}
+        for atom, image in self.base:
+            domain, scope = {image}, set()
+            for row in rows:
+                reached = set()
+                for p in domain:
+                    positions, images = row.get(p, ((), (p,)))
+                    scope.update(positions)
+                    reached.update(images)
+                domain = reached
+            scopes[atom] = tuple(sorted(scope))
+        return scopes
+
+    @cached_property
+    def group(self):
+        generators = []
+        for ((kind, data), prepared), (start, atoms, degree) in zip(self.actions, self.frames):
+            if kind == 'relation':
+                local = (g for g in prepared.group.generators)
+            else:
+                positions = {atom: i for i, atom in enumerate(atoms)}
+                local = ([positions[g[atom]] for atom in atoms] for g in data)
+            for images in local:
+                operation = list(range(self.size))
+                operation[start:start + degree] = [start + int(p) for p in images]
+                generators.append(operation)
+        return permutation_group(generators, self.size)
+
+    @cached_property
+    def invariant_group(self):
+        # Reuse a local certificate only after fixing every possible image
+        # read by other costs. This stays valid after any earlier choice.
+        generators = []
+        orbits = {i: frozenset(orbit) for orbit in self.group.orbits() for i in orbit}
+        for response, positions in self.projections:
+            other_scope = {i for term in self.pairs if not (
+                isinstance(term, BoundEventTerm) and term.response is response
+                and term.positions == positions) for i in term}
+            protected = set().union(*(orbits[i] for i in other_scope))
+            fixed = [i for i, position in enumerate(positions) if position in protected]
+            invariant = response.invariant_group
+            if fixed:
+                remaining = None if self.deadline is None else max(0., self.deadline - perf_counter())
+                invariant = invariant.stabilizer(fixed, seconds=remaining)
+            for g in invariant.generators:
+                if tuple(g) == tuple(range(invariant.degree)):
+                    continue
+                operation = list(range(self.size))
+                for i, position in enumerate(positions):
+                    operation[position] = positions[g[i]]
+                generators.append(operation)
+        return permutation_group(generators, self.size)
+
+    def __getstate__(self):
+        return {k:v for k,v in self.__dict__.items()
+                if k not in ('group', 'invariant_group', 'factor_graph', 'deadline')}
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.deadline = None
+
+    def _apply(self, prefix, *, proofs=False):
+        images = np.array([p for _, p in self.base])
+        choices = []
+        for ((kind, data), prepared), (start, atoms, degree) in zip(self.actions, self.frames):
+            operation = np.asarray(prefix[start:start + degree]) - start
+            transport = np.arange(len(self.target))
+            if kind == 'relation':
+                selected = prepared.mapping(operation)
+                for atom, image in data.witness:
+                    transport[image] = selected[atom]
+                if proofs:
+                    count = prepared.fixed_events + int(prepared.score(operation, prepared.pairs))
+                    _, choice = prepared.query_result(operation, count, 0., SymmetryWork())
+            else:
+                transport[list(atoms)] = [atoms[p] for p in operation]
+                if proofs:
+                    choice = dict(permutation=tuple(map(int, transport)))
+            images = transport[images]
+            if proofs:
+                choices.append(choice)
+        return dict(zip((a for a, _ in self.base), map(int, images))), tuple(choices)
+
+    def mapping(self, prefix):
+        return self._apply(prefix)[0]
+
+    def score(self, prefix, terms):
+        if not terms:
+            return 0
+        raw, projected = [], {}
+        for term in terms:
+            if isinstance(term, BoundEventTerm):
+                projected.setdefault((term.response, term.positions), []).append(term.term)
+            else:
+                raw.append(term)
+        count = self.count_terms(self.mapping(prefix), raw) if raw else 0
+        for (response, positions), costs in projected.items():
+            inverse = {position: i for i, position in enumerate(positions)}
+            local = np.asarray([inverse[int(prefix[i])] for i in positions])
+            count += response.score(local, costs)
+        return int(count)
+
+    def count_terms(self, images, terms):
+        count = 0
+        for term in terms:
+            pair = tuple(sorted(images[a] for a in term.atoms))
+            count += (pair not in term.excluded_pairs if term.excluded_pairs is not None else
+                      abs(term.weight - self.target[pair]) > term.threshold)
+        return int(count)
+
+    def condition_scope(self, atom):
+        return self.scopes[atom]
+
+    def query_result(self, prefix, count, seconds, work):
+        mapping, choices = self._apply(prefix, proofs=True)
+        return tuple(sorted(mapping.items())), choices
+
+    def result(self, prefix, count, complete, seconds, work):
+        witness, choices = self.query_result(prefix, count, seconds, work)
+        return ProgramMinimum(witness, choices, count, count if complete else self.fixed_events,
+                              complete, seconds, work)
+
+    def project_pair(self, prefix, terms, group=None):
+        """Resolve an endpoint-only component, retaining its current choices.
+
+        A two-sided fragment acts as D alpha^-1 followed by beta. D may differ
+        from the saved discovery after preparation; that fixed change is applied
+        once. Each remaining group must factor across the ordered action frames;
+        its generators certify that property before projection. Other costs can
+        therefore keep their already selected choices unchanged.
+        """
+        from mappa._group_ops import PairAction, EndpointPairProgram
+        if (not terms or any(not isinstance(term, EventTerm) for term in terms)
+                or len({tuple(sorted(term.atoms)) for term in terms}) != 1):
+            return None
+        degree = len(self.target)
+        actions, bindings = [], []
+        restricted = None
+        if group is not None:
+            owners = []
+            for (_, prepared), (start, _, size) in zip(self.actions, self.frames):
+                parts = 2 if prepared is not None and prepared.two_sided else 1
+                owners.extend(start + i // (size // parts) * (size // parts) for i in range(size))
+            restricted = {}
+            for generator in group.generators:
+                images = generator
+                moved = {owners[i] for i,p in enumerate(images) if i != p}
+                if len(moved) > 1:
+                    return None
+                if moved:
+                    restricted.setdefault(moved.pop(), []).append(images)
+
+        def fixed(operation):
+            if np.any(operation != np.arange(degree)):
+                actions.append(PairAction.permutation(operation.tolist()))
+                bindings.append(None)
+
+        def append_group(generators, atoms, start, inverse=False):
+            if restricted is not None:
+                generators = ([p-start for p in g[start:start+len(atoms)]]
+                              for g in restricted.get(start, ()))
+            current = np.asarray(prefix[start:start+len(atoms)]) - start
+            operation = np.arange(degree)
+            operation[list(atoms)] = [atoms[int(p)] for p in (np.argsort(current) if inverse else current)]
+            if inverse:
+                fixed(operation)
+            expanded = []
+            for generator in generators:
+                transport = np.arange(degree)
+                images = np.argsort(generator) if inverse else generator
+                transport[list(atoms)] = [atoms[int(p)] for p in images]
+                expanded.append(transport.tolist())
+            actions.append(PairAction.group(degree, expanded))
+            bindings.append((start, tuple(atoms), inverse))
+            if not inverse:
+                fixed(operation)
+
+        for ((kind, data), prepared), (start, atoms, _) in zip(self.actions, self.frames):
+            if kind == 'group':
+                positions = {a:i for i,a in enumerate(atoms)}
+                append_group(([positions[g[a]] for a in atoms] for g in data), atoms, start)
+                continue
+            selected = dict(prepared.fragment.witness)
+            change = np.arange(degree)
+            for atom, image in data.witness:
+                change[image] = selected[atom]
+            fixed(change)
+            coordinates = tuple(selected[a] for a in prepared.fragment.source_atoms)
+            if prepared.two_sided:
+                append_group(prepared.fragment.source_symmetry.generators, coordinates, start, inverse=True)
+                start += len(coordinates)
+            positions = {a:i for i,a in enumerate(prepared.fragment.target_atoms)}
+            aligned = {a:i for i,a in enumerate(coordinates)}
+            append_group(([aligned[prepared.fragment.target_atoms[g[positions[a]]]] for a in coordinates]
+                   for g in prepared.fragment.target_symmetry.generators), coordinates, start)
+        atoms = terms[0].atoms
+        costs = np.zeros(self.target.shape, dtype=np.int32)
+        for term in terms:
+            if term.excluded_pairs is None:
+                costs += np.abs(term.weight - self.target) > term.threshold
+            else:
+                costs += 1
+                for a, b in term.excluded_pairs:
+                    costs[a,b] -= 1
+                    if a != b:
+                        costs[b,a] -= 1
+        program = EndpointPairProgram(degree, actions)
+        base = dict(self.base)
+        count, operations, visited = program.minimum(tuple(base[a] for a in atoms), costs)
+        selected = prefix.copy()
+        for binding, operation in zip(bindings, operations):
+            if binding is None:
+                continue
+            start, atoms, inverse = binding
+            positions = {atom:i for i,atom in enumerate(atoms)}
+            local = [positions[operation[a]] for a in atoms]
+            if inverse:
+                local = np.argsort(local)
+            selected[start:start + len(atoms)] = prefix[start + np.asarray(local, dtype=int)]
+        return count, selected, visited
+
+    def solve(self, *, seconds=5., max_nodes=10000, cache_entries=2048):
+        started = perf_counter()
+        self.deadline = started + seconds
+        try:
+            if not self.pairs:
+                return self.result(np.arange(self.size), self.fixed_events, True,
+                                   perf_counter() - started, SymmetryWork())
+            projection = self.project_pair(np.arange(self.size), self.pairs)
+            if projection is not None:
+                count, prefix, visited = projection
+                return self.result(prefix, self.fixed_events + count, True, perf_counter() - started,
+                                   SymmetryWork(projected_pair_states=visited))
+            return _Search(self, max_nodes, cache_entries).run()
+        finally:
+            self.deadline = None
+
+    def select(self, lower, upper=None):
+        return EventSelection(self, lower, lower if upper is None else upper)

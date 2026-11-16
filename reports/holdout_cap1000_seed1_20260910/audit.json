@@ -4,7 +4,7 @@
     "aam": 280,
     "slap": 176
   },
-  "full_archives": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_cap1000_seed1_20260910",
+  "full_archives": "private-reference-191c05ce9ed19d276ff3",
   "hashed_search_and_scoring_artifacts": 1820,
   "frozen_files_verified": 266,
   "slap_source_files_verified": 7,
@@ -44,5 +44,9 @@
   ],
   "input_files_verified": 1864,
   "scoring_check": "Independent scalar bond_events validates each directional AAM minimum and every scored SLAP candidate.",
-  "failures": 0
+  "failures": 0,
+  "privacy_projection": {
+    "original_sha256": "aeb8df2de940141d9d8123c3d86e1e5c4c11f09b5cb3ebf4c82ae6be03c7f3c6",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

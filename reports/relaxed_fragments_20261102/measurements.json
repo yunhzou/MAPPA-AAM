@@ -1,0 +1,1367 @@
+{
+  "base_revision": "2e99e9897fdf5bdedab21b5d933e5bd6960e030d",
+  "tested_code_identity": "d07962ecf3951c7a9a249d2061379fbc41381d169670d6dfabe3a6d2504ca464",
+  "native_sha256": "caab7195dd763e7a0b959107e98190d758a2cb97ddcb3b7f222428217b372100",
+  "platform": "macOS-26.7.1-arm64-arm-64bit",
+  "full_suite": {
+    "passed": 824,
+    "failed": 0,
+    "wall_seconds": 109.2,
+    "command": "python -m pytest -q --tb=short"
+  },
+  "large_points_before_global": [
+    {
+      "case": "10383",
+      "elapsed_seconds": 120.0131485001184,
+      "failure": "timeout",
+      "sampled_peak_rss_bytes": 73891840,
+      "observations": []
+    },
+    {
+      "case": "37270",
+      "elapsed_seconds": 2.911858957959339,
+      "failure": null,
+      "sampled_peak_rss_bytes": 179896320,
+      "observations": [
+        {
+          "phase": "matched",
+          "seconds": 2.412276,
+          "states": 1,
+          "terminals": 0
+        },
+        {
+          "phase": "complete",
+          "case": "37270-forward.pkl.gz",
+          "config": {
+            "cut_floor": 0.2,
+            "graph_floor": 0.2,
+            "iso_tolerance": 1,
+            "event_threshold": 0.5,
+            "metal_event_threshold": 0.3,
+            "seed_count": 1,
+            "branch_limit": 100,
+            "task_chunksize": 1,
+            "anchors": [],
+            "seed_selection": "random",
+            "random_seed": 42,
+            "sweep_cuts": true,
+            "self_tolerance": 1.0
+          },
+          "cut": [
+            [
+              65,
+              66
+            ]
+          ],
+          "cpu_seconds": {
+            "preparation": 0.11272199999999999,
+            "matching": 2.412276,
+            "reduction": 0.0024640000000002438,
+            "decode_preparation": 0.007349999999999746,
+            "decode_export": 0.014396000000000075,
+            "publication_roundtrip": 0.015456000000000358
+          },
+          "states": 1,
+          "paths": 0,
+          "families": 0,
+          "fragments": 0,
+          "serialized_bytes": 7946481,
+          "peak_rss_bytes": 197722112,
+          "cache": {
+            "calls": 1,
+            "full_hits": 0,
+            "history_hits": 0,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 0,
+            "mapping_misses": 0,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 155,
+            "reused_extensions": 0,
+            "entries": 1,
+            "resident_bytes": 7178,
+            "peak_resident_bytes": 7178,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0,
+            "oversized_results": 0,
+            "revision": 1
+          },
+          "saved_schema": "mappa.decoded_events/v7"
+        }
+      ]
+    }
+  ],
+  "large_points_after_global": [
+    {
+      "case": "10383",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 1,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 1,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true,
+        "self_tolerance": 1.0
+      },
+      "cut": [
+        [
+          131,
+          132
+        ]
+      ],
+      "cpu_seconds": {
+        "preparation": 0.03484799999999999,
+        "matching": 5.372401,
+        "reduction": 0.03931400000000007,
+        "decode_preparation": 0.018886999999999432,
+        "decode_export": 1.2882059999999997,
+        "publication_roundtrip": 0.03505199999999942
+      },
+      "states": 344,
+      "paths": 100,
+      "families": 100,
+      "fragments": 47,
+      "serialized_bytes": 3833707,
+      "peak_rss_bytes": 242319360,
+      "cache": {
+        "calls": 2454,
+        "full_hits": 750,
+        "history_hits": 750,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 762,
+        "mapping_misses": 12,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 29537,
+        "reused_extensions": 828,
+        "entries": 1624,
+        "resident_bytes": 66492007,
+        "peak_resident_bytes": 67108686,
+        "cache_budget_bytes": 67108864,
+        "evictions": 80,
+        "oversized_results": 0,
+        "revision": 1704
+      },
+      "saved_schema": "mappa.decoded_events/v7",
+      "stop_summary": {
+        "capped": 12466,
+        "objective_met": 100
+      },
+      "maximum_cap_count": 123
+    },
+    {
+      "case": "37270",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 1,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 1,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true,
+        "self_tolerance": 1.0
+      },
+      "cut": [
+        [
+          65,
+          66
+        ]
+      ],
+      "cpu_seconds": {
+        "preparation": 0.10954399999999997,
+        "matching": 0.193133,
+        "reduction": 0.0023719999999999852,
+        "decode_preparation": 0.007555000000000034,
+        "decode_export": 0.00833600000000001,
+        "publication_roundtrip": 0.021067000000000002
+      },
+      "states": 1,
+      "paths": 0,
+      "families": 0,
+      "fragments": 0,
+      "serialized_bytes": 7946481,
+      "peak_rss_bytes": 208044032,
+      "cache": {
+        "calls": 1,
+        "full_hits": 0,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 0,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 155,
+        "reused_extensions": 0,
+        "entries": 1,
+        "resident_bytes": 7202,
+        "peak_resident_bytes": 7202,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "saved_schema": "mappa.decoded_events/v7",
+      "stop_summary": {
+        "capped": 1
+      },
+      "maximum_cap_count": 101
+    }
+  ],
+  "global_query_measurements": [
+    {
+      "case": "root-8x8",
+      "prepare_cpu": 0.00027199999999999447,
+      "rows": [
+        {
+          "mode": "none",
+          "cpu": 0.0008379999999999777,
+          "nodes": 10,
+          "images": 8,
+          "transport": 0,
+          "pruned": 0
+        },
+        {
+          "mode": "global",
+          "cpu": 0.0007109999999999894,
+          "nodes": 3,
+          "images": 8,
+          "transport": 7,
+          "pruned": 7
+        }
+      ]
+    },
+    {
+      "case": "root-16x8",
+      "prepare_cpu": 0.0005419999999999869,
+      "rows": [
+        {
+          "mode": "none",
+          "cpu": 0.002837000000000006,
+          "nodes": 18,
+          "images": 16,
+          "transport": 0,
+          "pruned": 0
+        },
+        {
+          "mode": "global",
+          "cpu": 0.002366000000000007,
+          "nodes": 3,
+          "images": 16,
+          "transport": 15,
+          "pruned": 15
+        }
+      ]
+    },
+    {
+      "case": "root-32x8",
+      "prepare_cpu": 0.0016269999999999896,
+      "rows": [
+        {
+          "mode": "none",
+          "cpu": 0.012722000000000011,
+          "nodes": 34,
+          "images": 32,
+          "transport": 0,
+          "pruned": 0
+        },
+        {
+          "mode": "global",
+          "cpu": 0.008691000000000004,
+          "nodes": 3,
+          "images": 32,
+          "transport": 31,
+          "pruned": 31
+        }
+      ]
+    },
+    {
+      "case": "path6-cycle24",
+      "prepare_cpu": 0.00018300000000004424,
+      "rows": [
+        {
+          "mode": "none",
+          "cpu": 0.003149999999999986,
+          "nodes": 74,
+          "images": 24,
+          "transport": 0,
+          "pruned": 0
+        },
+        {
+          "mode": "global",
+          "cpu": 0.00023200000000000998,
+          "nodes": 4,
+          "images": 24,
+          "transport": 23,
+          "pruned": 24
+        }
+      ]
+    },
+    {
+      "case": "path6-cycle48",
+      "prepare_cpu": 0.00019099999999999673,
+      "rows": [
+        {
+          "mode": "none",
+          "cpu": 0.010093999999999992,
+          "nodes": 146,
+          "images": 48,
+          "transport": 0,
+          "pruned": 0
+        },
+        {
+          "mode": "global",
+          "cpu": 0.0004490000000000327,
+          "nodes": 4,
+          "images": 48,
+          "transport": 47,
+          "pruned": 48
+        }
+      ]
+    },
+    {
+      "case": "path6-cycle96",
+      "prepare_cpu": 0.0003130000000000077,
+      "rows": [
+        {
+          "mode": "none",
+          "cpu": 0.04025300000000004,
+          "nodes": 290,
+          "images": 96,
+          "transport": 0,
+          "pruned": 0
+        },
+        {
+          "mode": "global",
+          "cpu": 0.0010340000000000904,
+          "nodes": 4,
+          "images": 96,
+          "transport": 95,
+          "pruned": 96
+        }
+      ]
+    }
+  ],
+  "small_pipeline_before_global": [
+    {
+      "case": "ring6-1",
+      "prepare_cpu": 0.0005950000000000122,
+      "rows": [
+        {
+          "matching_cpu": 0.0006229999999999847,
+          "reduction_cpu": 8.299999999999974e-05,
+          "decode_cpu": 0.00019500000000000073,
+          "export_cpu": 0.0023309999999999997,
+          "paths": 1,
+          "families": 1,
+          "fragments": 1,
+          "json_bytes": 5684
+        },
+        {
+          "matching_cpu": 0.0002929999999999877,
+          "reduction_cpu": 5.3999999999998494e-05,
+          "decode_cpu": 0.00014000000000000123,
+          "export_cpu": 0.0003250000000000197,
+          "paths": 1,
+          "families": 1,
+          "fragments": 1,
+          "json_bytes": 5684
+        },
+        {
+          "matching_cpu": 0.00019900000000000473,
+          "reduction_cpu": 3.700000000000925e-05,
+          "decode_cpu": 0.00010999999999999899,
+          "export_cpu": 0.0002809999999999757,
+          "paths": 1,
+          "families": 1,
+          "fragments": 1,
+          "json_bytes": 5684
+        },
+        {
+          "matching_cpu": 0.00020799999999998597,
+          "reduction_cpu": 3.900000000001125e-05,
+          "decode_cpu": 0.00010699999999999599,
+          "export_cpu": 0.00028200000000000447,
+          "paths": 1,
+          "families": 1,
+          "fragments": 1,
+          "json_bytes": 5684
+        }
+      ],
+      "cache": {
+        "calls": 4,
+        "full_hits": 3,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 3,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 20,
+        "reused_extensions": 15,
+        "entries": 1,
+        "resident_bytes": 3653,
+        "peak_resident_bytes": 3653,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "peak_rss_bytes": 55869440
+    },
+    {
+      "case": "ring6-2",
+      "prepare_cpu": 0.0005520000000000247,
+      "rows": [
+        {
+          "matching_cpu": 0.0006460000000000077,
+          "reduction_cpu": 0.00010699999999999599,
+          "decode_cpu": 0.00023599999999998622,
+          "export_cpu": 0.0024510000000000087,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10179
+        },
+        {
+          "matching_cpu": 0.00028500000000000747,
+          "reduction_cpu": 6.0000000000004494e-05,
+          "decode_cpu": 0.00014100000000000223,
+          "export_cpu": 0.0005739999999999912,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10179
+        },
+        {
+          "matching_cpu": 0.00024399999999999422,
+          "reduction_cpu": 5.3999999999998494e-05,
+          "decode_cpu": 0.00012000000000000899,
+          "export_cpu": 0.0005439999999999889,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10179
+        },
+        {
+          "matching_cpu": 0.0002449999999999952,
+          "reduction_cpu": 5.200000000002425e-05,
+          "decode_cpu": 0.00011399999999997523,
+          "export_cpu": 0.0005450000000000177,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10179
+        }
+      ],
+      "cache": {
+        "calls": 4,
+        "full_hits": 3,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 3,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 20,
+        "reused_extensions": 15,
+        "entries": 1,
+        "resident_bytes": 5335,
+        "peak_resident_bytes": 5335,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "peak_rss_bytes": 56131584
+    },
+    {
+      "case": "ring6-2d",
+      "prepare_cpu": 0.0005660000000000109,
+      "rows": [
+        {
+          "matching_cpu": 0.0006850000000000189,
+          "reduction_cpu": 0.00011699999999997823,
+          "decode_cpu": 0.00022400000000000198,
+          "export_cpu": 0.0024480000000000057,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10442
+        },
+        {
+          "matching_cpu": 0.0002979999999999927,
+          "reduction_cpu": 6.50000000000095e-05,
+          "decode_cpu": 0.00014599999999997948,
+          "export_cpu": 0.0006050000000000222,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10442
+        },
+        {
+          "matching_cpu": 0.0002500000000000002,
+          "reduction_cpu": 5.4999999999999494e-05,
+          "decode_cpu": 0.00012000000000000899,
+          "export_cpu": 0.0005650000000000099,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10442
+        },
+        {
+          "matching_cpu": 0.00023600000000001398,
+          "reduction_cpu": 5.099999999999549e-05,
+          "decode_cpu": 0.00011400000000000299,
+          "export_cpu": 0.0005819999999999992,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10442
+        }
+      ],
+      "cache": {
+        "calls": 4,
+        "full_hits": 3,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 3,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 20,
+        "reused_extensions": 15,
+        "entries": 1,
+        "resident_bytes": 5335,
+        "peak_resident_bytes": 5335,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "peak_rss_bytes": 56164352
+    },
+    {
+      "case": "ring24-2d",
+      "prepare_cpu": 0.0009709999999999996,
+      "rows": [
+        {
+          "matching_cpu": 0.0011649999999999994,
+          "reduction_cpu": 0.00023300000000001098,
+          "decode_cpu": 0.00035200000000001896,
+          "export_cpu": 0.010905999999999999,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 103772
+        },
+        {
+          "matching_cpu": 0.0007989999999999942,
+          "reduction_cpu": 0.00018499999999999073,
+          "decode_cpu": 0.0002570000000000072,
+          "export_cpu": 0.00933500000000001,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 103772
+        },
+        {
+          "matching_cpu": 0.0007479999999999987,
+          "reduction_cpu": 0.00017500000000000848,
+          "decode_cpu": 0.00023299999999998322,
+          "export_cpu": 0.009184999999999999,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 103772
+        },
+        {
+          "matching_cpu": 0.0007290000000000074,
+          "reduction_cpu": 0.00016299999999999648,
+          "decode_cpu": 0.00021399999999999197,
+          "export_cpu": 0.00922400000000001,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 103772
+        }
+      ],
+      "cache": {
+        "calls": 4,
+        "full_hits": 3,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 3,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 92,
+        "reused_extensions": 69,
+        "entries": 1,
+        "resident_bytes": 30535,
+        "peak_resident_bytes": 30535,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "peak_rss_bytes": 57409536
+    },
+    {
+      "case": "arms8",
+      "prepare_cpu": 0.0011220000000000119,
+      "rows": [
+        {
+          "matching_cpu": 0.0011339999999999961,
+          "reduction_cpu": 0.0002530000000000032,
+          "decode_cpu": 0.00042999999999998595,
+          "export_cpu": 0.003969,
+          "paths": 8,
+          "families": 8,
+          "fragments": 8,
+          "json_bytes": 41711
+        },
+        {
+          "matching_cpu": 0.0007650000000000157,
+          "reduction_cpu": 0.00020399999999998197,
+          "decode_cpu": 0.00035400000000002096,
+          "export_cpu": 0.0020729999999999915,
+          "paths": 8,
+          "families": 8,
+          "fragments": 8,
+          "json_bytes": 41711
+        },
+        {
+          "matching_cpu": 0.0007009999999999794,
+          "reduction_cpu": 0.00018600000000001948,
+          "decode_cpu": 0.0003160000000000107,
+          "export_cpu": 0.0019929999999999948,
+          "paths": 8,
+          "families": 8,
+          "fragments": 8,
+          "json_bytes": 41711
+        },
+        {
+          "matching_cpu": 0.0006670000000000009,
+          "reduction_cpu": 0.00020300000000000873,
+          "decode_cpu": 0.0003519999999999912,
+          "export_cpu": 0.002143000000000006,
+          "paths": 8,
+          "families": 8,
+          "fragments": 8,
+          "json_bytes": 41711
+        }
+      ],
+      "cache": {
+        "calls": 4,
+        "full_hits": 3,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 3,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 32,
+        "reused_extensions": 24,
+        "entries": 1,
+        "resident_bytes": 21177,
+        "peak_resident_bytes": 21177,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "peak_rss_bytes": 56934400
+    },
+    {
+      "case": "arms16",
+      "prepare_cpu": 0.0026569999999999927,
+      "rows": [
+        {
+          "matching_cpu": 0.0017089999999999883,
+          "reduction_cpu": 0.0004280000000000117,
+          "decode_cpu": 0.0007849999999999802,
+          "export_cpu": 0.007368000000000013,
+          "paths": 16,
+          "families": 16,
+          "fragments": 16,
+          "json_bytes": 115816
+        },
+        {
+          "matching_cpu": 0.0011410000000000031,
+          "reduction_cpu": 0.0003469999999999862,
+          "decode_cpu": 0.0006629999999999969,
+          "export_cpu": 0.005402000000000018,
+          "paths": 16,
+          "families": 16,
+          "fragments": 16,
+          "json_bytes": 115816
+        },
+        {
+          "matching_cpu": 0.0011029999999999929,
+          "reduction_cpu": 0.0003549999999999942,
+          "decode_cpu": 0.0006780000000000119,
+          "export_cpu": 0.005320999999999992,
+          "paths": 16,
+          "families": 16,
+          "fragments": 16,
+          "json_bytes": 115816
+        },
+        {
+          "matching_cpu": 0.0011410000000000031,
+          "reduction_cpu": 0.0003700000000000092,
+          "decode_cpu": 0.0007489999999999997,
+          "export_cpu": 0.005637000000000003,
+          "paths": 16,
+          "families": 16,
+          "fragments": 16,
+          "json_bytes": 115816
+        }
+      ],
+      "cache": {
+        "calls": 4,
+        "full_hits": 3,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 3,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 32,
+        "reused_extensions": 24,
+        "entries": 1,
+        "resident_bytes": 39633,
+        "peak_resident_bytes": 39633,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "peak_rss_bytes": 59211776
+    },
+    {
+      "case": "arms32",
+      "prepare_cpu": 0.008170999999999984,
+      "rows": [
+        {
+          "matching_cpu": 0.0028439999999999854,
+          "reduction_cpu": 0.0008120000000000072,
+          "decode_cpu": 0.0020979999999999888,
+          "export_cpu": 0.01854900000000001,
+          "paths": 32,
+          "families": 32,
+          "fragments": 32,
+          "json_bytes": 366104
+        },
+        {
+          "matching_cpu": 0.002133999999999997,
+          "reduction_cpu": 0.0007840000000000069,
+          "decode_cpu": 0.0019920000000000215,
+          "export_cpu": 0.01655699999999999,
+          "paths": 32,
+          "families": 32,
+          "fragments": 32,
+          "json_bytes": 366104
+        },
+        {
+          "matching_cpu": 0.0020650000000000113,
+          "reduction_cpu": 0.0007689999999999919,
+          "decode_cpu": 0.0019559999999999855,
+          "export_cpu": 0.01937,
+          "paths": 32,
+          "families": 32,
+          "fragments": 32,
+          "json_bytes": 366104
+        },
+        {
+          "matching_cpu": 0.002909999999999996,
+          "reduction_cpu": 0.0010620000000000074,
+          "decode_cpu": 0.0026539999999999897,
+          "export_cpu": 0.01716300000000001,
+          "paths": 32,
+          "families": 32,
+          "fragments": 32,
+          "json_bytes": 366104
+        }
+      ],
+      "cache": {
+        "calls": 4,
+        "full_hits": 3,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 3,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 32,
+        "reused_extensions": 24,
+        "entries": 1,
+        "resident_bytes": 76785,
+        "peak_resident_bytes": 76785,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "peak_rss_bytes": 68501504
+    }
+  ],
+  "small_pipeline_after_global": [
+    {
+      "case": "ring6-1",
+      "prepare_cpu": 0.0010280000000000011,
+      "rows": [
+        {
+          "matching_cpu": 0.0009119999999999961,
+          "reduction_cpu": 9.100000000000774e-05,
+          "decode_cpu": 0.00027299999999999547,
+          "export_cpu": 0.0033410000000000106,
+          "paths": 1,
+          "families": 1,
+          "fragments": 1,
+          "json_bytes": 5684
+        },
+        {
+          "matching_cpu": 0.00043099999999998695,
+          "reduction_cpu": 6.40000000000085e-05,
+          "decode_cpu": 0.00022300000000000098,
+          "export_cpu": 0.0004949999999999954,
+          "paths": 1,
+          "families": 1,
+          "fragments": 1,
+          "json_bytes": 5684
+        },
+        {
+          "matching_cpu": 0.00032199999999998896,
+          "reduction_cpu": 4.500000000001725e-05,
+          "decode_cpu": 0.00016199999999999548,
+          "export_cpu": 0.0004210000000000047,
+          "paths": 1,
+          "families": 1,
+          "fragments": 1,
+          "json_bytes": 5684
+        },
+        {
+          "matching_cpu": 0.0002570000000000072,
+          "reduction_cpu": 3.599999999998049e-05,
+          "decode_cpu": 0.00014100000000000223,
+          "export_cpu": 0.0003770000000000162,
+          "paths": 1,
+          "families": 1,
+          "fragments": 1,
+          "json_bytes": 5684
+        }
+      ],
+      "cache": {
+        "calls": 4,
+        "full_hits": 3,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 3,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 20,
+        "reused_extensions": 15,
+        "entries": 1,
+        "resident_bytes": 3677,
+        "peak_resident_bytes": 3677,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "peak_rss_bytes": 56344576
+    },
+    {
+      "case": "ring6-2",
+      "prepare_cpu": 0.0009369999999999934,
+      "rows": [
+        {
+          "matching_cpu": 0.0007540000000000047,
+          "reduction_cpu": 8.400000000000074e-05,
+          "decode_cpu": 0.00023299999999998322,
+          "export_cpu": 0.003147000000000011,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10179
+        },
+        {
+          "matching_cpu": 0.00039100000000000246,
+          "reduction_cpu": 6.0000000000004494e-05,
+          "decode_cpu": 0.00018399999999998973,
+          "export_cpu": 0.0007489999999999997,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10179
+        },
+        {
+          "matching_cpu": 0.0003260000000000207,
+          "reduction_cpu": 4.799999999999249e-05,
+          "decode_cpu": 0.00015899999999999248,
+          "export_cpu": 0.0006309999999999927,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10179
+        },
+        {
+          "matching_cpu": 0.0003459999999999852,
+          "reduction_cpu": 5.7000000000001494e-05,
+          "decode_cpu": 0.00015100000000001224,
+          "export_cpu": 0.0006059999999999954,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10179
+        }
+      ],
+      "cache": {
+        "calls": 4,
+        "full_hits": 3,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 3,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 20,
+        "reused_extensions": 15,
+        "entries": 1,
+        "resident_bytes": 5359,
+        "peak_resident_bytes": 5359,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "peak_rss_bytes": 56623104
+    },
+    {
+      "case": "ring6-2d",
+      "prepare_cpu": 0.0006019999999999914,
+      "rows": [
+        {
+          "matching_cpu": 0.0006200000000000094,
+          "reduction_cpu": 7.999999999999674e-05,
+          "decode_cpu": 0.00021299999999999097,
+          "export_cpu": 0.0024340000000000195,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10442
+        },
+        {
+          "matching_cpu": 0.0003090000000000037,
+          "reduction_cpu": 4.499999999998949e-05,
+          "decode_cpu": 0.00014500000000000624,
+          "export_cpu": 0.0006440000000000057,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10442
+        },
+        {
+          "matching_cpu": 0.0002740000000000242,
+          "reduction_cpu": 3.799999999998249e-05,
+          "decode_cpu": 0.000129000000000018,
+          "export_cpu": 0.0005850000000000022,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10442
+        },
+        {
+          "matching_cpu": 0.00024299999999999322,
+          "reduction_cpu": 3.500000000000725e-05,
+          "decode_cpu": 0.00012499999999998623,
+          "export_cpu": 0.0005539999999999989,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 10442
+        }
+      ],
+      "cache": {
+        "calls": 4,
+        "full_hits": 3,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 3,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 20,
+        "reused_extensions": 15,
+        "entries": 1,
+        "resident_bytes": 5359,
+        "peak_resident_bytes": 5359,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "peak_rss_bytes": 56213504
+    },
+    {
+      "case": "ring24-2d",
+      "prepare_cpu": 0.0009630000000000194,
+      "rows": [
+        {
+          "matching_cpu": 0.0012770000000000004,
+          "reduction_cpu": 0.00011999999999998123,
+          "decode_cpu": 0.0003170000000000117,
+          "export_cpu": 0.011057999999999985,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 103772
+        },
+        {
+          "matching_cpu": 0.0008569999999999967,
+          "reduction_cpu": 8.800000000000474e-05,
+          "decode_cpu": 0.00027099999999999347,
+          "export_cpu": 0.009019,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 103772
+        },
+        {
+          "matching_cpu": 0.0007859999999999812,
+          "reduction_cpu": 8.199999999999874e-05,
+          "decode_cpu": 0.0002620000000000122,
+          "export_cpu": 0.009511999999999993,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 103772
+        },
+        {
+          "matching_cpu": 0.0007860000000000089,
+          "reduction_cpu": 7.499999999999174e-05,
+          "decode_cpu": 0.00023000000000000798,
+          "export_cpu": 0.009179999999999994,
+          "paths": 2,
+          "families": 2,
+          "fragments": 2,
+          "json_bytes": 103772
+        }
+      ],
+      "cache": {
+        "calls": 4,
+        "full_hits": 3,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 3,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 92,
+        "reused_extensions": 69,
+        "entries": 1,
+        "resident_bytes": 30559,
+        "peak_resident_bytes": 30559,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "peak_rss_bytes": 57507840
+    },
+    {
+      "case": "arms8",
+      "prepare_cpu": 0.0011329999999999951,
+      "rows": [
+        {
+          "matching_cpu": 0.0012790000000000024,
+          "reduction_cpu": 0.00015899999999999248,
+          "decode_cpu": 0.0004089999999999927,
+          "export_cpu": 0.004264000000000018,
+          "paths": 8,
+          "families": 8,
+          "fragments": 8,
+          "json_bytes": 41711
+        },
+        {
+          "matching_cpu": 0.0006960000000000022,
+          "reduction_cpu": 0.00010999999999999899,
+          "decode_cpu": 0.00032199999999998896,
+          "export_cpu": 0.0020710000000000173,
+          "paths": 8,
+          "families": 8,
+          "fragments": 8,
+          "json_bytes": 41711
+        },
+        {
+          "matching_cpu": 0.0006789999999999852,
+          "reduction_cpu": 0.00010899999999999799,
+          "decode_cpu": 0.0003120000000000067,
+          "export_cpu": 0.0019880000000000175,
+          "paths": 8,
+          "families": 8,
+          "fragments": 8,
+          "json_bytes": 41711
+        },
+        {
+          "matching_cpu": 0.0006600000000000217,
+          "reduction_cpu": 9.999999999998899e-05,
+          "decode_cpu": 0.0002999999999999947,
+          "export_cpu": 0.002020999999999995,
+          "paths": 8,
+          "families": 8,
+          "fragments": 8,
+          "json_bytes": 41711
+        }
+      ],
+      "cache": {
+        "calls": 4,
+        "full_hits": 3,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 3,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 32,
+        "reused_extensions": 24,
+        "entries": 1,
+        "resident_bytes": 21201,
+        "peak_resident_bytes": 21201,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "peak_rss_bytes": 57049088
+    },
+    {
+      "case": "arms16",
+      "prepare_cpu": 0.0025770000000000237,
+      "rows": [
+        {
+          "matching_cpu": 0.0021549999999999903,
+          "reduction_cpu": 0.0002530000000000032,
+          "decode_cpu": 0.0007649999999999879,
+          "export_cpu": 0.008633000000000002,
+          "paths": 16,
+          "families": 16,
+          "fragments": 16,
+          "json_bytes": 115816
+        },
+        {
+          "matching_cpu": 0.0012589999999999824,
+          "reduction_cpu": 0.00023200000000000998,
+          "decode_cpu": 0.0007330000000000114,
+          "export_cpu": 0.005226999999999982,
+          "paths": 16,
+          "families": 16,
+          "fragments": 16,
+          "json_bytes": 115816
+        },
+        {
+          "matching_cpu": 0.0013169999999999848,
+          "reduction_cpu": 0.00023300000000001098,
+          "decode_cpu": 0.0007520000000000027,
+          "export_cpu": 0.005707999999999991,
+          "paths": 16,
+          "families": 16,
+          "fragments": 16,
+          "json_bytes": 115816
+        },
+        {
+          "matching_cpu": 0.0012670000000000181,
+          "reduction_cpu": 0.00021799999999999597,
+          "decode_cpu": 0.0007230000000000014,
+          "export_cpu": 0.005519000000000024,
+          "paths": 16,
+          "families": 16,
+          "fragments": 16,
+          "json_bytes": 115816
+        }
+      ],
+      "cache": {
+        "calls": 4,
+        "full_hits": 3,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 3,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 32,
+        "reused_extensions": 24,
+        "entries": 1,
+        "resident_bytes": 39657,
+        "peak_resident_bytes": 39657,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "peak_rss_bytes": 59916288
+    },
+    {
+      "case": "arms32",
+      "prepare_cpu": 0.008355000000000001,
+      "rows": [
+        {
+          "matching_cpu": 0.004692000000000002,
+          "reduction_cpu": 0.0005020000000000024,
+          "decode_cpu": 0.002265000000000017,
+          "export_cpu": 0.01893800000000001,
+          "paths": 32,
+          "families": 32,
+          "fragments": 32,
+          "json_bytes": 366104
+        },
+        {
+          "matching_cpu": 0.0021039999999999948,
+          "reduction_cpu": 0.0004850000000000132,
+          "decode_cpu": 0.002028000000000002,
+          "export_cpu": 0.016987000000000002,
+          "paths": 32,
+          "families": 32,
+          "fragments": 32,
+          "json_bytes": 366104
+        },
+        {
+          "matching_cpu": 0.0020830000000000015,
+          "reduction_cpu": 0.0004659999999999942,
+          "decode_cpu": 0.002022999999999997,
+          "export_cpu": 0.017054999999999987,
+          "paths": 32,
+          "families": 32,
+          "fragments": 32,
+          "json_bytes": 366104
+        },
+        {
+          "matching_cpu": 0.0020559999999999745,
+          "reduction_cpu": 0.0004880000000000162,
+          "decode_cpu": 0.0019949999999999968,
+          "export_cpu": 0.018931000000000003,
+          "paths": 32,
+          "families": 32,
+          "fragments": 32,
+          "json_bytes": 366104
+        }
+      ],
+      "cache": {
+        "calls": 4,
+        "full_hits": 3,
+        "history_hits": 0,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 3,
+        "mapping_misses": 0,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 32,
+        "reused_extensions": 24,
+        "entries": 1,
+        "resident_bytes": 76809,
+        "peak_resident_bytes": 76809,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0,
+        "revision": 1
+      },
+      "peak_rss_bytes": 69255168
+    }
+  ],
+  "large_point_event_oracle": {
+    "case": "10383",
+    "cut": [
+      [
+        131,
+        132
+      ]
+    ],
+    "families": 100,
+    "partitions": 100,
+    "checked": "every returned family witness and alternative fragment partition; independent scalar original-WBO bond events",
+    "passed": true,
+    "minimum_event_count": 59,
+    "maximum_event_count": 59,
+    "validation_cpu": 6.7888209999999996
+  },
+  "publication": {
+    "fixture": "16 distinct 374-atom placements with one shared source self preparation; 389 target atoms; chain discovery, iso_tol=0, self_tol=1",
+    "before": {
+      "record_cpu_seconds": 0.878827792,
+      "record_peak_python_bytes": 165155761,
+      "binary_cpu_seconds": 0.933370875,
+      "binary_bytes": 43183704,
+      "binary_peak_python_bytes": 207806308,
+      "source_list_copies": 16
+    },
+    "after": {
+      "record_cpu_seconds": 0.526086792,
+      "record_peak_python_bytes": 93151089,
+      "binary_cpu_seconds": 0.006189167,
+      "binary_bytes": 21722746,
+      "binary_peak_python_bytes": 31292138,
+      "restore_cpu_seconds": 0.024815417,
+      "source_list_copies": 1
+    }
+  },
+  "limits": [
+    "Local point measurements during integration; no new full Golden or EnzymeMap run.",
+    "Before/after global comparisons concern the new complete relation, not scientific equality with the retired algorithm.",
+    "37270 is capped with zero returned mappings; it is not reference recovery.",
+    "Publication peaks measure Python allocations via tracemalloc; pipeline peaks measure process lifetime RSS.",
+    "Cold measurements are single isolated processes, not statistically established universal speedups."
+  ],
+  "additional_tests": {
+    "passed": 2,
+    "failed": 0,
+    "wall_seconds": 0.27,
+    "scope": "Python/native six-atom path into two bridged C6 rings: 18 unique target sets and complete per-set discovery relations versus independent NetworkX monomorphism oracle",
+    "production_source_unchanged": true
+  }
+}

@@ -35,7 +35,7 @@
       "mapping_space": "search source/target; use orientation.json to recover input R/P indices",
       "coverage_space": "original input product",
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/7/cuts/aam.pkl.gz",
+      "archive": "private-reference-1210f4e3cbcc1a892295",
       "direction": "R_to_P"
     },
     "search": {
@@ -63,7 +63,6 @@
     },
     "status": {
       "index": 7,
-      "job": "443211",
       "started": 1788885409.983451,
       "direction": "R_to_P",
       "phase": "finished",
@@ -73,7 +72,7 @@
       "wall_seconds": 42.16293239593506
     },
     "outcome": "not_recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/7"
+    "output": "private-reference-1f93aa98f803b75bac08"
   },
   {
     "index": 19,
@@ -111,7 +110,7 @@
       "mapping_space": "search source/target; use orientation.json to recover input R/P indices",
       "coverage_space": "original input product",
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/19/cuts/aam.pkl.gz",
+      "archive": "private-reference-0b4cbd952cd0689da851",
       "direction": "P_to_R"
     },
     "search": {
@@ -139,7 +138,6 @@
     },
     "status": {
       "index": 19,
-      "job": "443212",
       "started": 1788885410.7408817,
       "direction": "P_to_R",
       "phase": "finished",
@@ -149,7 +147,7 @@
       "wall_seconds": 99.99358057975769
     },
     "outcome": "not_recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/19"
+    "output": "private-reference-ab9356b427e76b5edb60"
   },
   {
     "index": 590,
@@ -188,7 +186,7 @@
       "coverage_space": "original input product",
       "direction": "P_to_R",
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden590_reverse_20260908/cuts/aam.pkl.gz"
+      "archive": "private-reference-67dcbcb8d18b01d0cae4"
     },
     "search": {
       "seconds": 66.95538052171469,
@@ -215,7 +213,7 @@
     },
     "status": {},
     "outcome": "not_recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden590_reverse_20260908"
+    "output": "private-reference-3ad4d40d36a687ce8e07"
   },
   {
     "index": 603,
@@ -506,7 +504,7 @@
         ]
       ],
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/603/cuts/aam.pkl.gz",
+      "archive": "private-reference-7bb171c701d9370f7c99",
       "direction": "P_to_R"
     },
     "search": {
@@ -534,7 +532,6 @@
     },
     "status": {
       "index": 603,
-      "job": "443213",
       "started": 1788885409.983334,
       "direction": "P_to_R",
       "phase": "finished",
@@ -544,7 +541,7 @@
       "wall_seconds": 19.858948230743408
     },
     "outcome": "recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/603"
+    "output": "private-reference-6f1e1c145c1888f57469"
   },
   {
     "index": 780,
@@ -775,7 +772,7 @@
         ]
       ],
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/780/cuts/aam.pkl.gz",
+      "archive": "private-reference-f501f67e00bdbda16cde",
       "direction": "R_to_P"
     },
     "search": {
@@ -803,7 +800,6 @@
     },
     "status": {
       "index": 780,
-      "job": "443214",
       "started": 1788885412.8848903,
       "direction": "R_to_P",
       "phase": "finished",
@@ -813,7 +809,7 @@
       "wall_seconds": 45.977161169052124
     },
     "outcome": "recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/780"
+    "output": "private-reference-d81b13b819e82a402199"
   },
   {
     "index": 833,
@@ -1180,7 +1176,7 @@
         ]
       ],
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/833/cuts/aam.pkl.gz",
+      "archive": "private-reference-5a2422f311aedefe2331",
       "direction": "P_to_R"
     },
     "search": {
@@ -1208,7 +1204,6 @@
     },
     "status": {
       "index": 833,
-      "job": "443215",
       "started": 1788885412.8848991,
       "direction": "P_to_R",
       "phase": "finished",
@@ -1218,7 +1213,7 @@
       "wall_seconds": 81.34641432762146
     },
     "outcome": "recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/833"
+    "output": "private-reference-448cda476b18361abd3a"
   },
   {
     "index": 845,
@@ -1409,7 +1404,7 @@
         ]
       ],
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/845/cuts/aam.pkl.gz",
+      "archive": "private-reference-2bbca15260461f496f14",
       "direction": "P_to_R"
     },
     "search": {
@@ -1437,7 +1432,6 @@
     },
     "status": {
       "index": 845,
-      "job": "443216",
       "started": 1788885413.4783845,
       "direction": "P_to_R",
       "phase": "finished",
@@ -1447,7 +1441,7 @@
       "wall_seconds": 20.04180908203125
     },
     "outcome": "recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/845"
+    "output": "private-reference-932203fba64b5a91ddaa"
   },
   {
     "index": 865,
@@ -6343,7 +6337,7 @@
         ]
       ],
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/865/cuts/aam.pkl.gz",
+      "archive": "private-reference-a76e1505996b18564588",
       "direction": "P_to_R"
     },
     "search": {
@@ -6371,7 +6365,6 @@
     },
     "status": {
       "index": 865,
-      "job": "443217",
       "started": 1788885410.517697,
       "direction": "P_to_R",
       "phase": "finished",
@@ -6381,7 +6374,7 @@
       "wall_seconds": 74.54213356971741
     },
     "outcome": "recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/865"
+    "output": "private-reference-cd13f8c4a411c5d941bc"
   },
   {
     "index": 867,
@@ -6580,7 +6573,7 @@
         ]
       ],
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/867/cuts/aam.pkl.gz",
+      "archive": "private-reference-cd87ad07e90f3422f665",
       "direction": "P_to_R"
     },
     "search": {
@@ -6608,7 +6601,6 @@
     },
     "status": {
       "index": 867,
-      "job": "443218",
       "started": 1788885410.5177145,
       "direction": "P_to_R",
       "phase": "finished",
@@ -6618,7 +6610,7 @@
       "wall_seconds": 33.94004464149475
     },
     "outcome": "recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/867"
+    "output": "private-reference-e609f64ad24ba13b0f57"
   },
   {
     "index": 871,
@@ -6656,7 +6648,7 @@
       "mapping_space": "search source/target; use orientation.json to recover input R/P indices",
       "coverage_space": "original input product",
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/871/cuts/aam.pkl.gz",
+      "archive": "private-reference-bc2c43adcee1ee6e953b",
       "direction": "P_to_R"
     },
     "search": {
@@ -6684,7 +6676,6 @@
     },
     "status": {
       "index": 871,
-      "job": "443219",
       "started": 1788885411.3293934,
       "direction": "P_to_R",
       "phase": "finished",
@@ -6694,7 +6685,7 @@
       "wall_seconds": 116.79897117614746
     },
     "outcome": "not_recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/871"
+    "output": "private-reference-c26464d91668ac298597"
   },
   {
     "index": 986,
@@ -6732,7 +6723,7 @@
       "mapping_space": "search source/target; use orientation.json to recover input R/P indices",
       "coverage_space": "original input product",
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/986/cuts/aam.pkl.gz",
+      "archive": "private-reference-0580cef2e9e0fc0ce8e5",
       "direction": "P_to_R"
     },
     "search": {
@@ -6760,7 +6751,6 @@
     },
     "status": {
       "index": 986,
-      "job": "443220",
       "started": 1788885412.4717522,
       "direction": "P_to_R",
       "phase": "finished",
@@ -6770,7 +6760,7 @@
       "wall_seconds": 2.8876070976257324
     },
     "outcome": "not_recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/986"
+    "output": "private-reference-0d8f7f7306e0ea487d9f"
   },
   {
     "index": 1228,
@@ -6808,7 +6798,7 @@
       "mapping_space": "search source/target; use orientation.json to recover input R/P indices",
       "coverage_space": "original input product",
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1228/cuts/aam.pkl.gz",
+      "archive": "private-reference-60e7dd2db9a3586b9d6f",
       "direction": "R_to_P"
     },
     "search": {
@@ -6836,7 +6826,6 @@
     },
     "status": {
       "index": 1228,
-      "job": "443221",
       "started": 1788885433.6461504,
       "direction": "R_to_P",
       "phase": "finished",
@@ -6846,7 +6835,7 @@
       "wall_seconds": 18.13798499107361
     },
     "outcome": "not_recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1228"
+    "output": "private-reference-311230d922c63c82e2a3"
   },
   {
     "index": 1285,
@@ -6884,7 +6873,7 @@
       "mapping_space": "search source/target; use orientation.json to recover input R/P indices",
       "coverage_space": "original input product",
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1285/cuts/aam.pkl.gz",
+      "archive": "private-reference-e132e58c5ef0ebf4d333",
       "direction": "R_to_P"
     },
     "search": {
@@ -6912,7 +6901,6 @@
     },
     "status": {
       "index": 1285,
-      "job": "443222",
       "started": 1788885433.6881444,
       "direction": "R_to_P",
       "phase": "finished",
@@ -6922,7 +6910,7 @@
       "wall_seconds": 3.339956760406494
     },
     "outcome": "not_recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1285"
+    "output": "private-reference-ee8fd1e9b40e75ff8f3a"
   },
   {
     "index": 1358,
@@ -6960,7 +6948,7 @@
       "mapping_space": "search source/target; use orientation.json to recover input R/P indices",
       "coverage_space": "original input product",
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1358/cuts/aam.pkl.gz",
+      "archive": "private-reference-5e4dce9fba44726b57e4",
       "direction": "P_to_R"
     },
     "search": {
@@ -6988,7 +6976,6 @@
     },
     "status": {
       "index": 1358,
-      "job": "443223",
       "started": 1788885438.2959154,
       "direction": "P_to_R",
       "phase": "finished",
@@ -6998,7 +6985,7 @@
       "wall_seconds": 88.19118642807007
     },
     "outcome": "not_recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1358"
+    "output": "private-reference-a138494dfb63f929197d"
   },
   {
     "index": 1377,
@@ -7036,7 +7023,7 @@
       "mapping_space": "search source/target; use orientation.json to recover input R/P indices",
       "coverage_space": "original input product",
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1377/cuts/aam.pkl.gz",
+      "archive": "private-reference-c71bf14c864244ff11bc",
       "direction": "R_to_P"
     },
     "search": {
@@ -7064,7 +7051,6 @@
     },
     "status": {
       "index": 1377,
-      "job": "443224",
       "started": 1788885469.9500322,
       "direction": "R_to_P",
       "phase": "finished",
@@ -7074,7 +7060,7 @@
       "wall_seconds": 57.4383111000061
     },
     "outcome": "not_recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1377"
+    "output": "private-reference-9ecb975ba7c7534906fb"
   },
   {
     "index": 1380,
@@ -7317,7 +7303,7 @@
         ]
       ],
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1380/cuts/aam.pkl.gz",
+      "archive": "private-reference-c2dd593c27e5eedf77e7",
       "direction": "R_to_P"
     },
     "search": {
@@ -7345,7 +7331,6 @@
     },
     "status": {
       "index": 1380,
-      "job": "443225",
       "started": 1788885469.71012,
       "direction": "R_to_P",
       "phase": "finished",
@@ -7355,7 +7340,7 @@
       "wall_seconds": 9.739789962768555
     },
     "outcome": "recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1380"
+    "output": "private-reference-073cfdfb75243c84891f"
   },
   {
     "index": 1475,
@@ -7393,7 +7378,7 @@
       "mapping_space": "search source/target; use orientation.json to recover input R/P indices",
       "coverage_space": "original input product",
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1475/cuts/aam.pkl.gz",
+      "archive": "private-reference-76a1e3c08993c4f3120e",
       "direction": "P_to_R"
     },
     "search": {
@@ -7421,7 +7406,6 @@
     },
     "status": {
       "index": 1475,
-      "job": "443226",
       "started": 1788885470.467056,
       "direction": "P_to_R",
       "phase": "finished",
@@ -7431,7 +7415,7 @@
       "wall_seconds": 24.05653691291809
     },
     "outcome": "not_recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1475"
+    "output": "private-reference-c288afbc24de5ed9416b"
   },
   {
     "index": 1553,
@@ -7469,7 +7453,7 @@
       "mapping_space": "search source/target; use orientation.json to recover input R/P indices",
       "coverage_space": "original input product",
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1553/cuts/aam.pkl.gz",
+      "archive": "private-reference-a2209bf43e2af9337430",
       "direction": "R_to_P"
     },
     "search": {
@@ -7497,7 +7481,6 @@
     },
     "status": {
       "index": 1553,
-      "job": "443227",
       "started": 1788885469.7730842,
       "direction": "R_to_P",
       "phase": "finished",
@@ -7507,7 +7490,7 @@
       "wall_seconds": 21.492392778396606
     },
     "outcome": "not_recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1553"
+    "output": "private-reference-5f81b21281a076c62c23"
   },
   {
     "index": 1568,
@@ -7726,7 +7709,7 @@
         ]
       ],
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1568/cuts/aam.pkl.gz",
+      "archive": "private-reference-cb0edc973aec00f6c23c",
       "direction": "R_to_P"
     },
     "search": {
@@ -7754,7 +7737,6 @@
     },
     "status": {
       "index": 1568,
-      "job": "443228",
       "started": 1788885471.7172363,
       "direction": "R_to_P",
       "phase": "finished",
@@ -7764,7 +7746,7 @@
       "wall_seconds": 39.89267611503601
     },
     "outcome": "recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1568"
+    "output": "private-reference-b068a81273e9e789845b"
   },
   {
     "index": 1574,
@@ -8043,7 +8025,7 @@
         ]
       ],
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1574/cuts/aam.pkl.gz",
+      "archive": "private-reference-fe54b3ddab48659d97e4",
       "direction": "R_to_P"
     },
     "search": {
@@ -8071,7 +8053,6 @@
     },
     "status": {
       "index": 1574,
-      "job": "443229",
       "started": 1788885494.561148,
       "direction": "R_to_P",
       "phase": "finished",
@@ -8081,7 +8062,7 @@
       "wall_seconds": 7.9368603229522705
     },
     "outcome": "recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1574"
+    "output": "private-reference-e5ce39987898e1514ada"
   },
   {
     "index": 1793,
@@ -8404,7 +8385,7 @@
         ]
       ],
       "search_incomplete": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1793/cuts/aam.pkl.gz",
+      "archive": "private-reference-c2445bbedf0262769fd2",
       "direction": "R_to_P"
     },
     "search": {
@@ -8432,7 +8413,6 @@
     },
     "status": {
       "index": 1793,
-      "job": "443210",
       "started": 1788885494.5621471,
       "direction": "R_to_P",
       "phase": "finished",
@@ -8442,6 +8422,6 @@
       "wall_seconds": 195.05245757102966
     },
     "outcome": "recovered",
-    "output": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908/cases/1793"
+    "output": "private-reference-e6f8dced6ba1eeb36fd1"
   }
 ]

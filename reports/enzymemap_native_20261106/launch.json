@@ -1,0 +1,378 @@
+{
+  "source_commit": "c437ed6fc5fb252c3ebc37c87048825787150678",
+  "source_identity": "aea2b33b27274cf4e5c2d82a3c2333242924d864b4980381abe3d9639f0c0bf4",
+  "cases": 47974,
+  "directions": 95948,
+  "config": {
+    "cut_floor": 0.2,
+    "graph_floor": 0.2,
+    "iso_tolerance": 2.0,
+    "event_threshold": 0.5,
+    "metal_event_threshold": 0.3,
+    "seed_count": 1,
+    "branch_limit": 100,
+    "task_chunksize": 1,
+    "anchors": [],
+    "seed_selection": "random",
+    "random_seed": 42,
+    "sweep_cuts": true
+  },
+  "decode_config": {
+    "threshold": 0.5,
+    "metal_threshold": 0.3,
+    "event_slack": 5,
+    "fragment_seconds": 5.0
+  },
+  "compute_workers": 344,
+  "allocated_cpus": 416,
+  "memory_gib_per_worker": 2,
+  "case_seconds": 600,
+  "run_seconds": 9600,
+  "window": 128,
+  "shared_reaction_cache": true,
+  "fragment_pool_bytes": 67108864,
+  "seed_batch": 1,
+  "reused_scientific_results": 0,
+  "reused_caches": 0,
+  "linux_preflight_tests": 155,
+  "linux_smoke_tests": 26,
+  "global_matching_reduction_barrier": true,
+  "decoded_audit": {
+    "query_seconds": 10,
+    "task_seconds": 60
+  },
+  "original_input_checksums_verified": 95948,
+  "submitted_utc": "2026-11-06T22:19:51.446986+00:00",
+  "execution_status": "started, then held after five reduction memory failures; all active pools drained",
+  "input_validation": {
+    "full_direction_scope": true,
+    "batches_disjoint": true,
+    "input_directions_verified": 95948,
+    "reference_records_verified": 95948,
+    "preparation_seconds": 352.0902079259977
+  },
+  "manifest_sha256": "280b89dd83856653c8584bf267fdec0da60a5c3f0cff23b1e548de14f080bb64",
+  "batches": [
+    {
+      "batch": 0,
+      "workers": 80,
+      "cases": 2790,
+      "directions": 5580,
+      "input_bytes": 13201530,
+      "index_sha256": "536e69e7f2382567fdf39b6dc3a3d4eca7fe8a4f344ced205df74694d9e6e00e"
+    },
+    {
+      "batch": 1,
+      "workers": 80,
+      "cases": 2790,
+      "directions": 5580,
+      "input_bytes": 13201559,
+      "index_sha256": "738737e8d27ef303c1674b3b587759c47d979d04e050d0ed13c30b7e6b355679"
+    },
+    {
+      "batch": 2,
+      "workers": 80,
+      "cases": 2790,
+      "directions": 5580,
+      "input_bytes": 13201558,
+      "index_sha256": "e5f4ca8df9fe15f2bcc3d169aa704a6c4b084530b63676b59811b37c3f696593"
+    },
+    {
+      "batch": 3,
+      "workers": 80,
+      "cases": 2790,
+      "directions": 5580,
+      "input_bytes": 13201532,
+      "index_sha256": "6c80c26cbc2083f8ab50079b570dcc8e4c52ec46c1730157bf0fd13aeaf8fb55"
+    },
+    {
+      "batch": 4,
+      "workers": 56,
+      "cases": 1952,
+      "directions": 3904,
+      "input_bytes": 9240288,
+      "index_sha256": "389fbb4598a0f539fd9058a6da716b921951b6b26d5cd860737c4c4b1cad7243"
+    },
+    {
+      "batch": 5,
+      "workers": 56,
+      "cases": 1953,
+      "directions": 3906,
+      "input_bytes": 9241404,
+      "index_sha256": "28cf1786f36fa2518512655b0b5289a3c8eaffc039889a702bc8b16e8857f0e7"
+    },
+    {
+      "batch": 6,
+      "workers": 56,
+      "cases": 1952,
+      "directions": 3904,
+      "input_bytes": 9240287,
+      "index_sha256": "557c0ba8e91102805233adcab32d1747426c5685e60de398e6122a7435def78a"
+    },
+    {
+      "batch": 7,
+      "workers": 56,
+      "cases": 1953,
+      "directions": 3906,
+      "input_bytes": 9241644,
+      "index_sha256": "50107f27880a2583604a372cba5db1ef92b1bb67e81c00ab353746642337f1d8"
+    },
+    {
+      "batch": 8,
+      "workers": 36,
+      "cases": 1255,
+      "directions": 2510,
+      "input_bytes": 5941233,
+      "index_sha256": "db88b2f3ae35b4b46cb55401670eda7788565012cbedc4662a32a12880020bc7"
+    },
+    {
+      "batch": 9,
+      "workers": 36,
+      "cases": 1255,
+      "directions": 2510,
+      "input_bytes": 5941244,
+      "index_sha256": "1614e3cb839b0146f5fb5546924d4bca072d6a2b193c91eaecfea5d91d3c0e9c"
+    },
+    {
+      "batch": 10,
+      "workers": 36,
+      "cases": 1255,
+      "directions": 2510,
+      "input_bytes": 5941244,
+      "index_sha256": "a1022c9b64f602ba034497ee85ff34155561ceee8df57094c027c5eb25ac1fe5"
+    },
+    {
+      "batch": 11,
+      "workers": 36,
+      "cases": 1255,
+      "directions": 2510,
+      "input_bytes": 5941234,
+      "index_sha256": "9be10027c019aa067d737e03903664175b5cf4a6caa863763b439d8bf618dc55"
+    },
+    {
+      "batch": 12,
+      "workers": 28,
+      "cases": 976,
+      "directions": 1952,
+      "input_bytes": 4621237,
+      "index_sha256": "10484fd256bd52346bcd17caed8b42a30fe783f889ecf45141c2b88f7cff4c86"
+    },
+    {
+      "batch": 13,
+      "workers": 28,
+      "cases": 976,
+      "directions": 1952,
+      "input_bytes": 4621271,
+      "index_sha256": "a2f04a4eb93a993f16bbb3ec52b7b094b441a80343feb33ef6acb4b3187b64d3"
+    },
+    {
+      "batch": 14,
+      "workers": 28,
+      "cases": 976,
+      "directions": 1952,
+      "input_bytes": 4621269,
+      "index_sha256": "bed45d886beafd4a2261e049406c55690df97e41c4a44b2a6e5eed1917283902"
+    },
+    {
+      "batch": 15,
+      "workers": 28,
+      "cases": 976,
+      "directions": 1952,
+      "input_bytes": 4621265,
+      "index_sha256": "80eafce4701c07914fdd19a3a180972fa1dd080e9015dc5b1a3b26a306369d7f"
+    },
+    {
+      "batch": 16,
+      "workers": 28,
+      "cases": 976,
+      "directions": 1952,
+      "input_bytes": 4621265,
+      "index_sha256": "b0d60679bda728e3faaa99e22b57a689f707231165eb9c1ddd78749cf5326fce"
+    },
+    {
+      "batch": 17,
+      "workers": 28,
+      "cases": 976,
+      "directions": 1952,
+      "input_bytes": 4621262,
+      "index_sha256": "e8d8cf2a7f883235ce25ae80e5351c8843b0e64ecd91ae0b64164624c282ea0c"
+    },
+    {
+      "batch": 18,
+      "workers": 28,
+      "cases": 976,
+      "directions": 1952,
+      "input_bytes": 4621261,
+      "index_sha256": "09d94ba9eb10bf5ab7c7b39da52acec2ea1d4a7b1e3a5ab0ed8826bd752739a9"
+    },
+    {
+      "batch": 19,
+      "workers": 28,
+      "cases": 976,
+      "directions": 1952,
+      "input_bytes": 4621258,
+      "index_sha256": "5f224ca325b6c272afcf7254822dd6d64af7d8ec7775a4bf7b28dc313e380198"
+    },
+    {
+      "batch": 20,
+      "workers": 28,
+      "cases": 976,
+      "directions": 1952,
+      "input_bytes": 4621256,
+      "index_sha256": "8a123f1004bff2f6ac17f70dee3a7d1f2d2c3382c12c2f71141cce34eb013e41"
+    },
+    {
+      "batch": 21,
+      "workers": 28,
+      "cases": 976,
+      "directions": 1952,
+      "input_bytes": 4621253,
+      "index_sha256": "0a8255d555e8d29350812552ca18e040d7cc6043ce0f524ac4c8159162e2b153"
+    },
+    {
+      "batch": 22,
+      "workers": 28,
+      "cases": 976,
+      "directions": 1952,
+      "input_bytes": 4621249,
+      "index_sha256": "e119bbf3c475f729c252705b1bbdcda91f58b6902fd4854aacaf7942bf1a4062"
+    },
+    {
+      "batch": 23,
+      "workers": 28,
+      "cases": 976,
+      "directions": 1952,
+      "input_bytes": 4621243,
+      "index_sha256": "34688a0ee0c414d1c87cae7b737f159ed5f73e02564f07a039490a7ea5f2fca3"
+    },
+    {
+      "batch": 24,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631309,
+      "index_sha256": "e04a840c253d2a4412e3712fd9677aa947dd90aaf0ffbb1deabd9bea76975da3"
+    },
+    {
+      "batch": 25,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631285,
+      "index_sha256": "dce7d1a38e598585ad856338feef902173a960e652642cc4bff38fe5ab532d5b"
+    },
+    {
+      "batch": 26,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631317,
+      "index_sha256": "3d770ea82908aecf05211e31a0536cd4bbd4aa85b06481a2ad48f2de97d36813"
+    },
+    {
+      "batch": 27,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631316,
+      "index_sha256": "0cbd07b41d26b571a6167d7863c168aa72661565a3bbfed5125da88e56f5e179"
+    },
+    {
+      "batch": 28,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631315,
+      "index_sha256": "04b4aa849e63269bdaf0d96723778aab687ed3f747e6e12eb9b27bf10e1d6aea"
+    },
+    {
+      "batch": 29,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631322,
+      "index_sha256": "2c88caf2668d1445bd79280950a42e485e6b65790c9e9260972bfe7eda29292d"
+    },
+    {
+      "batch": 30,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631319,
+      "index_sha256": "463ecbaa6491e0125ad901afb536cab48c9fc0ac0ff1a016fba13bf88474724b"
+    },
+    {
+      "batch": 31,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631307,
+      "index_sha256": "d739c2668c9b43f684cdb0d7cefd5976275b6fe6b0a775d07304afe6a1833090"
+    },
+    {
+      "batch": 32,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631302,
+      "index_sha256": "78f7f8982467adb48a1d35c6d19127a5b53899fa703a9251c29785629117b6b9"
+    },
+    {
+      "batch": 33,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631298,
+      "index_sha256": "b5270ec6a9adf335f0b05c113df50fe9181c4336e03cd821607bdd07f7562e3b"
+    },
+    {
+      "batch": 34,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631295,
+      "index_sha256": "fb124636d06f8a6a1605f7ae1eb5194c51f80f4bdb43551d3f8bfaa709764733"
+    },
+    {
+      "batch": 35,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631286,
+      "index_sha256": "f09ba02deaef87eefbe7f4ca7a2f034fe0d6407a6e6fdd6a77e1a97d74bbb8ae"
+    },
+    {
+      "batch": 36,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631308,
+      "index_sha256": "79818c2983061ab0cea27ee6d085d2adcf3cea18a7f2ecf8dd2041af2fe96efe"
+    },
+    {
+      "batch": 37,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631327,
+      "index_sha256": "bad8cf7680dc428c32bf820a517392cba0d97ad91f8a585932296821ed2b7ef8"
+    },
+    {
+      "batch": 38,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631328,
+      "index_sha256": "2242bc8a3b08f15bcff99aca2ba9ca56dee9e26468f32d4574eea7c448ff6991"
+    },
+    {
+      "batch": 39,
+      "workers": 22,
+      "cases": 767,
+      "directions": 1534,
+      "input_bytes": 3631327,
+      "index_sha256": "ac927490ddc1df859285244066c1f8a53d76c46c39b631968ecc42e02fd5ad57"
+    }
+  ],
+  "scheduling_adjustment": "Per-array throttles were raised to fill available allocation slots. Existing ownership and the global barrier were preserved. No allocation was replaced."
+}

@@ -1,0 +1,54 @@
+"""Native branch-search adapter."""
+
+from __future__ import annotations
+import gc, time
+from mappa.mappa_core.core.search.branching.construction import _normalize_anchor_map
+from mappa.mappa_core.core.matching.growth import native
+from mappa.mappa_core.core.search.graph import SearchContext
+
+
+def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1.,
+                        max_branches=100, cuts=(),
+                        anchor_map=None, core_R=None, stop_when_core_mapped=False,
+                        fragment_cache=None, profile=None, random_seed=42):
+    order=list(dict.fromkeys(seed_order))
+    anchors=_normalize_anchor_map(anchor_map,source,target)
+    if not native.available():
+        raise ValueError('native scheduling requires the built native engine')
+    fragments=None
+    if fragment_cache is not None:
+        if fragment_cache.source is not source or fragment_cache.target is not target:
+            raise ValueError('fragment pool view belongs to another graph pair')
+        fragments=fragment_cache.engine
+        if not isinstance(fragments,native._engine.FragmentPool):
+            raise ValueError('native scheduling requires a fragment pool view')
+    r=native.source_graph(source)
+    p=fragment_cache.target_view if fragment_cache is not None else native.target_graph(target)
+    if r is None or p is None:
+        raise ValueError('native scheduling requires WBO graphs')
+    core=tuple(sorted(set(core_R or ())))
+    context=SearchContext(tuple(sorted(source)),tuple(sorted(target)),tuple(order),tuple(cuts),
+        core,tuple(sorted(anchors.items())),float(graph_floor),float(iso_tol),int(max_branches),
+        objective='requested_core' if stop_when_core_mapped and core else 'full_source',
+        random_seed=random_seed)
+    cpu=time.process_time() if profile is not None else 0.
+    wall=time.perf_counter() if profile is not None else 0.
+    enabled = gc.isenabled()
+    try:
+        # The decision DAG is acyclic. Avoid rescanning retained cuts while
+        # the binding constructs this cut's shared immutable state blocks.
+        gc.disable()
+        graph,growth_calls,max_growth_candidates=native._engine.search_fragments(r.graph,p.graph,[r.index[a] for a in order],
+            float(graph_floor),float(iso_tol),int(max_branches),
+            [(r.index[a],p.index[b]) for a,b in sorted(anchors.items())],
+            [r.index[a] for a in core],bool(stop_when_core_mapped),r.nodes,p.nodes,context,fragments,
+            int(random_seed) & ((1<<64)-1))
+        native_cpu=time.process_time()-cpu if profile is not None else 0.
+        native_wall=time.perf_counter()-wall if profile is not None else 0.
+    finally:
+        if enabled:
+            gc.enable()
+    if profile is not None:
+        profile.append(dict(growth_calls=growth_calls,max_cands_before=max_growth_candidates,native_schedule_and_export_cpu=native_cpu,
+            extend_elapsed_sec=native_wall))
+    return graph

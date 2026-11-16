@@ -1,84 +1,64 @@
 """Composable atom mapping and signed-event decoding.
 
-The main workflow is search_aam -> mappa.postprocessing.decode_events.
+The main workflow is search_aam -> deduplicate -> decode_events.
 TS analysis consumes an explicitly supplied ReactionContext.
 """
-from .aam import search_aam, search_aam_checkpoints, AAMCheckpointResult
-from .search_orientation import AAMSearchPlan, plan_aam_search
-from .family_query import query_path
-from .analytical import compile_mapping_families, compile_mechanism_families
-from .mechanisms import group_mechanisms
-from .fragment import match_fragment, FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult, FragmentPlacement
-from .search_graph import AAMSearchGraph, SearchContext, SearchState, SearchStop, FragmentTransition, SearchPath, SearchBranch, PathRealization
-from .search_symmetry import finalize_graph_symmetry
-from .core_aam import search_core_assignments
-from .domain import (
-    AAMMechanism,
-    AAMProblem,
-    AAMResult,
-    MechanismResult,
-    MappingFamilyResult,
-    AAMSearchConfig,
-    AAMSearchMetrics,
-    AnalyticalAAMResult,
-    AnalyticalBranch,
-    AnalyticalMechanism,
-    AtomAssignment,
-    CoreAAMBranch,
-    CoreAAMResult,
-    MolecularEndpoint,
-    ReactionContext,
-    ResolvedMechanism,
-    TSMechanismResult,
-    TSResult,
-    TSScore,
-    TSScoringConfig,
-    TransitionStateTarget,
-    VibrationalModes,
+from mappa.mappa_core.core.search.api import search_aam, search_aam_checkpoints, AAMCheckpointResult
+from mappa.mappa_core.core.search.planning import AAMSearchPlan, plan_aam_search
+from mappa.mappa_core.post_processing.hierarchical_mapping import convert_fragments, FragmentConversion
+from mappa.mappa_workflow.mapping_analytics.api import (
+    DirectionalResults, deduplicate, decode_events,
+    decoded_events_record, decoded_events_from_record,
 )
-from .ts import analyze_transition_state
-from .artifacts import (
-    aam_record, aam_from_record, write_aam_bundle,
-    reaction_from_record, reaction_record, ts_record,
-    write_ts_record,
-)
-from .alignment.post_aam import (
-    AAMBranch, AAMHierarchy, AtomBijection, AtomPermutation,
-    FragmentMatch, PermutationGroup, SymmetryDomain,
+from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig, EventInterpretation
+from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+from mappa.mappa_core.core.search.queries.family import query_path
+from mappa.mappa_core.core.matching.policy import BondTolerance
+from mappa.mappa_core.core.matching.api import match_fragment
+from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext, FragmentMatchResult, Fragment
+from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, SearchStop, FragmentTransition, SearchPath, SearchBranch, PathRealization
+from mappa.mappa_core.core.search.queries.partial import search_core_assignments
+from mappa.mappa_core.domain import AAMProblem, AAMResult, AAMSearchConfig, AAMSearchMetrics, AtomAssignment, CoreAAMBranch, CoreAAMResult, MolecularEndpoint, ReactionContext, ResolvedMechanism, VibrationalModes
+from mappa.mappa_workflow.ts_analytics.records import TSMechanismResult, TSResult, TSScore, TSScoringConfig, TransitionStateTarget
+from mappa.mappa_workflow.ts_analytics.api import analyze_transition_state
+from mappa.mappa_workflow.mapping_analytics.reaction_cores import ReactionCore, extract_reaction_cores
+from mappa.mappa_core.utils.io.records import aam_record, aam_from_record, reaction_from_record, reaction_record
+from mappa.presentation.viewers import write_aam_bundle
+from mappa.mappa_workflow.ts_analytics.serialization import ts_record, write_ts_record
+from .mappa_core.domain import (
+    AAMHierarchy, AtomBijection, AtomPermutation,
+    PermutationGroup,
 )
 
 # Stable graph and chemistry primitives are reusable public components.
-from .frag import (
-    WeightedGraph,
-    WeightedNode,
-    build_graph,
-    build_weighted_graph,
-    classify_bonds,
-)
-from .scoring import POLICY as TS_SCORING_POLICY, subset_score
-from .subgraph import SubgraphMatch, SubgraphSearchResult, match_weighted_subgraph
+from mappa.mappa_core.core.matching.graphs import WeightedGraph, WeightedNode, build_graph, build_weighted_graph
+from mappa.mappa_core.post_processing.decoder.events import classify_bonds
+from mappa.mappa_workflow.ts_analytics.scoring import POLICY as TS_SCORING_POLICY, subset_score
+from mappa.mappa_core.core.search.queries.subgraph import SubgraphMatch, SubgraphSearchResult, match_weighted_subgraph
 
 __all__ = [
-    "query_path",
+    "deduplicate", "FinalBranchCatalogue", "EventDecodeConfig", "EventInterpretation", "DirectionalResults",
+    "query_path", "convert_fragments", "FragmentConversion", "decode_events",
     "AAMSearchPlan", "plan_aam_search",
     "aam_record", "aam_from_record", "write_aam_bundle",
-    "group_mechanisms", "compile_mechanism_families", "MechanismResult", "MappingFamilyResult",
-    "match_fragment", "FragmentMatchConfig", "FragmentMatchContext", "FragmentMatchResult", "FragmentPlacement",
+    "decoded_events_record", "decoded_events_from_record",
+    "BondTolerance", "match_fragment", "FragmentMatchConfig", "FragmentMatchContext", "FragmentMatchResult", "Fragment",
     "AAMSearchGraph", "SearchState", "FragmentTransition", "SearchPath", "SearchBranch",
     "SearchContext", "SearchStop",
-    "PathRealization", "finalize_graph_symmetry", "SubgraphSearchResult",
-    "AAMMechanism", "AAMProblem", "AAMResult", "AAMSearchConfig",
-    "AAMSearchMetrics", "AnalyticalAAMResult", "AnalyticalBranch",
-    "AnalyticalMechanism", "AtomAssignment", "CoreAAMBranch",
+    "PathRealization", "SubgraphSearchResult",
+    "AAMProblem", "AAMResult", "AAMSearchConfig",
+    "AAMSearchMetrics",
+    "AtomAssignment", "CoreAAMBranch",
     "CoreAAMResult", "MolecularEndpoint",
     "ReactionContext", "ResolvedMechanism",
     "TSMechanismResult", "TSResult", "TSScore", "TSScoringConfig",
     "TransitionStateTarget", "VibrationalModes",
-    "AAMBranch", "AAMHierarchy", "AtomBijection", "AtomPermutation",
-    "FragmentMatch", "PermutationGroup", "SymmetryDomain",
+    "AAMHierarchy", "AtomBijection", "AtomPermutation",
+    "PermutationGroup",
     "search_aam_checkpoints", "AAMCheckpointResult",
-    "search_aam", "compile_mapping_families", "search_core_assignments",
+    "search_aam", "search_core_assignments",
     "analyze_transition_state",
+    "ReactionCore", "extract_reaction_cores",
     "ts_record", "write_ts_record",
     "reaction_record", "reaction_from_record",
     "WeightedGraph", "WeightedNode", "build_graph", "build_weighted_graph",
@@ -88,6 +68,6 @@ __all__ = [
 
 __version__ = "0.2.0"
 
-# Raw search helpers; signed-event decoding remains in mappa.postprocessing.
-from .search_orientation import DirectedAAMResult, search_aam_directions
+# Raw search helpers; signed-event decoding remains in mappa.mappa_core.post_processing.decoder.api.
+from mappa.mappa_core.core.search.api import DirectedAAMResult, search_aam_directions
 __all__ += ["DirectedAAMResult", "search_aam_directions"]

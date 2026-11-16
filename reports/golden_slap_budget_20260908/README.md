@@ -91,11 +91,7 @@ jobs were relocated; all submissions and retries are recorded. **19 tests pass.*
 ## Saved results
 
 Full raw mappings, graphs, timings, errors, scripts and logs:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_slap_expanded_20260908`
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_slap_all_atoms_20260908`
-
+Full artifacts and raw operational records are retained privately.Full artifacts and raw operational records are retained privately.
 This report includes both summaries, the cross-mode analysis, and a compressed
 archive of the case-level evaluations and provenance. The much larger raw
 candidate banks remain in the cluster directories above. No rerun is needed to

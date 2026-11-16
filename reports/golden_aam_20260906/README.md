@@ -1,6 +1,6 @@
 # Golden AAM benchmark — measured campaign
 
-Run: `/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_full_20260906`. Search revision: `9dd6d8d2bb4ae20ec6e6482743d8727655bb724d`. Frozen source hashes and inputs: `manifest.json`.
+Run: private artifact storage. Search revision: `9dd6d8d2bb4ae20ec6e6482743d8727655bb724d`. Frozen source hashes and inputs: `manifest.json`.
 
 ## Recovery and coverage
 

@@ -5,14 +5,15 @@ import json
 import numpy as np
 import pytest
 
-from mappa.growth.frontier import GrowthRandom, _pop_random_atom
-from mappa.growth import grow_island, native
-from mappa.frag import build_graph
-from mappa.matcher import _nauty_orbits
+from mappa.mappa_core.core.matching.growth.frontier import GrowthRandom, _pop_random_atom
+from mappa.mappa_core.core.matching.growth.engine import grow_island, grow_island_python
+from mappa.mappa_core.core.matching.growth import native
+from mappa.mappa_core.core.matching.graphs import build_graph
 from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_aam
-from mappa.aam import checkpoint_manifest
+from mappa.mappa_core.core.search.planning import checkpoint_manifest
 
 
+@pytest.mark.smoke
 def test_selection_ignores_weights_and_samples_atoms_not_edges():
     # Atom 3 has three incident edges, atom 4 only one. Equal atom probability.
     pool=[(-3.,0,3),(-2.,1,3),(-1.,2,3),(-.5,0,4)]
@@ -36,7 +37,7 @@ def molecule():
 
 def trace(seed):
     source,_=molecule();events=[]
-    grow_island(source,source,0,{},events=events,iso_tol=.1,random_seed=seed)
+    grow_island_python(source,source,0,{},events=events,iso_tol=.1,random_seed=seed)
     return [e['edge']['ext_atom'] for e in events if e['type']=='pop']
 
 
@@ -48,21 +49,28 @@ def test_actual_growth_can_choose_hydrogen_before_triple_bond():
 
 
 @pytest.mark.skipif(not native.built(),reason='native engine required')
-def test_nondefault_seeds_agree_in_python_native_and_repair(monkeypatch):
-    from mappa.cut_replay import CutReplay, FragmentRepair
-    source,_=molecule();orbits=_nauty_orbits(source,wbo_tol=.1)
-    r=native.source_graph(source);p=native.target_graph(source,orbits)
-    sessions=[CutReplay(source,source,orbits),FragmentRepair(source,source,orbits)]
+def test_nondefault_seeds_agree_in_python_native_and_fragment_pool(monkeypatch):
+    from mappa.mappa_core.core.matching.reuse import FragmentPool
+    source,_=molecule()
+    r=native.source_graph(source);p=native.target_graph(source)
+    sessions=[FragmentPool(source,source)]
     for seed in [1,2,7,42,2**64-1,1]:
         expected=native._engine.grow_island(r.graph,p.graph,0,[-1]*5,.2,.1,1,100,None,(),False,seed)
         for session in sessions:
             actual=session.engine.grow((),0,[-1]*5,.2,.1,1,100,None,(),False,seed)
-            actual.pop('reused_extensions')
-            assert actual==expected
+            for name in ('completion_seconds', 'feasibility_nodes', 'feasibility_searches'):
+                actual['profile'].pop(name)
+                expected['profile'].pop(name, None)
+            for result in (actual, expected):
+                for fragment in result['fragments']:
+                    for side in ('source', 'target'):
+                        fragment[side].pop('self_id', None)
+            np.testing.assert_equal(actual, expected)
         def result(mode):
             monkeypatch.setenv('MAPPA_NATIVE',mode)
-            return [(dict(x),x.fragment,x.deferred_edges,x.symmetry) for x in grow_island(
-                source,source,0,{},p_orbits=orbits,iso_tol=.1,random_seed=seed)]
+            grown = grow_island(source,source,0,{},iso_tol=.1,random_seed=seed)
+            return (grown.deferred_edges,
+                    [x.to_record() for x in grown.matches])
         assert result('0')==result('1')
 
 
@@ -70,8 +78,8 @@ def test_new_search_records_seed_and_rejects_old_policy(tmp_path):
     _,ep=molecule();problem=AAMProblem(ep,ep)
     config=AAMSearchConfig(random_seed=137,cut_floor=10,iso_tolerance=.1)
     result=search_aam(problem,config)
-    assert all(c.random_seed==137 and c.growth_policy=='uniform_boundary_atom_splitmix64_v1'
-               for c in result.graph.contexts)
+    assert result.graph.contexts[0].random_seed == 137
+    assert all(c.growth_policy=='growth_edge_splitmix64_v3' for c in result.graph.contexts)
     assert result.graph==search_aam(problem,config).graph
     old=checkpoint_manifest(problem,config)
     old.pop('growth_policy');old['schema']='rxn_core.aam_checkpoints/v3'
@@ -85,15 +93,8 @@ def test_new_search_records_seed_and_rejects_old_policy(tmp_path):
         search_aam(problem,config,intermediate_dir=tmp_path,resume=True)
 
 
-def test_old_pickle_policy_is_labeled_and_cannot_replay_as_new():
-    import pickle
-    from mappa.search_graph import SearchContext
-    from mappa.search_trajectory import build_trajectory
-    context=SearchContext((0,),(0,),(0,))
-    object.__delattr__(context,'growth_policy')
-    object.__delattr__(context,'random_seed')
-    restored=pickle.loads(pickle.dumps(context))
-    assert restored.growth_policy=='legacy_wbo_priority'
+def test_mismatched_growth_policy_cannot_replay_as_current():
+    from mappa.presentation.trajectory import build_trajectory
     _,ep=molecule();result=search_aam(AAMProblem(ep,ep),AAMSearchConfig(cut_floor=10))
     from dataclasses import replace
     object.__setattr__(result.graph,'contexts',tuple(replace(c,growth_policy='legacy_wbo_priority')
@@ -104,7 +105,7 @@ def test_old_pickle_policy_is_labeled_and_cannot_replay_as_new():
 
 @pytest.mark.skipif(not native.built(),reason='native engine required')
 def test_randomized_partial_matching_parity_across_streams(monkeypatch):
-    from mappa.growth.result import IslandBranchLimitExceeded
+    from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded
     rng=np.random.default_rng(2071)
     for trial in range(8):
         edges=[(i,i+1) for i in range(7)]+[(0,3),(2,6)]
@@ -114,22 +115,29 @@ def test_randomized_partial_matching_parity_across_streams(monkeypatch):
             for a,b in edges:w[a,b]=w[b,a]=rng.choice([.6,1.,1.8,3.])
             matrices.append(w)
         source,target=[build_graph(['C']*5+['H']*3,w,bond_cut=.2) for w in matrices]
-        orbits=_nauty_orbits(target,wbo_tol=.5)
         for random_seed in (0,1,2,7,137):
             def run(mode):
                 monkeypatch.setenv('MAPPA_NATIVE',mode)
                 try:
-                    return [(dict(x),x.fragment,x.deferred_edges,x.symmetry) for x in grow_island(
-                        source,target,trial,{},p_orbits=orbits,iso_tol=.5,max_branches=100,
-                        random_seed=random_seed)]
+                    grown = grow_island(
+                        source,target,trial,{},iso_tol=.5,max_branches=100,
+                        random_seed=random_seed)
+                    return (grown.deferred_edges,
+                            [x.to_record() for x in grown.matches])
                 except IslandBranchLimitExceeded as exc:
                     return ('capped',exc.count,exc.limit)
             assert run('0')==run('1'),(trial,random_seed)
 
 
 def test_selected_native_backend_failure_does_not_fall_through(monkeypatch):
+    import mappa.mappa_core.core.matching.growth.engine as growth
     source,_=molecule()
-    monkeypatch.setattr(native,'applicable',lambda *a,**k:True)
-    monkeypatch.setattr(native,'grow_island',lambda *a,**k:None)
-    with pytest.raises(ValueError,match='Selected native growth cannot represent'):
-        grow_island(source,source,0,{})
+    def failed(*args, **kwargs):
+        raise RuntimeError('native computation failed')
+    def forbidden(*args, **kwargs):
+        raise AssertionError('Python must not replace failed native execution')
+    monkeypatch.setenv('MAPPA_NATIVE','1')
+    monkeypatch.setattr(native,'grow_island',failed)
+    monkeypatch.setattr(growth,'grow_island_python',forbidden)
+    with pytest.raises(RuntimeError,match='native computation failed'):
+        grow_island(source,source,0,{},)

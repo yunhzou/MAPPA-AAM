@@ -115,8 +115,8 @@ matching, search graphs, hierarchy transport and the typed AAM/TS API.
 ## Reproduce the numerical audit only
 
 ```bash
-env PYTHONPATH=/project/yunhengzou/coordinate_alignment/aam_benchmarks/slap_guided_pilot_20260909/dependencies:src OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 timeout --kill-after=5s 60 .venv/bin/python bench/audit_ts_weight_information.py --source /h/399/yunhengzou/appendix_final/bgcp_rerank_latest --slap-core /project/yunhengzou/coordinate_alignment/aam_benchmarks/competitor_env_20260908/lib/python3.10/site-packages/slapmapper/core.py --output NEW_DIRECTORY --cases pr1.tempo_ts1 pr16.carbocation_ts5 pr7.V.dodh_ts910
+env PYTHONPATH=/path/to/dependencies:src OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 timeout --kill-after=5s 60 .venv/bin/python bench/audit_ts_weight_information.py --source /path/to/bgcp_rerank_latest --slap-core /path/to/core.py --output NEW_DIRECTORY --cases pr1.tempo_ts1 pr16.carbocation_ts5 pr7.V.dodh_ts910
 ```
 
 Full report path:
-`/h/399/yunhengzou/coordinate_alignment/reports/ts_weight_information_20260909/README.md`
+Full artifacts and raw operational records are retained privately.

@@ -18,9 +18,9 @@ from mappa import (
     analyze_transition_state,
     ts_record, reaction_from_record, reaction_record,
 )
-from mappa.chemistry_computations import parse_xyz
-from mappa.chemistry_computations.xtb import read_wbo_file
-from mappa.modes import parse_g98_modes
+from mappa.mappa_core.utils.io import parse_xyz
+from mappa.mappa_core.utils.io.xtb import read_wbo_file
+from mappa.mappa_core.utils.io.modes import parse_g98_modes
 
 
 def _endpoint(cache, label):

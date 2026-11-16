@@ -1,0 +1,896 @@
+{
+  "schema": "mappa.event_minimum_pilot/v1",
+  "state": "local_feasibility_complete_full_dataset_pending",
+  "statistic": "Annotated reference heavy-heavy event count minus certified minimum within one saved direction catalogue",
+  "method": {
+    "input": "One immutable DecodingResult with its embedded original catalogue, plus the annotated reference",
+    "lower_bound": "Sum mandatory nonzero heavy-heavy saved responses within each table; take the maximum across alternative partitions; product unmatched boundaries conservatively contribute zero.",
+    "upper_bound": "Original full-atom-valid family witness",
+    "exact_queries": "Existing constraint compiler and improving-count feasibility queries only for unresolved families",
+    "hydrogen_constraints_preserved": true,
+    "rematching": false,
+    "negative_bins_preserved": true,
+    "unknowns_excluded_from_histograms": true,
+    "atom_coverage_reported": true,
+    "whole_input_sha256_authoritative": true
+  },
+  "scope": {
+    "unique_directions": 4,
+    "unique_cases": 3,
+    "certified_directions": 4,
+    "unknown_directions": 0,
+    "task_errors": 0,
+    "final_runner_real_case_retest_directions": 1,
+    "historical_golden_zero": "Both directions are historical smoke inputs, not a current complete Golden cohort.",
+    "golden_1561": "Previously saved local point; not a representative random sample.",
+    "enzyme_37270": "Previously approved large saved direction; not a representative random sample.",
+    "direction_reaction_union_not_computed": true
+  },
+  "final_observations": [
+    {
+      "dataset": "historical_golden_smoke",
+      "case": 0,
+      "reversed": true,
+      "state": "complete",
+      "decoded_sha256": "939727f2ab06737c20a48491fdfcdd094742a5224eb99497f902cb082cb0699e",
+      "reference_sha256": "2d6da0a81290b483f5e3b0a0e0f6c851f8a30e0cc41ef62d995632c5712e77af",
+      "worker_metrics": {
+        "cpu_seconds": 0.759607,
+        "compute_seconds": 0.7661713340785354,
+        "publish_seconds": 0.002617791062220931,
+        "publish_cpu_seconds": 0.0007159999999999389,
+        "total_cpu_seconds": 0.76041,
+        "process_lifetime_peak_rss_bytes": 260227072,
+        "peak_tree_rss_bytes": 256163840,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 256163840,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 0.6444538839999999,
+        "memory_samples": 4,
+        "monitoring_seconds": 0.05867204302921891,
+        "elapsed_seconds": 0.7697109170258045
+      },
+      "analysis": {
+        "status": "exact",
+        "reference_events": 7,
+        "minimum_events": 5,
+        "minimum_lower_bound": 5,
+        "minimum_upper_bound": 5,
+        "difference": 2,
+        "witness_family": 100,
+        "reference_mapped_heavy_atoms": 34,
+        "witness_mapped_heavy_atoms": 34,
+        "same_heavy_coverage": true,
+        "families": 3266,
+        "witnesses_scored": 101,
+        "proof_counts": {},
+        "saved_response_tables_checked": 3266,
+        "saved_response_certified_families": 3266,
+        "unresolved_family_count": 0,
+        "solver_queries": 0,
+        "incomplete_paths": 0,
+        "cpu_seconds": 0.01981900000000003,
+        "wall_seconds": 0.019822708098217845,
+        "preparation_cpu_seconds": 0.6963480000000001,
+        "event_policy": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "atom_scope": "heavy-heavy",
+          "comparison": "absolute difference > threshold"
+        },
+        "problem_sha256": "5cb09ca45175d8dd155b0e1af683a76531accbcada621a4b5e258988c088b249",
+        "decoded_schema": "mappa.decoded_events/v3"
+      }
+    },
+    {
+      "dataset": "historical_golden_smoke",
+      "case": 0,
+      "reversed": false,
+      "state": "complete",
+      "decoded_sha256": "11eaebc6ec2abacf87ab66f1cbf6120c984adb2636f258081143a6d0378a3f65",
+      "reference_sha256": "2d6da0a81290b483f5e3b0a0e0f6c851f8a30e0cc41ef62d995632c5712e77af",
+      "worker_metrics": {
+        "cpu_seconds": 1.6429280000000002,
+        "compute_seconds": 1.6435789170209318,
+        "publish_seconds": 0.0025640418753027916,
+        "publish_cpu_seconds": 0.0005090000000000927,
+        "total_cpu_seconds": 1.643517,
+        "process_lifetime_peak_rss_bytes": 457998336,
+        "peak_tree_rss_bytes": 456998912,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 456998912,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 1.5159415559999998,
+        "memory_samples": 8,
+        "monitoring_seconds": 0.11625391710549593,
+        "elapsed_seconds": 1.64692670898512
+      },
+      "analysis": {
+        "status": "exact",
+        "reference_events": 7,
+        "minimum_events": 5,
+        "minimum_lower_bound": 5,
+        "minimum_upper_bound": 5,
+        "difference": 2,
+        "witness_family": 2101,
+        "reference_mapped_heavy_atoms": 34,
+        "witness_mapped_heavy_atoms": 34,
+        "same_heavy_coverage": true,
+        "families": 6280,
+        "witnesses_scored": 2102,
+        "proof_counts": {},
+        "saved_response_tables_checked": 6280,
+        "saved_response_certified_families": 6280,
+        "unresolved_family_count": 0,
+        "solver_queries": 0,
+        "incomplete_paths": 0,
+        "cpu_seconds": 0.20143900000000015,
+        "wall_seconds": 0.20145012508146465,
+        "preparation_cpu_seconds": 1.377488,
+        "event_policy": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "atom_scope": "heavy-heavy",
+          "comparison": "absolute difference > threshold"
+        },
+        "problem_sha256": "67c485d383c1128c79f526166cad73d61ccaccb2c6814717561158f4dcfb9013",
+        "decoded_schema": "mappa.decoded_events/v3"
+      }
+    },
+    {
+      "dataset": "golden_point",
+      "case": 1561,
+      "reversed": false,
+      "state": "complete",
+      "decoded_sha256": "7655357ad0270594700d8da6fbe5e37d54436ce7ed9a51dcdff619270d1f1f95",
+      "reference_sha256": "8a0e81d71c3e60880d0b59b2555a81b06d48d73aee67586e80005b9fc71c0ca6",
+      "worker_metrics": {
+        "cpu_seconds": 3.029633,
+        "compute_seconds": 3.0322457500733435,
+        "publish_seconds": 0.0027882910799235106,
+        "publish_cpu_seconds": 0.000548000000000215,
+        "total_cpu_seconds": 3.0302470000000006,
+        "process_lifetime_peak_rss_bytes": 559874048,
+        "peak_tree_rss_bytes": 558448640,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 558448640,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 2.8185656159999994,
+        "memory_samples": 14,
+        "monitoring_seconds": 0.2083114159759134,
+        "elapsed_seconds": 3.035781875019893
+      },
+      "analysis": {
+        "status": "exact",
+        "reference_events": 3,
+        "minimum_events": 3,
+        "minimum_lower_bound": 3,
+        "minimum_upper_bound": 3,
+        "difference": 0,
+        "witness_family": 332,
+        "reference_mapped_heavy_atoms": 45,
+        "witness_mapped_heavy_atoms": 45,
+        "same_heavy_coverage": true,
+        "families": 14130,
+        "witnesses_scored": 333,
+        "proof_counts": {},
+        "saved_response_tables_checked": 14130,
+        "saved_response_certified_families": 14130,
+        "unresolved_family_count": 0,
+        "solver_queries": 0,
+        "incomplete_paths": 0,
+        "cpu_seconds": 0.17180699999999938,
+        "wall_seconds": 0.1718199159950018,
+        "preparation_cpu_seconds": 2.781396,
+        "event_policy": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "atom_scope": "heavy-heavy",
+          "comparison": "absolute difference > threshold"
+        },
+        "problem_sha256": "2a5166aeb088b94ca9bdd1ad1b556b60de7fc9d07877cd221a1c433e85c37c8d",
+        "decoded_schema": "mappa.decoded_events/v4"
+      }
+    },
+    {
+      "dataset": "enzymemap",
+      "case": 37270,
+      "reversed": false,
+      "state": "complete",
+      "decoded_sha256": "1a6565d9ea1dbdab19b7c7124a1cbee563f0d19b49c1f449cc8dde230a95f855",
+      "reference_sha256": "88d47b41f31dd53aee908e26a806c7a8e1a8cc3aea52942cd8dbc940367ca098",
+      "worker_metrics": {
+        "cpu_seconds": 0.491862,
+        "compute_seconds": 0.5317430840805173,
+        "publish_seconds": 0.002596040954813361,
+        "publish_cpu_seconds": 0.0007240000000000579,
+        "total_cpu_seconds": 0.492656,
+        "process_lifetime_peak_rss_bytes": 469712896,
+        "peak_tree_rss_bytes": 469647360,
+        "phase_peak_tree_rss_bytes": {
+          "compute": 469647360,
+          "publication": 0
+        },
+        "memory_guard_bytes": 2147483648,
+        "memory_sample_interval_seconds": 0.2,
+        "sampled_cpu_seconds": 0.3975693800000001,
+        "memory_samples": 3,
+        "monitoring_seconds": 0.046359291300177574,
+        "elapsed_seconds": 0.53494375012815
+      },
+      "analysis": {
+        "status": "exact",
+        "reference_events": 2,
+        "minimum_events": 2,
+        "minimum_lower_bound": 2,
+        "minimum_upper_bound": 2,
+        "difference": 0,
+        "witness_family": 0,
+        "reference_mapped_heavy_atoms": 319,
+        "witness_mapped_heavy_atoms": 319,
+        "same_heavy_coverage": true,
+        "families": 8309,
+        "witnesses_scored": 1,
+        "proof_counts": {},
+        "saved_response_tables_checked": 8309,
+        "saved_response_certified_families": 8309,
+        "unresolved_family_count": 0,
+        "solver_queries": 0,
+        "incomplete_paths": 0,
+        "cpu_seconds": 0.11544700000000008,
+        "wall_seconds": 0.11681237490847707,
+        "preparation_cpu_seconds": 0.312632,
+        "event_policy": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "atom_scope": "heavy-heavy",
+          "comparison": "absolute difference > threshold"
+        },
+        "problem_sha256": "3d43b7035cb0f7c6acc80f2da9e3630384ef7a635eff526f5fb549e693062dd1",
+        "catalogue_schema": "rxn_core.final_fragment_branches/v1",
+        "decoded_schema": "mappa.decoded_events/v5"
+      }
+    }
+  ],
+  "pilot_histograms": {
+    "historical_golden_smoke": {
+      "2": 2
+    },
+    "golden_point": {
+      "0": 1
+    },
+    "enzymemap": {
+      "0": 1
+    }
+  },
+  "validation": {
+    "command": "PYTHONPATH=src:bench python -m pytest -q tests/test_benchmark_event_minima.py",
+    "passed": 12,
+    "failed": 0,
+    "seconds": 1.17,
+    "coverage": [
+      "Independent dense count oracle over ordered overlapping pools",
+      "Positive invariance certificate",
+      "Competing unresolved family cannot be hidden by a good witness",
+      "Original hydrogen matching constraints preserved",
+      "Partial product occupancy",
+      "Alternative partitions not double counted",
+      "Negative and zero differences retained",
+      "Original metal thresholds and hydrogen event exclusion",
+      "Unknown is not a zero bin",
+      "Rematched outputs rejected"
+    ],
+    "scope": "Final maintained source after hoisting the unchanged family lower-bound minimum out of the witness loop; 12 tests passed."
+  },
+  "attempts": [
+    {
+      "method": "catalogue_only_prototype",
+      "raw_report_sha256": "6fdf5b132c92885952218d52c29866e99d5caf33ab88361709d7deaa86c40277",
+      "runner_sha256": "9b3fbbe11fa15e7e3a174adefd973a5d31cbfd4bb006e870077e2f3ea1d8cf2c",
+      "code_identity": "8dcb3527466b22d42378de296d93fc788f0889a723c6f50c8cbac8895800d4b1",
+      "query_seconds": 30.0,
+      "task_seconds": 120.0,
+      "memory_guard_bytes": 2147483648,
+      "directions": [
+        {
+          "dataset": "historical_golden_smoke",
+          "case": 0,
+          "reversed": true,
+          "state": "complete",
+          "catalogue_sha256": "1eeb7438f5ef154bc3a995c541126014771527ed9da12acc6069ca46a78d4b1a",
+          "reference_sha256": "2d6da0a81290b483f5e3b0a0e0f6c851f8a30e0cc41ef62d995632c5712e77af",
+          "worker_metrics": {
+            "cpu_seconds": 2.599857,
+            "compute_seconds": 2.819715082878247,
+            "publish_seconds": 0.0032104160636663437,
+            "publish_cpu_seconds": 0.0009389999999998011,
+            "total_cpu_seconds": 2.60091,
+            "process_lifetime_peak_rss_bytes": 107954176,
+            "peak_tree_rss_bytes": 107921408,
+            "phase_peak_tree_rss_bytes": {
+              "compute": 107921408,
+              "publication": 0
+            },
+            "memory_guard_bytes": 2147483648,
+            "memory_sample_interval_seconds": 0.2,
+            "sampled_cpu_seconds": 2.4634548,
+            "memory_samples": 13,
+            "monitoring_seconds": 0.2833562500309199,
+            "elapsed_seconds": 2.8242912080604583
+          },
+          "analysis": {
+            "status": "exact",
+            "reference_events": 7,
+            "minimum_events": 5,
+            "minimum_lower_bound": 5,
+            "minimum_upper_bound": 5,
+            "difference": 2,
+            "witness_family": 100,
+            "reference_mapped_heavy_atoms": 34,
+            "witness_mapped_heavy_atoms": 34,
+            "same_heavy_coverage": true,
+            "families": 3266,
+            "witnesses_scored": 3266,
+            "proof_counts": {
+              "event_invariance": 3266
+            },
+            "unresolved_family_count": 0,
+            "solver_queries": 0,
+            "incomplete_paths": 0,
+            "cpu_seconds": 2.377912,
+            "wall_seconds": 2.5754553331062198
+          }
+        },
+        {
+          "dataset": "historical_golden_smoke",
+          "case": 0,
+          "reversed": false,
+          "state": "complete",
+          "catalogue_sha256": "09e99ee0a991d02905c7931d4e058fdb10b4d59c2a39eaa00e868ded845549f4",
+          "reference_sha256": "2d6da0a81290b483f5e3b0a0e0f6c851f8a30e0cc41ef62d995632c5712e77af",
+          "worker_metrics": {
+            "cpu_seconds": 30.236514,
+            "compute_seconds": 30.342744124820456,
+            "publish_seconds": 0.010452582966536283,
+            "publish_cpu_seconds": 0.0009319999999988227,
+            "total_cpu_seconds": 30.237530999999997,
+            "process_lifetime_peak_rss_bytes": 163446784,
+            "peak_tree_rss_bytes": 163446784,
+            "phase_peak_tree_rss_bytes": {
+              "compute": 163446784,
+              "publication": 0
+            },
+            "memory_guard_bytes": 2147483648,
+            "memory_sample_interval_seconds": 0.2,
+            "sampled_cpu_seconds": 30.075383312000003,
+            "memory_samples": 137,
+            "monitoring_seconds": 2.7291370378807187,
+            "elapsed_seconds": 30.354159917216748
+          },
+          "analysis": {
+            "status": "unknown",
+            "reference_events": 7,
+            "minimum_events": null,
+            "minimum_lower_bound": 0,
+            "minimum_upper_bound": 5,
+            "difference": null,
+            "witness_family": 2101,
+            "reference_mapped_heavy_atoms": 34,
+            "witness_mapped_heavy_atoms": 34,
+            "same_heavy_coverage": true,
+            "families": 6280,
+            "witnesses_scored": 6280,
+            "proof_counts": {
+              "event_invariance": 4880,
+              "event_lower_bound": 1141
+            },
+            "unresolved_family_count": 259,
+            "solver_queries": 0,
+            "incomplete_paths": 0,
+            "cpu_seconds": 29.898681,
+            "wall_seconds": 30.00060979113914
+          }
+        },
+        {
+          "dataset": "golden_point",
+          "case": 1561,
+          "reversed": false,
+          "state": "complete",
+          "catalogue_sha256": "67a855cb12143e480cb457931b143cf1ab459e291f53903f527b28fd68f2fb51",
+          "reference_sha256": "8a0e81d71c3e60880d0b59b2555a81b06d48d73aee67586e80005b9fc71c0ca6",
+          "worker_metrics": {
+            "cpu_seconds": 30.964905,
+            "compute_seconds": 31.14490183396265,
+            "publish_seconds": 0.004044458037242293,
+            "publish_cpu_seconds": 0.0010270000000076607,
+            "total_cpu_seconds": 30.966026,
+            "process_lifetime_peak_rss_bytes": 236044288,
+            "peak_tree_rss_bytes": 236044288,
+            "phase_peak_tree_rss_bytes": {
+              "compute": 236044288,
+              "publication": 0
+            },
+            "memory_guard_bytes": 2147483648,
+            "memory_sample_interval_seconds": 0.2,
+            "sampled_cpu_seconds": 30.77869984,
+            "memory_samples": 131,
+            "monitoring_seconds": 4.717621250310913,
+            "elapsed_seconds": 31.149900833144784
+          },
+          "analysis": {
+            "status": "unknown",
+            "reference_events": 3,
+            "minimum_events": null,
+            "minimum_lower_bound": 0,
+            "minimum_upper_bound": 3,
+            "difference": null,
+            "witness_family": 332,
+            "reference_mapped_heavy_atoms": 45,
+            "witness_mapped_heavy_atoms": 45,
+            "same_heavy_coverage": true,
+            "families": 14130,
+            "witnesses_scored": 14130,
+            "proof_counts": {
+              "event_invariance": 10686,
+              "event_lower_bound": 200
+            },
+            "unresolved_family_count": 3244,
+            "solver_queries": 0,
+            "incomplete_paths": 0,
+            "cpu_seconds": 29.896993000000002,
+            "wall_seconds": 30.00246045808308
+          }
+        },
+        {
+          "dataset": "enzymemap",
+          "case": 37270,
+          "reversed": false,
+          "state": "complete",
+          "catalogue_sha256": "d4ae14a82c41657b5e56a623124066a9c2003f211c1cbb28fe630d4134a672e3",
+          "reference_sha256": "88d47b41f31dd53aee908e26a806c7a8e1a8cc3aea52942cd8dbc940367ca098",
+          "worker_metrics": {
+            "cpu_seconds": 53.083675,
+            "compute_seconds": 53.440669500036165,
+            "publish_seconds": 0.00462612509727478,
+            "publish_cpu_seconds": 0.001287000000004923,
+            "total_cpu_seconds": 53.08524399999999,
+            "process_lifetime_peak_rss_bytes": 907083776,
+            "peak_tree_rss_bytes": 902512640,
+            "phase_peak_tree_rss_bytes": {
+              "compute": 902512640,
+              "publication": 0
+            },
+            "memory_guard_bytes": 2147483648,
+            "memory_sample_interval_seconds": 0.2,
+            "sampled_cpu_seconds": 52.796479616,
+            "memory_samples": 220,
+            "monitoring_seconds": 8.942152420990169,
+            "elapsed_seconds": 53.44732741592452
+          },
+          "analysis": {
+            "status": "unknown",
+            "reference_events": 2,
+            "minimum_events": null,
+            "minimum_lower_bound": 0,
+            "minimum_upper_bound": 2,
+            "difference": null,
+            "witness_family": 0,
+            "reference_mapped_heavy_atoms": 319,
+            "witness_mapped_heavy_atoms": 319,
+            "same_heavy_coverage": true,
+            "families": 8309,
+            "witnesses_scored": 8309,
+            "proof_counts": {
+              "event_invariance": 254
+            },
+            "unresolved_family_count": 8055,
+            "solver_queries": 0,
+            "incomplete_paths": 0,
+            "cpu_seconds": 29.827243999999993,
+            "wall_seconds": 30.035403665853664
+          }
+        }
+      ]
+    },
+    {
+      "method": "saved_responses_with_eager_restoration_and_redundant_fingerprint",
+      "raw_report_sha256": "06ab966e2da3861c6c1ce5aa2bf918f7d9aa3b110fda30567e497d1a395aa7da",
+      "runner_sha256": "7c4ebd8dc143578618de5cf49fcc8572ae347a3304134e7830c78b0c47a6dca9",
+      "code_identity": "8dcb3527466b22d42378de296d93fc788f0889a723c6f50c8cbac8895800d4b1",
+      "query_seconds": 30.0,
+      "task_seconds": 120.0,
+      "memory_guard_bytes": 2147483648,
+      "directions": [
+        {
+          "dataset": "historical_golden_smoke",
+          "case": 0,
+          "reversed": true,
+          "state": "complete",
+          "decoded_sha256": "939727f2ab06737c20a48491fdfcdd094742a5224eb99497f902cb082cb0699e",
+          "reference_sha256": "2d6da0a81290b483f5e3b0a0e0f6c851f8a30e0cc41ef62d995632c5712e77af",
+          "worker_metrics": {
+            "cpu_seconds": 0.759607,
+            "compute_seconds": 0.7661713340785354,
+            "publish_seconds": 0.002617791062220931,
+            "publish_cpu_seconds": 0.0007159999999999389,
+            "total_cpu_seconds": 0.76041,
+            "process_lifetime_peak_rss_bytes": 260227072,
+            "peak_tree_rss_bytes": 256163840,
+            "phase_peak_tree_rss_bytes": {
+              "compute": 256163840,
+              "publication": 0
+            },
+            "memory_guard_bytes": 2147483648,
+            "memory_sample_interval_seconds": 0.2,
+            "sampled_cpu_seconds": 0.6444538839999999,
+            "memory_samples": 4,
+            "monitoring_seconds": 0.05867204302921891,
+            "elapsed_seconds": 0.7697109170258045
+          },
+          "analysis": {
+            "status": "exact",
+            "reference_events": 7,
+            "minimum_events": 5,
+            "minimum_lower_bound": 5,
+            "minimum_upper_bound": 5,
+            "difference": 2,
+            "witness_family": 100,
+            "reference_mapped_heavy_atoms": 34,
+            "witness_mapped_heavy_atoms": 34,
+            "same_heavy_coverage": true,
+            "families": 3266,
+            "witnesses_scored": 101,
+            "proof_counts": {},
+            "saved_response_tables_checked": 3266,
+            "saved_response_certified_families": 3266,
+            "unresolved_family_count": 0,
+            "solver_queries": 0,
+            "incomplete_paths": 0,
+            "cpu_seconds": 0.01981900000000003,
+            "wall_seconds": 0.019822708098217845,
+            "preparation_cpu_seconds": 0.6963480000000001,
+            "event_policy": {
+              "threshold": 0.5,
+              "metal_threshold": 0.3,
+              "atom_scope": "heavy-heavy",
+              "comparison": "absolute difference > threshold"
+            },
+            "problem_sha256": "5cb09ca45175d8dd155b0e1af683a76531accbcada621a4b5e258988c088b249",
+            "decoded_schema": "mappa.decoded_events/v3"
+          }
+        },
+        {
+          "dataset": "historical_golden_smoke",
+          "case": 0,
+          "reversed": false,
+          "state": "complete",
+          "decoded_sha256": "11eaebc6ec2abacf87ab66f1cbf6120c984adb2636f258081143a6d0378a3f65",
+          "reference_sha256": "2d6da0a81290b483f5e3b0a0e0f6c851f8a30e0cc41ef62d995632c5712e77af",
+          "worker_metrics": {
+            "cpu_seconds": 1.6429280000000002,
+            "compute_seconds": 1.6435789170209318,
+            "publish_seconds": 0.0025640418753027916,
+            "publish_cpu_seconds": 0.0005090000000000927,
+            "total_cpu_seconds": 1.643517,
+            "process_lifetime_peak_rss_bytes": 457998336,
+            "peak_tree_rss_bytes": 456998912,
+            "phase_peak_tree_rss_bytes": {
+              "compute": 456998912,
+              "publication": 0
+            },
+            "memory_guard_bytes": 2147483648,
+            "memory_sample_interval_seconds": 0.2,
+            "sampled_cpu_seconds": 1.5159415559999998,
+            "memory_samples": 8,
+            "monitoring_seconds": 0.11625391710549593,
+            "elapsed_seconds": 1.64692670898512
+          },
+          "analysis": {
+            "status": "exact",
+            "reference_events": 7,
+            "minimum_events": 5,
+            "minimum_lower_bound": 5,
+            "minimum_upper_bound": 5,
+            "difference": 2,
+            "witness_family": 2101,
+            "reference_mapped_heavy_atoms": 34,
+            "witness_mapped_heavy_atoms": 34,
+            "same_heavy_coverage": true,
+            "families": 6280,
+            "witnesses_scored": 2102,
+            "proof_counts": {},
+            "saved_response_tables_checked": 6280,
+            "saved_response_certified_families": 6280,
+            "unresolved_family_count": 0,
+            "solver_queries": 0,
+            "incomplete_paths": 0,
+            "cpu_seconds": 0.20143900000000015,
+            "wall_seconds": 0.20145012508146465,
+            "preparation_cpu_seconds": 1.377488,
+            "event_policy": {
+              "threshold": 0.5,
+              "metal_threshold": 0.3,
+              "atom_scope": "heavy-heavy",
+              "comparison": "absolute difference > threshold"
+            },
+            "problem_sha256": "67c485d383c1128c79f526166cad73d61ccaccb2c6814717561158f4dcfb9013",
+            "decoded_schema": "mappa.decoded_events/v3"
+          }
+        },
+        {
+          "dataset": "golden_point",
+          "case": 1561,
+          "reversed": false,
+          "state": "complete",
+          "decoded_sha256": "7655357ad0270594700d8da6fbe5e37d54436ce7ed9a51dcdff619270d1f1f95",
+          "reference_sha256": "8a0e81d71c3e60880d0b59b2555a81b06d48d73aee67586e80005b9fc71c0ca6",
+          "worker_metrics": {
+            "cpu_seconds": 3.029633,
+            "compute_seconds": 3.0322457500733435,
+            "publish_seconds": 0.0027882910799235106,
+            "publish_cpu_seconds": 0.000548000000000215,
+            "total_cpu_seconds": 3.0302470000000006,
+            "process_lifetime_peak_rss_bytes": 559874048,
+            "peak_tree_rss_bytes": 558448640,
+            "phase_peak_tree_rss_bytes": {
+              "compute": 558448640,
+              "publication": 0
+            },
+            "memory_guard_bytes": 2147483648,
+            "memory_sample_interval_seconds": 0.2,
+            "sampled_cpu_seconds": 2.8185656159999994,
+            "memory_samples": 14,
+            "monitoring_seconds": 0.2083114159759134,
+            "elapsed_seconds": 3.035781875019893
+          },
+          "analysis": {
+            "status": "exact",
+            "reference_events": 3,
+            "minimum_events": 3,
+            "minimum_lower_bound": 3,
+            "minimum_upper_bound": 3,
+            "difference": 0,
+            "witness_family": 332,
+            "reference_mapped_heavy_atoms": 45,
+            "witness_mapped_heavy_atoms": 45,
+            "same_heavy_coverage": true,
+            "families": 14130,
+            "witnesses_scored": 333,
+            "proof_counts": {},
+            "saved_response_tables_checked": 14130,
+            "saved_response_certified_families": 14130,
+            "unresolved_family_count": 0,
+            "solver_queries": 0,
+            "incomplete_paths": 0,
+            "cpu_seconds": 0.17180699999999938,
+            "wall_seconds": 0.1718199159950018,
+            "preparation_cpu_seconds": 2.781396,
+            "event_policy": {
+              "threshold": 0.5,
+              "metal_threshold": 0.3,
+              "atom_scope": "heavy-heavy",
+              "comparison": "absolute difference > threshold"
+            },
+            "problem_sha256": "2a5166aeb088b94ca9bdd1ad1b556b60de7fc9d07877cd221a1c433e85c37c8d",
+            "decoded_schema": "mappa.decoded_events/v4"
+          }
+        },
+        {
+          "dataset": "enzymemap",
+          "case": 37270,
+          "reversed": false,
+          "state": "complete",
+          "decoded_sha256": "1a6565d9ea1dbdab19b7c7124a1cbee563f0d19b49c1f449cc8dde230a95f855",
+          "reference_sha256": "88d47b41f31dd53aee908e26a806c7a8e1a8cc3aea52942cd8dbc940367ca098",
+          "worker_metrics": {
+            "cpu_seconds": 105.95398800000001,
+            "compute_seconds": 106.12185858399607,
+            "publish_seconds": 0.0055483749601989985,
+            "publish_cpu_seconds": 0.0007300000000043383,
+            "total_cpu_seconds": 105.954792,
+            "process_lifetime_peak_rss_bytes": 760135680,
+            "peak_tree_rss_bytes": 756350976,
+            "phase_peak_tree_rss_bytes": {
+              "compute": 756350976,
+              "publication": 0
+            },
+            "memory_guard_bytes": 2147483648,
+            "memory_sample_interval_seconds": 0.2,
+            "sampled_cpu_seconds": 105.679333472,
+            "memory_samples": 489,
+            "monitoring_seconds": 7.220258579356596,
+            "elapsed_seconds": 106.12817799998447
+          },
+          "analysis": {
+            "status": "exact",
+            "reference_events": 2,
+            "minimum_events": 2,
+            "minimum_lower_bound": 2,
+            "minimum_upper_bound": 2,
+            "difference": 0,
+            "witness_family": 0,
+            "reference_mapped_heavy_atoms": 319,
+            "witness_mapped_heavy_atoms": 319,
+            "same_heavy_coverage": true,
+            "families": 8309,
+            "witnesses_scored": 1,
+            "proof_counts": {},
+            "saved_response_tables_checked": 8309,
+            "saved_response_certified_families": 8309,
+            "unresolved_family_count": 0,
+            "solver_queries": 0,
+            "incomplete_paths": 0,
+            "cpu_seconds": 0.08283699999999783,
+            "wall_seconds": 0.08284958312287927,
+            "preparation_cpu_seconds": 105.815675,
+            "event_policy": {
+              "threshold": 0.5,
+              "metal_threshold": 0.3,
+              "atom_scope": "heavy-heavy",
+              "comparison": "absolute difference > threshold"
+            },
+            "problem_sha256": "3d43b7035cb0f7c6acc80f2da9e3630384ef7a635eff526f5fb549e693062dd1",
+            "decoded_schema": "mappa.decoded_events/v5"
+          }
+        }
+      ]
+    },
+    {
+      "method": "saved_responses_with_eager_restoration",
+      "raw_report_sha256": "09241c2c07d13f07320c9f487bc164ecbb9891107c2c0e7b7d07b29ef7b234ab",
+      "runner_sha256": "95e5a5be13abe48d9bd0382202a77a90ca8935184d57752dfe7d504355971f19",
+      "code_identity": "8dcb3527466b22d42378de296d93fc788f0889a723c6f50c8cbac8895800d4b1",
+      "query_seconds": 30.0,
+      "task_seconds": 120.0,
+      "memory_guard_bytes": 2147483648,
+      "directions": [
+        {
+          "dataset": "enzymemap",
+          "case": 37270,
+          "reversed": false,
+          "state": "complete",
+          "decoded_sha256": "1a6565d9ea1dbdab19b7c7124a1cbee563f0d19b49c1f449cc8dde230a95f855",
+          "reference_sha256": "88d47b41f31dd53aee908e26a806c7a8e1a8cc3aea52942cd8dbc940367ca098",
+          "worker_metrics": {
+            "cpu_seconds": 16.570127,
+            "compute_seconds": 16.576474499888718,
+            "publish_seconds": 0.009187124902382493,
+            "publish_cpu_seconds": 0.0009100000000010766,
+            "total_cpu_seconds": 16.571113,
+            "process_lifetime_peak_rss_bytes": 543096832,
+            "peak_tree_rss_bytes": 542982144,
+            "phase_peak_tree_rss_bytes": {
+              "compute": 542982144,
+              "publication": 0
+            },
+            "memory_guard_bytes": 2147483648,
+            "memory_sample_interval_seconds": 0.2,
+            "sampled_cpu_seconds": 16.432875327999998,
+            "memory_samples": 77,
+            "monitoring_seconds": 1.0978783771861345,
+            "elapsed_seconds": 16.58652029093355
+          },
+          "analysis": {
+            "status": "exact",
+            "reference_events": 2,
+            "minimum_events": 2,
+            "minimum_lower_bound": 2,
+            "minimum_upper_bound": 2,
+            "difference": 0,
+            "witness_family": 0,
+            "reference_mapped_heavy_atoms": 319,
+            "witness_mapped_heavy_atoms": 319,
+            "same_heavy_coverage": true,
+            "families": 8309,
+            "witnesses_scored": 1,
+            "proof_counts": {},
+            "saved_response_tables_checked": 8309,
+            "saved_response_certified_families": 8309,
+            "unresolved_family_count": 0,
+            "solver_queries": 0,
+            "incomplete_paths": 0,
+            "cpu_seconds": 0.08342099999999775,
+            "wall_seconds": 0.0834277500398457,
+            "preparation_cpu_seconds": 16.418795,
+            "event_policy": {
+              "threshold": 0.5,
+              "metal_threshold": 0.3,
+              "atom_scope": "heavy-heavy",
+              "comparison": "absolute difference > threshold"
+            },
+            "problem_sha256": "3d43b7035cb0f7c6acc80f2da9e3630384ef7a635eff526f5fb549e693062dd1",
+            "catalogue_schema": "rxn_core.final_fragment_branches/v1",
+            "decoded_schema": "mappa.decoded_events/v5"
+          }
+        }
+      ]
+    },
+    {
+      "method": "saved_responses_with_lazy_family_restoration",
+      "raw_report_sha256": "53c68b6e342e9426e459ed15d0295e6451f940868f0f20546c74bbfd0a850bb1",
+      "runner_sha256": "62e2a19c85800403d539571a745cb46cbfd0b403f0adb8bc09d11b33cba5a165",
+      "code_identity": "8dcb3527466b22d42378de296d93fc788f0889a723c6f50c8cbac8895800d4b1",
+      "query_seconds": 30.0,
+      "task_seconds": 120.0,
+      "memory_guard_bytes": 2147483648,
+      "directions": [
+        {
+          "dataset": "enzymemap",
+          "case": 37270,
+          "reversed": false,
+          "state": "complete",
+          "decoded_sha256": "1a6565d9ea1dbdab19b7c7124a1cbee563f0d19b49c1f449cc8dde230a95f855",
+          "reference_sha256": "88d47b41f31dd53aee908e26a806c7a8e1a8cc3aea52942cd8dbc940367ca098",
+          "worker_metrics": {
+            "cpu_seconds": 0.491862,
+            "compute_seconds": 0.5317430840805173,
+            "publish_seconds": 0.002596040954813361,
+            "publish_cpu_seconds": 0.0007240000000000579,
+            "total_cpu_seconds": 0.492656,
+            "process_lifetime_peak_rss_bytes": 469712896,
+            "peak_tree_rss_bytes": 469647360,
+            "phase_peak_tree_rss_bytes": {
+              "compute": 469647360,
+              "publication": 0
+            },
+            "memory_guard_bytes": 2147483648,
+            "memory_sample_interval_seconds": 0.2,
+            "sampled_cpu_seconds": 0.3975693800000001,
+            "memory_samples": 3,
+            "monitoring_seconds": 0.046359291300177574,
+            "elapsed_seconds": 0.53494375012815
+          },
+          "analysis": {
+            "status": "exact",
+            "reference_events": 2,
+            "minimum_events": 2,
+            "minimum_lower_bound": 2,
+            "minimum_upper_bound": 2,
+            "difference": 0,
+            "witness_family": 0,
+            "reference_mapped_heavy_atoms": 319,
+            "witness_mapped_heavy_atoms": 319,
+            "same_heavy_coverage": true,
+            "families": 8309,
+            "witnesses_scored": 1,
+            "proof_counts": {},
+            "saved_response_tables_checked": 8309,
+            "saved_response_certified_families": 8309,
+            "unresolved_family_count": 0,
+            "solver_queries": 0,
+            "incomplete_paths": 0,
+            "cpu_seconds": 0.11544700000000008,
+            "wall_seconds": 0.11681237490847707,
+            "preparation_cpu_seconds": 0.312632,
+            "event_policy": {
+              "threshold": 0.5,
+              "metal_threshold": 0.3,
+              "atom_scope": "heavy-heavy",
+              "comparison": "absolute difference > threshold"
+            },
+            "problem_sha256": "3d43b7035cb0f7c6acc80f2da9e3630384ef7a635eff526f5fb549e693062dd1",
+            "catalogue_schema": "rxn_core.final_fragment_branches/v1",
+            "decoded_schema": "mappa.decoded_events/v5"
+          }
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Pilot results do not establish full Golden or EnzymeMap distributions or throughput.",
+    "Only the final 37270 retest used the final lazy-restoration runner; the other 3 certified observations used the same response bounds with earlier input-audit overhead.",
+    "The final 37270 run is one instrumented observation, not a repeated timing study.",
+    "The full planned scope is 3,702 Golden and 95,948 EnzymeMap directions; a current random Linux pilot and full analysis remain pending.",
+    "After the final measured retest, a static optimization hoisted an unchanged minimum out of the witness loop; tests passed and the measured source hash remains recorded separately."
+  ],
+  "maintained_runner_sha256": "ec24ef49c05f974c066e3588f97fa35ec4ed179c5eabd92057b663933a7fbc0c"
+}

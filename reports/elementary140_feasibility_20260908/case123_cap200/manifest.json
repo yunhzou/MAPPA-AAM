@@ -1,5 +1,5 @@
 {
-  "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_feasibility_20260908",
+  "source": "private-reference-52a70fdb906381d0c6fa",
   "index": 123,
   "config_before": {
     "cut_floor": 0.2,
@@ -43,7 +43,7 @@
             "SINGLE": 45,
             "AROMATIC": 1
           },
-          "source_cache": "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr9.carbene.rearr_ts41a-endo/endpoints/R",
+          "source_cache": "private-reference-78c7b8381aaa5faafef4",
           "atoms": 40
         },
         {
@@ -53,7 +53,7 @@
             "SINGLE": 45,
             "DOUBLE": 1
           },
-          "source_cache": "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr9.carbene.rearr_ts41a-endo/endpoints/P",
+          "source_cache": "private-reference-3cb8f6512685d8db269f",
           "atoms": 40
         }
       ],
@@ -73,9 +73,13 @@
       }
     }
   ],
-  "frozen_engine": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_feasibility_20260908/engine",
+  "frozen_engine": "private-reference-0b9cb76714dd5716863b",
   "source_manifest_sha256": "2b70b7c0d5fb98e79ba4bf3d290ab146a99a1424204e553e5e2608ded0e45f89",
   "input_sha256": "85e2213c1bfa9fd27070f1234c2709f794f53f6929a3e84a43afc8cae8f01b40",
   "only_search_change": "branch_limit",
-  "reference_available": false
+  "reference_available": false,
+  "privacy_projection": {
+    "original_sha256": "361895125f600611419f5a8c5620ec13ba184e49f4d1838a5b4646f85d683acf",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

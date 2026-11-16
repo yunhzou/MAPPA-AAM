@@ -40,8 +40,8 @@
   "original_workers": 8,
   "root_seed": 42,
   "python_hash_seed": 0,
-  "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_tol1_20260909",
-  "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910",
+  "source": "private-reference-8ce900572d33efa567b1",
+  "baseline": "private-reference-e121f80a822de0f727ea",
   "reference_available": false,
   "chemical_accuracy": null,
   "search_watchdog_seconds": 300,
@@ -176,15 +176,15 @@
     "original/src/rxn_core/static/retro_score_plot.js": "d9ace2649560842c16c187f4fc58ba236e8151bb5499078cdbdaff0ef6af16cb",
     "original/src/rxn_core/static/LICENSES/3Dmol.js.txt": "ae3bfc688d0c9687b76e0ecc7fece0b393bcb4acf2aee09e19dda697eaa10b16",
     "original/src/rxn_core/static/LICENSES/JSZip.txt": "566c953c6090b1218ca6217dd7359d45dde46581968586dc607d59a78af6a9c4",
-    "original/build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/src/engine.o": "4e0aa69e786b79b28dba3d36dc1bf3a5c5f9853058af5638d2626d91e74f63f6",
-    "original/build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/src/freeze.o": "55d8203b0d2abe0e0873d2ec48d1b48bbe1acbef6adf998096b0b3a64988d92f",
-    "original/build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/src/autgrp.o": "b4e1d6999264a740e1e751de96a32792c03102ae30cc61d9b75a0750c8c16aaf",
-    "original/build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/src/repair.o": "3d11587e6ac344629c190da3ce0e050610ab03708f626a22854daeaeec8f8b62",
-    "original/build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/nauty/nauty.o": "3a855a7646d62b3d001317906f3837a711ba713d5448ce87742cc52043d0e559",
-    "original/build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/nauty/nautil.o": "cac4923b2580b730f3fb4044137e8bdcd8fbacecf9ae0cfb9c669c8939284f0f",
-    "original/build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/nauty/naugraph.o": "1e4d5c1354c9703a7662fe92f5d3acaf523e4430994be403f3a0203ea21a5965",
-    "original/build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/nauty/schreier.o": "a20abb9fdc1a34ca187e60e7f3355d7b8f1321d12513eeee17b10e945bc2e2f6",
-    "original/build/engine/obj/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/original/native/nauty/naurng.o": "c8194ae928c6ac7aecdb4ba7cedbcdc09d5701e765bea3f604efb2d567bc4e80",
+    "original/build/engine/objprivate-reference-4cb906692ec42c11674a": "4e0aa69e786b79b28dba3d36dc1bf3a5c5f9853058af5638d2626d91e74f63f6",
+    "original/build/engine/objprivate-reference-72134c1c51487fd32f03": "55d8203b0d2abe0e0873d2ec48d1b48bbe1acbef6adf998096b0b3a64988d92f",
+    "original/build/engine/objprivate-reference-611736f7872a2c4324c4": "b4e1d6999264a740e1e751de96a32792c03102ae30cc61d9b75a0750c8c16aaf",
+    "original/build/engine/objprivate-reference-270910d566d8555a861b": "3d11587e6ac344629c190da3ce0e050610ab03708f626a22854daeaeec8f8b62",
+    "original/build/engine/objprivate-reference-9326464e070a2a51cc84": "3a855a7646d62b3d001317906f3837a711ba713d5448ce87742cc52043d0e559",
+    "original/build/engine/objprivate-reference-fc60fbdf42ab3e308623": "cac4923b2580b730f3fb4044137e8bdcd8fbacecf9ae0cfb9c669c8939284f0f",
+    "original/build/engine/objprivate-reference-bc248a05f33a2778dcd0": "1e4d5c1354c9703a7662fe92f5d3acaf523e4430994be403f3a0203ea21a5965",
+    "original/build/engine/objprivate-reference-8d7d9ffe40f48ead9d7e": "a20abb9fdc1a34ca187e60e7f3355d7b8f1321d12513eeee17b10e945bc2e2f6",
+    "original/build/engine/objprivate-reference-f3b0f7ecd7ca6f813f34": "c8194ae928c6ac7aecdb4ba7cedbcdc09d5701e765bea3f604efb2d567bc4e80",
     "original/build/engine/lib/rxn_core/_engine.cpython-312-x86_64-linux-gnu.so": "14b77d0a09c739fd44deaa2f83114f951d4bdd79888cc9c8eaada1a39fb4001d",
     "engine/bench/audit_ts_weight_information.py": "f656df1aa848e1eaf37440f2b1d4524476496b50696cd0a1a35552960dfa66f1",
     "engine/bench/golden_slap_budget.py": "a0783ab147f907a4579bb0fb46922694b67f89137246480738c32e2f43c8fb25",
@@ -331,5 +331,9 @@
     "aam/_geom.py": "f2950f95eb91da313f248cf50db4753fa481699380fe01f01c35b78652b85d32",
     "aam/_smiles.py": "f56413cdb6a8ec1303179f7c87dbcc9241e2c6cabea038cddb63225d2333e7a5"
   },
-  "slap_python": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/competitor_env_20260908/bin/python"
+  "slap_python": "private-reference-1a9787024f1fc602b563",
+  "privacy_projection": {
+    "original_sha256": "849cb74b3cc3baf52078cc68fa73036ad0b0ad2a662d31998db6a451e2927dd3",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

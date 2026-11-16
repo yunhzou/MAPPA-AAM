@@ -17,5 +17,4 @@ CPU excludes measured persistence/loading; spans include persistence and dispatc
 See the [combined report](../aam_seed1_2_20260910/README.md) for matched timing
 comparisons, all caveats and reproduction instructions.
 
-Full archive root:
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_two_seeds_bidirectional_20260910`
+Full archives and raw operational records are retained privately.

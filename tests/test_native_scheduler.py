@@ -3,13 +3,11 @@ import networkx as nx
 import numpy as np
 import pytest
 
-from mappa.alignment.branch import find_islands
-from mappa.growth import native
-from mappa.cut_replay import FragmentRepair
-from mappa.native_search import find_islands_native
-from mappa.matcher import _nauty_orbits
-from mappa.search_symmetry import finalize_graph_symmetry
-from test_cut_replay import graph
+from mappa.mappa_core.core.search.branching.construction import find_islands
+from mappa.mappa_core.core.matching.growth import native
+from mappa.mappa_core.core.matching.reuse import FragmentPool
+from mappa.mappa_core.core.search.branching.native import find_islands_native
+from growth_cases import graph
 
 pytestmark=pytest.mark.skipif(not native.built(),reason='native engine not built')
 
@@ -18,23 +16,23 @@ pytestmark=pytest.mark.skipif(not native.built(),reason='native engine not built
 @pytest.mark.parametrize('failure', [None, 'search', 'construction'])
 def test_record_construction_restores_cyclic_gc(enabled, failure, monkeypatch):
     import gc
-    from mappa.search_graph import AAMSearchGraph
+    import mappa.mappa_core.core.search.graph as records
     original_state = gc.isenabled()
     source = graph(3, [(0, 1), (1, 2)], ['C', 'O', 'H'])
     search = native._engine.search_fragments
-    construct = AAMSearchGraph.from_record
+    construct = records.SearchState
     def checked_search(*args, **kwargs):
         assert not gc.isenabled()
         if failure == 'search':
             raise RuntimeError('injected search failure')
         return search(*args, **kwargs)
-    def checked_construction(cls, *args, **kwargs):
+    def checked_construction(*args, **kwargs):
         assert not gc.isenabled()
         if failure == 'construction':
             raise RuntimeError('injected construction failure')
         return construct(*args, **kwargs)
     monkeypatch.setattr(native._engine, 'search_fragments', checked_search)
-    monkeypatch.setattr(AAMSearchGraph, 'from_record', classmethod(checked_construction))
+    monkeypatch.setattr(records, 'SearchState', checked_construction)
     try:
         (gc.enable if enabled else gc.disable)()
         if failure:
@@ -48,11 +46,33 @@ def test_record_construction_restores_cyclic_gc(enabled, failure, monkeypatch):
 
 
 def compare(source,target,order,**options):
-    orbits=_nauty_orbits(target,wbo_tol=options.get('iso_tol',1.))
-    expected=find_islands(source,target,order,p_orbits=orbits,**options)
-    actual=find_islands_native(source,target,order,p_orbits=orbits,**options)
+    expected=find_islands(source,target,order,**options)
+    actual=find_islands_native(source,target,order,**options)
     assert actual==expected
     return expected
+
+
+def test_shared_state_transport_preserves_graph_and_binary_sharing():
+    import pickle
+    from mappa.mappa_core.core.search.graph import AAMSearchGraph
+    from mappa.mappa_core.core.search.pairs import SharedPairs
+    # More than one block, with successive locks leaving prior blocks unchanged.
+    source=graph(72, [], [f'Element{atom}' for atom in range(72)])
+    expected=find_islands(source,source,list(source),max_branches=100)
+    actual=find_islands_native(source,source,list(source),max_branches=100)
+    assert actual==expected
+    assert actual.to_record()==expected.to_record()
+    assert AAMSearchGraph.from_record(actual.to_record())==expected
+    restored=pickle.loads(pickle.dumps(actual))
+    assert restored==expected
+    for saved in (actual,restored):
+        assert all(isinstance(state.mapping,SharedPairs) for state in saved.states)
+        parts=[block for state in saved.states for block in state.mapping.blocks]
+        assert len({id(block) for block in parts})<len(parts)
+        sequences={}
+        for state in saved.states:
+            for sequence in (state.mapping,state.islands):
+                assert sequences.setdefault(sequence.blocks,sequence) is sequence
 
 
 @pytest.mark.parametrize('tol',[.5,1.])
@@ -102,27 +122,24 @@ def test_nonidentity_atom_labels_and_final_groups():
         g.graph['wbo_matrix']=matrix
     expected=compare(source,target,list(source),max_branches=100)
     actual=find_islands_native(source,target,list(source),max_branches=100)
-    expected,_=finalize_graph_symmetry(expected,target,iso_tolerance=1.)
-    actual,_=finalize_graph_symmetry(actual,target,iso_tolerance=1.)
     assert actual==expected
 
 
 def test_native_scheduling_with_dependency_repair():
     source=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(0,6),(2,7),(4,8)],['C']*6+['H']*3)
     target=graph(9,[(0,1),(1,2),(2,3),(3,4),(4,5),(1,6),(3,7),(5,8)],['C']*6+['H']*3)
-    orbits=_nauty_orbits(target,wbo_tol=1.)
-    repair=FragmentRepair(source,target,orbits)
+    repair=FragmentPool(source,target)
     for order in (list(source),list(reversed(list(source)))):
         for cut in ((),((0,1),),((2,7),)):
             view=repair.for_cut(cut)
             for cap in (1,3,100):
-                options=dict(p_orbits=orbits,cuts=cut,max_branches=cap)
+                options=dict(cuts=cut,max_branches=cap)
                 expected=find_islands(view.source,target,order,**options)
-                actual=find_islands_native(view.source,target,order,growth_replay=view,**options)
+                actual=find_islands_native(view.source,target,order,fragment_cache=view,**options)
                 assert actual==expected
 
 
-def test_random_graphs_exercise_both_cap_stages():
+def test_random_graphs_agree_under_branch_caps():
     rng=np.random.default_rng(1719)
     cap_stages=set()
     for _ in range(120):
@@ -130,8 +147,9 @@ def test_random_graphs_exercise_both_cap_stages():
         for side in range(2):
             w=np.triu(rng.choice([0.,0.,0.,1.,1.5,2.],size=(8,8)),1)
             matrices.append(w+w.T)
-        from mappa.frag import build_graph
+        from mappa.mappa_core.core.matching.graphs import build_graph
         source,target=[build_graph(['C']*4+['O']*2+['H']*2,w,bond_cut=.2) for w in matrices]
         result=compare(source,target,list(map(int,rng.permutation(8))),max_branches=int(rng.choice([3,4,8,100])))
         cap_stages.update(stop.stage for stop in result.stops if stop.reason=='capped')
-    assert cap_stages=={'fragment_growth','combined_live_leaves'}
+    assert cap_stages <= {'fragment_growth','combined_live_leaves'}
+    # Deterministic fixtures cover both stages in test_completed_branch_cap.

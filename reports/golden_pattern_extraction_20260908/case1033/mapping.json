@@ -1,6 +1,6 @@
 {
   "index": 1033,
-  "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/directions/1033/P_to_R/cuts/aam.pkl.gz",
+  "archive": "private-reference-06434bfea104882b77b8",
   "records": [
     {
       "label": "Reference",
@@ -86876,7 +86876,7 @@
       ]
     },
     {
-      "label": "#7 \u2014 REFERENCE-EQUIVALENT | break 3, form 3, order 0 | compressed_family",
+      "label": "#7 — REFERENCE-EQUIVALENT | break 3, form 3, order 0 | compressed_family",
       "mapping": {
         "0": 0,
         "1": 1,
@@ -446254,7 +446254,7 @@
     "verification_wall_seconds": 190.49560760799795,
     "verification_cpu_seconds": 190.280725677,
     "loading_wall_seconds": 1.3660340514034033,
-    "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908/directions/1033/P_to_R/cuts/aam.pkl.gz",
+    "archive": "private-reference-06434bfea104882b77b8",
     "search_incomplete": false
   },
   "cap_stops": 22814,
@@ -446262,5 +446262,9 @@
     "complete": false,
     "visited_paths": 27,
     "checkpoint": "reports/golden_pattern_extraction_20260908/case1033/pattern_checkpoint.json"
+  },
+  "privacy_projection": {
+    "original_sha256": "6947f90bf2af1ad32c48bb6acc2fc06cb4b1faac263cce0fd6cb4bbca6f30261",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

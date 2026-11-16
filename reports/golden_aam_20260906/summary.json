@@ -1,5 +1,5 @@
 {
-  "run": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_full_20260906",
+  "run": "private-reference-1b357e7e903053fd974d",
   "search_revision": "9dd6d8d2bb4ae20ec6e6482743d8727655bb724d",
   "configuration": {
     "cut_floor": 0.2,
@@ -182,16 +182,6 @@
     "p95": 1267.3828125,
     "maximum": 3789.48046875
   },
-  "nodes": [
-    "bosque12",
-    "bosque20",
-    "bosque26",
-    "bosque44",
-    "bosque46",
-    "bosque56",
-    "bosque67",
-    "bosque70"
-  ],
   "cpu_models": [
     "Intel(R) Xeon(R) Gold 6148 CPU @ 2.40GHz",
     "Intel(R) Xeon(R) Gold 6248R CPU @ 3.00GHz"
@@ -224,14 +214,8 @@
     "p95": 9.017080343794078,
     "maximum": 29.385057497769594
   },
-  "slurm": {
-    "tasks": 1926,
-    "states": {
-      "COMPLETED": 1849,
-      "CANCELLED by 7711": 77
-    },
-    "measured_cpu_seconds": 122188.876,
-    "allocated_cpu_seconds": 368054.0,
-    "note": "Parent array tasks only: includes search, scoring, serialization and timed-out jobs; excludes cached pilot searches and supervisor. Accounting can lag task completion."
+  "privacy_projection": {
+    "original_sha256": "c3de7dd0396622ce5055ca3468016deeea70e4d8de0e3af290d96601135391a2",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

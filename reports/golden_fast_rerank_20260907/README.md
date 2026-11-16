@@ -50,9 +50,7 @@ No AAM reruns, quantum calculations, conformer generation, chirality filtering o
 - **151 regression tests pass**, including explicit-H event accounting, partial mappings, unsupported energies and reference-independent ranking keys.
 
 Full frozen source snapshot, per-case feature tables, logs and statuses:
+Original artifact locations are retained privately.
+Each task used one worker, a five-minute process watchdog and a six-minute overall limit. Source: `bench/golden_fast_rerank.py`.
 
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_fast_rerank_20260907`
-
-Slurm array: **442443**. One CPU and 16 GiB requested per worker, five-minute process watchdog and six-minute Slurm limit. Source: `bench/golden_fast_rerank.py`.
-
-Local `features.json.gz` stores all candidate features; `cases.json` stores selected terminals, scores and correctness under each rule. `summary.json` includes every gained/lost case index. `manifest.json` stores executed source hashes, and `slurm_accounting.psv` stores allocation accounting.
+Local `features.json.gz` stores all candidate features; `cases.json` stores selected terminals, scores and correctness under each rule. `summary.json` includes every gained/lost case index. `manifest.json` stores executed source hashes, and private accounting records store allocation accounting.

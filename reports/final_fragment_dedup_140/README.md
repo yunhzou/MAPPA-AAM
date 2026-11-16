@@ -55,6 +55,6 @@ An additional experiment rebuilt broader intrinsic groups and aligned whole-prod
 
 The previous working state was committed first as `312fff7` (`Checkpoint exact event decoding and bounded fragment competition experiment`). The new implementation is documented in `docs/FINAL_FRAGMENT_BRANCHES.md`; the portable entry point is `bench/final_fragment_branches.py`.
 
-`summary.json` includes all 140 before/after counts, timing, pilot windows, and current source hashes. Local full artifacts are under `/Users/yunhengz/Documents/Codex/2026-09-11/aa/outputs/final_fragment_dedup/`: `lossless140`, `lossless_pilot`, `cli64`, and the exploratory `pilot` / `pilot_global` runs. Frozen implementation files in each experiment folder preserve the code used at measurement time. Subsequent persistence validation added endpoint fingerprints without altering the saved family content.
+`summary.json` includes all 140 before/after counts, timing, pilot windows, and current source hashes. Full artifacts for the accepted and exploratory runs are retained privately. Frozen implementation files in each experiment folder preserve the code used at measurement time. Subsequent persistence validation added endpoint fingerprints without altering the saved family content.
 
 The benchmark runners in `bench/experiments/final_fragment_dedup/` preserve local dataset paths and depend on the existing saved archives. They are experiment records, not portable dataset installers. The large catalogues stay outside Git; this report and compact evidence are committed.

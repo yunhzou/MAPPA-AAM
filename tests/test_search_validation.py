@@ -2,15 +2,22 @@ from dataclasses import replace
 import numpy as np
 import pytest
 from mappa import AAMProblem, MolecularEndpoint
-from mappa.search_graph import (
-    AAMSearchGraph,
-    SearchContext,
-    SearchState,
-    FragmentTransition,
-    SearchStop,
-)
-from mappa.search_validation import RepresentativeValidationWorkspace
-from mappa.family_scoring import validate_representative
+from mappa.mappa_core.core.search.graph import AAMSearchGraph, SearchContext, SearchState, FragmentTransition, SearchStop
+from mappa.mappa_core.core.search.branching.validation import RepresentativeValidationWorkspace
+from growth_cases import saved_fragment
+
+
+def validate_representative(path,problem):
+    mapping=path.mapping
+    assert len(set(mapping.values()))==len(mapping)
+    assert all(problem.reactant.elements[r]==problem.product.elements[p] for r,p in mapping.items())
+    for edge_id in path.transitions:
+        fragment = path.graph.transitions[edge_id].match
+        for a,b in (() if fragment is None else fragment.accepted_edges):
+            if a not in mapping or b not in mapping:continue
+            w=problem.reactant.wbo[a,b]
+            assert problem.product.wbo[mapping[a],mapping[b]]>=path.context.graph_floor
+            assert abs(w-problem.product.wbo[mapping[a],mapping[b]])<=path.context.iso_tolerance+1e-9
 
 
 def example(target_weight=1.0, cuts=(), deferred=()):
@@ -26,21 +33,21 @@ def example(target_weight=1.0, cuts=(), deferred=()):
     mapping = ((0, 0), (1, 1))
     states = (
         SearchState(0, 0, (), (), ()),
-        *(SearchState(i, 0, mapping, ((0, 1), (1, 1)), ()) for i in range(1, 4)),
+        *(SearchState(i, 0, mapping, ((0, 1), (1, 1)), deferred) for i in range(1, 4)),
     )
 
-    def match(atoms):
-        return dict(
-            fragment=atoms,
-            deferred_edges=deferred,
-            symmetry=dict(witness=dict(mapping), blocks=[], exact_fixed=[0, 1]),
-        )
-
+    # The validator must catch a graph reused against incompatible endpoint
+    # weights; the saved fragment itself was valid when originally constructed.
+    original = AAMProblem(ep(1.0), ep(1.0))
+    accepted = () if cuts or deferred else ((0, 1),)
+    full = saved_fragment(original, anchors=mapping, accepted_edges=accepted,
+                          iso_tolerance=.5)
+    single = saved_fragment(original, source_atoms=(0,), target_atoms=(0,), anchors=((0,0),))
     edges = (
-        FragmentTransition(0, 0, 1, 0, (1, 0), match([0, 1]), ((0, 1),)),
-        FragmentTransition(1, 0, 2, 0, (1, 0), match([0]), ()),
-        FragmentTransition(2, 1, 3, 0, (1, 1), None, ()),
-        FragmentTransition(3, 2, 3, 0, (1, 1), None, ()),
+        FragmentTransition(0, 0, 1, 0, (1, 0), full, 1),
+        FragmentTransition(1, 0, 2, 0, (1, 0), single, 1),
+        FragmentTransition(2, 1, 3, 0, (1, 1), None),
+        FragmentTransition(3, 2, 3, 0, (1, 1), None),
     )
     return problem, AAMSearchGraph(
         (context,), (0,), states, edges, (SearchStop(3, "objective_met"),)
@@ -84,14 +91,14 @@ def test_join_certifies_both_histories_with_one_terminal_check():
     ws = RepresentativeValidationWorkspace(p)
     assert ws.validate_graph(g) == (2, [])
     assert ws.stats["terminal_checks"] == 1 and ws.stats["certified_paths"] == 2
-    assert ws.stats["fallback_path_checks"] == 0
+    assert ws.stats["individual_path_checks"] == 0
 
 
 def test_one_invalid_history_does_not_mark_the_other_invalid():
     p, g = example(0.0)
     ws = RepresentativeValidationWorkspace(p)
     assert ws.validate_graph(g) == (1, [3])
-    assert ws.stats["fallback_path_checks"] == 2
+    assert ws.stats["individual_path_checks"] == 2
 
 
 def test_wrong_elements_and_duplicate_images_fail():

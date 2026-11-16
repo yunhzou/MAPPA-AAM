@@ -1,0 +1,727 @@
+{
+  "source_commit": "27b18abad691648cf2a87d2e5ae43db117d80b66",
+  "baseline_commit": "040f817f0e2f3c0ba1b285d72c48ab31d80de2fc",
+  "scope": "Ten slowest completed directions observed before draining the initial one-seed run; rerun postprocessing on identical saved matching. Baseline stage compute includes input loading and record construction; new decoding plus export excludes initial cut loading/reduction.",
+  "cases": [
+    {
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.30795567700000015,
+          "wall_seconds": 0.4062114330008626,
+          "process_lifetime_peak_rss_bytes_after": 110518272
+        },
+        "reduction": {
+          "cpu_seconds": 0.54006603,
+          "wall_seconds": 0.5408082440117141,
+          "process_lifetime_peak_rss_bytes_after": 110518272
+        },
+        "verification": {
+          "cpu_seconds": 0.003431763999999893,
+          "wall_seconds": 0.003432046010857448,
+          "process_lifetime_peak_rss_bytes_after": 110788608
+        },
+        "decoding": {
+          "cpu_seconds": 25.043357016,
+          "wall_seconds": 25.046994347998407,
+          "process_lifetime_peak_rss_bytes_after": 815316992
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.0819897470000015,
+          "wall_seconds": 0.08202945700031705,
+          "process_lifetime_peak_rss_bytes_after": 815587328
+        },
+        "export": {
+          "cpu_seconds": 3.127858188000001,
+          "wall_seconds": 3.127932470990345,
+          "process_lifetime_peak_rss_bytes_after": 1124147200
+        },
+        "serialization": {
+          "cpu_seconds": 0.5354237069999996,
+          "wall_seconds": 0.5354869500006316,
+          "process_lifetime_peak_rss_bytes_after": 1274032128
+        },
+        "restoration": {
+          "cpu_seconds": 0.43826682099999914,
+          "wall_seconds": 0.4382965639961185,
+          "process_lifetime_peak_rss_bytes_after": 1605087232
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 124,
+      "seed_searches": 124,
+      "branches": 4304,
+      "families": 4407,
+      "fragments": 977,
+      "paths": 4423,
+      "branch_composition_sha256": "c7aac6ec3bb602f2f8602715b35d09bb6305da482c8c1bbe50d693d07722c62e",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 11,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "catalogue_content_sha256": null,
+      "minimum_events": 11,
+      "minimum_proven": true,
+      "serialized_bytes": 63453072,
+      "process_lifetime_peak_rss_bytes": 1605087232,
+      "case": "00862/forward",
+      "baseline": {
+        "cpu_seconds": 248.532099484,
+        "compute_seconds": 248.5783355620224,
+        "publish_seconds": 1.0333548050839454,
+        "publish_cpu_seconds": 1.026853961000029,
+        "peak_tree_rss_bytes": 1209761792
+      }
+    },
+    {
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.16554965699999968,
+          "wall_seconds": 0.23072491494531278,
+          "process_lifetime_peak_rss_bytes_after": 75644928
+        },
+        "reduction": {
+          "cpu_seconds": 0.19117939200000011,
+          "wall_seconds": 0.1913589890464209,
+          "process_lifetime_peak_rss_bytes_after": 75644928
+        },
+        "verification": {
+          "cpu_seconds": 0.0013599469999999725,
+          "wall_seconds": 0.0013603719999082386,
+          "process_lifetime_peak_rss_bytes_after": 75644928
+        },
+        "decoding": {
+          "cpu_seconds": 155.74380280900002,
+          "wall_seconds": 155.7409837419982,
+          "process_lifetime_peak_rss_bytes_after": 150401024
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.013434724999996206,
+          "wall_seconds": 0.013434495995170437,
+          "process_lifetime_peak_rss_bytes_after": 150401024
+        },
+        "export": {
+          "cpu_seconds": 0.47949739800000657,
+          "wall_seconds": 0.4795565800013719,
+          "process_lifetime_peak_rss_bytes_after": 195006464
+        },
+        "serialization": {
+          "cpu_seconds": 0.07790169300000116,
+          "wall_seconds": 0.0779349619988352,
+          "process_lifetime_peak_rss_bytes_after": 223744000
+        },
+        "restoration": {
+          "cpu_seconds": 0.1527505480000002,
+          "wall_seconds": 0.15277960599632934,
+          "process_lifetime_peak_rss_bytes_after": 265441280
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 82,
+      "seed_searches": 82,
+      "branches": 2144,
+      "families": 2158,
+      "fragments": 707,
+      "paths": 2192,
+      "branch_composition_sha256": "cca3eac31429af4c4de0246b1ecaf7ec83008bef0fb81db07edca59bfede58c7",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 18,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "catalogue_content_sha256": null,
+      "minimum_events": 18,
+      "minimum_proven": true,
+      "serialized_bytes": 8421409,
+      "process_lifetime_peak_rss_bytes": 265441280,
+      "case": "00735/reverse",
+      "baseline": {
+        "cpu_seconds": 173.669233146,
+        "compute_seconds": 173.68010357487947,
+        "publish_seconds": 0.1587196548935026,
+        "publish_cpu_seconds": 0.15511580800000502,
+        "peak_tree_rss_bytes": 411881472
+      }
+    },
+    {
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.14291202400000047,
+          "wall_seconds": 0.217963685921859,
+          "process_lifetime_peak_rss_bytes_after": 69754880
+        },
+        "reduction": {
+          "cpu_seconds": 0.14460669600000003,
+          "wall_seconds": 0.14476359491527546,
+          "process_lifetime_peak_rss_bytes_after": 69754880
+        },
+        "verification": {
+          "cpu_seconds": 0.001486023000000003,
+          "wall_seconds": 0.0014865010016364977,
+          "process_lifetime_peak_rss_bytes_after": 70025216
+        },
+        "decoding": {
+          "cpu_seconds": 7.0154601780000005,
+          "wall_seconds": 7.016005533005227,
+          "process_lifetime_peak_rss_bytes_after": 150827008
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.004691413999999838,
+          "wall_seconds": 0.004691834998084232,
+          "process_lifetime_peak_rss_bytes_after": 150827008
+        },
+        "export": {
+          "cpu_seconds": 0.30481683000000004,
+          "wall_seconds": 0.30485584201232996,
+          "process_lifetime_peak_rss_bytes_after": 199217152
+        },
+        "serialization": {
+          "cpu_seconds": 0.06066981399999882,
+          "wall_seconds": 0.0606726219994016,
+          "process_lifetime_peak_rss_bytes_after": 219074560
+        },
+        "restoration": {
+          "cpu_seconds": 0.06440668599999988,
+          "wall_seconds": 0.06440303899580613,
+          "process_lifetime_peak_rss_bytes_after": 272011264
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 90,
+      "seed_searches": 90,
+      "branches": 688,
+      "families": 691,
+      "fragments": 397,
+      "paths": 706,
+      "branch_composition_sha256": "3ad688cd042e763650d9cf28f74ee9cebbe4e8a9220eca959bb7bf6bea0ef392",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 10,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "catalogue_content_sha256": null,
+      "minimum_events": 7,
+      "minimum_proven": true,
+      "serialized_bytes": 8694340,
+      "process_lifetime_peak_rss_bytes": 272011264,
+      "case": "01100/forward",
+      "baseline": {
+        "cpu_seconds": 166.913107551,
+        "compute_seconds": 166.9231389949564,
+        "publish_seconds": 0.20628733886405826,
+        "publish_cpu_seconds": 0.20049025999998094,
+        "peak_tree_rss_bytes": 443244544
+      }
+    },
+    {
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.1605743840000004,
+          "wall_seconds": 0.2318279759347206,
+          "process_lifetime_peak_rss_bytes_after": 76177408
+        },
+        "reduction": {
+          "cpu_seconds": 0.19200973300000007,
+          "wall_seconds": 0.192114879086148,
+          "process_lifetime_peak_rss_bytes_after": 76177408
+        },
+        "verification": {
+          "cpu_seconds": 0.0040331619999999235,
+          "wall_seconds": 0.004044072004035115,
+          "process_lifetime_peak_rss_bytes_after": 76447744
+        },
+        "decoding": {
+          "cpu_seconds": 133.949656602,
+          "wall_seconds": 134.01617964300385,
+          "process_lifetime_peak_rss_bytes_after": 169320448
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.08900217300001145,
+          "wall_seconds": 0.08998217000043951,
+          "process_lifetime_peak_rss_bytes_after": 169320448
+        },
+        "export": {
+          "cpu_seconds": 1.2434609160000036,
+          "wall_seconds": 1.2448643329989864,
+          "process_lifetime_peak_rss_bytes_after": 230985728
+        },
+        "serialization": {
+          "cpu_seconds": 0.10722076899998001,
+          "wall_seconds": 0.10721365899371449,
+          "process_lifetime_peak_rss_bytes_after": 260673536
+        },
+        "restoration": {
+          "cpu_seconds": 0.21414988200001517,
+          "wall_seconds": 0.2143694529950153,
+          "process_lifetime_peak_rss_bytes_after": 318705664
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 84,
+      "seed_searches": 84,
+      "branches": 2806,
+      "families": 2871,
+      "fragments": 673,
+      "paths": 2905,
+      "branch_composition_sha256": "0eb8149357df6e9e81cbc2cf772d4077fba07cecb68db4ccef230342830665e3",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 11,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "catalogue_content_sha256": null,
+      "minimum_events": 11,
+      "minimum_proven": true,
+      "serialized_bytes": 11576160,
+      "process_lifetime_peak_rss_bytes": 318705664,
+      "case": "00836/forward",
+      "baseline": {
+        "cpu_seconds": 143.232927351,
+        "compute_seconds": 143.2458659389522,
+        "publish_seconds": 0.2927375240251422,
+        "publish_cpu_seconds": 0.28957130500003814,
+        "peak_tree_rss_bytes": 375427072
+      }
+    },
+    {
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.11159172100000003,
+          "wall_seconds": 0.17165701792691834,
+          "process_lifetime_peak_rss_bytes_after": 64196608
+        },
+        "reduction": {
+          "cpu_seconds": 0.08743935000000003,
+          "wall_seconds": 0.08750363696890417,
+          "process_lifetime_peak_rss_bytes_after": 64196608
+        },
+        "verification": {
+          "cpu_seconds": 0.0021399800000000413,
+          "wall_seconds": 0.003339432005304843,
+          "process_lifetime_peak_rss_bytes_after": 64196608
+        },
+        "decoding": {
+          "cpu_seconds": 1.1738049680000002,
+          "wall_seconds": 1.1812719469889998,
+          "process_lifetime_peak_rss_bytes_after": 104300544
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.011588212999999792,
+          "wall_seconds": 0.011595874006161466,
+          "process_lifetime_peak_rss_bytes_after": 104570880
+        },
+        "export": {
+          "cpu_seconds": 0.184495705,
+          "wall_seconds": 0.18466558599902783,
+          "process_lifetime_peak_rss_bytes_after": 126717952
+        },
+        "serialization": {
+          "cpu_seconds": 0.02913138699999962,
+          "wall_seconds": 0.02913678299228195,
+          "process_lifetime_peak_rss_bytes_after": 136380416
+        },
+        "restoration": {
+          "cpu_seconds": 0.0787473900000002,
+          "wall_seconds": 0.07880889499210753,
+          "process_lifetime_peak_rss_bytes_after": 164761600
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 71,
+      "seed_searches": 71,
+      "branches": 135,
+      "families": 147,
+      "fragments": 180,
+      "paths": 159,
+      "branch_composition_sha256": "dc40d6cb48b6e26cce44c303098cd60aed9eb76d670eeb5eb5d4e23efda72871",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 10,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "catalogue_content_sha256": null,
+      "minimum_events": 10,
+      "minimum_proven": true,
+      "serialized_bytes": 4123431,
+      "process_lifetime_peak_rss_bytes": 164761600,
+      "case": "00890/forward",
+      "baseline": {
+        "cpu_seconds": 137.72630284200002,
+        "compute_seconds": 137.73570449394174,
+        "publish_seconds": 0.08692652592435479,
+        "publish_cpu_seconds": 0.08153789100003905,
+        "peak_tree_rss_bytes": 366665728
+      }
+    },
+    {
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.10188073799999953,
+          "wall_seconds": 0.187437631044304,
+          "process_lifetime_peak_rss_bytes_after": 64196608
+        },
+        "reduction": {
+          "cpu_seconds": 0.05100251900000008,
+          "wall_seconds": 0.05106332497962285,
+          "process_lifetime_peak_rss_bytes_after": 64196608
+        },
+        "verification": {
+          "cpu_seconds": 0.0011903839999999333,
+          "wall_seconds": 0.0011911110050277784,
+          "process_lifetime_peak_rss_bytes_after": 64196608
+        },
+        "decoding": {
+          "cpu_seconds": 130.883100362,
+          "wall_seconds": 130.98012048599776,
+          "process_lifetime_peak_rss_bytes_after": 92409856
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.0028217649999930927,
+          "wall_seconds": 0.002822434005793184,
+          "process_lifetime_peak_rss_bytes_after": 92409856
+        },
+        "export": {
+          "cpu_seconds": 0.14323539299999766,
+          "wall_seconds": 0.14323263699770905,
+          "process_lifetime_peak_rss_bytes_after": 111063040
+        },
+        "serialization": {
+          "cpu_seconds": 0.02272550999998657,
+          "wall_seconds": 0.0227625870029442,
+          "process_lifetime_peak_rss_bytes_after": 121737216
+        },
+        "restoration": {
+          "cpu_seconds": 0.053359268999997767,
+          "wall_seconds": 0.053389303997391835,
+          "process_lifetime_peak_rss_bytes_after": 137568256
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 74,
+      "seed_searches": 74,
+      "branches": 38,
+      "families": 38,
+      "fragments": 77,
+      "paths": 75,
+      "branch_composition_sha256": "93f04712bc55279c9b68dcc67c65094f107eee529b184a0ade2d2dfc9599d791",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 5,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "catalogue_content_sha256": null,
+      "minimum_events": 5,
+      "minimum_proven": true,
+      "serialized_bytes": 3396180,
+      "process_lifetime_peak_rss_bytes": 137568256,
+      "case": "00734/forward",
+      "baseline": {
+        "cpu_seconds": 136.64204572600002,
+        "compute_seconds": 136.6500895791687,
+        "publish_seconds": 0.07924910797737539,
+        "publish_cpu_seconds": 0.06571559100001423,
+        "peak_tree_rss_bytes": 334241792
+      }
+    },
+    {
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.13887355600000018,
+          "wall_seconds": 0.20873159599432256,
+          "process_lifetime_peak_rss_bytes_after": 70258688
+        },
+        "reduction": {
+          "cpu_seconds": 0.1821459480000005,
+          "wall_seconds": 0.18230717998812906,
+          "process_lifetime_peak_rss_bytes_after": 70258688
+        },
+        "verification": {
+          "cpu_seconds": 0.0010159830000000536,
+          "wall_seconds": 0.0010164999985136092,
+          "process_lifetime_peak_rss_bytes_after": 70529024
+        },
+        "decoding": {
+          "cpu_seconds": 33.408737996,
+          "wall_seconds": 33.41487915100879,
+          "process_lifetime_peak_rss_bytes_after": 171524096
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.00212566699999428,
+          "wall_seconds": 0.002134655005647801,
+          "process_lifetime_peak_rss_bytes_after": 171524096
+        },
+        "export": {
+          "cpu_seconds": 0.8189261030000026,
+          "wall_seconds": 0.8198420679982519,
+          "process_lifetime_peak_rss_bytes_after": 245657600
+        },
+        "serialization": {
+          "cpu_seconds": 0.10006451000000283,
+          "wall_seconds": 0.10005765799724031,
+          "process_lifetime_peak_rss_bytes_after": 276402176
+        },
+        "restoration": {
+          "cpu_seconds": 0.29874150599999894,
+          "wall_seconds": 0.2987187440012349,
+          "process_lifetime_peak_rss_bytes_after": 342958080
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 86,
+      "seed_searches": 86,
+      "branches": 1138,
+      "families": 1145,
+      "fragments": 461,
+      "paths": 1205,
+      "branch_composition_sha256": "5ce1260bf2cb53658f79571988175a9a97d0fc3848678818c4f76525cf04837c",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 7,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "catalogue_content_sha256": null,
+      "minimum_events": 7,
+      "minimum_proven": true,
+      "serialized_bytes": 12385852,
+      "process_lifetime_peak_rss_bytes": 342958080,
+      "case": "01100/reverse",
+      "baseline": {
+        "cpu_seconds": 135.00623169800002,
+        "compute_seconds": 135.0158792308066,
+        "publish_seconds": 0.2892719318624586,
+        "publish_cpu_seconds": 0.28562417199998436,
+        "peak_tree_rss_bytes": 356569088
+      }
+    },
+    {
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.15536664900000013,
+          "wall_seconds": 0.21002842306916136,
+          "process_lifetime_peak_rss_bytes_after": 79581184
+        },
+        "reduction": {
+          "cpu_seconds": 0.19462851700000033,
+          "wall_seconds": 0.19473509794624988,
+          "process_lifetime_peak_rss_bytes_after": 79581184
+        },
+        "verification": {
+          "cpu_seconds": 0.007085717000000047,
+          "wall_seconds": 0.007085781006026082,
+          "process_lifetime_peak_rss_bytes_after": 79851520
+        },
+        "decoding": {
+          "cpu_seconds": 127.57189132600001,
+          "wall_seconds": 127.57799168600468,
+          "process_lifetime_peak_rss_bytes_after": 166080512
+        },
+        "decoded_reference": {
+          "cpu_seconds": 1.6196344829999987,
+          "wall_seconds": 1.6199174319917802,
+          "process_lifetime_peak_rss_bytes_after": 172838912
+        },
+        "export": {
+          "cpu_seconds": 0.5554640599999914,
+          "wall_seconds": 0.5556293780100532,
+          "process_lifetime_peak_rss_bytes_after": 219066368
+        },
+        "serialization": {
+          "cpu_seconds": 0.08884436299999265,
+          "wall_seconds": 0.08888323600695003,
+          "process_lifetime_peak_rss_bytes_after": 253652992
+        },
+        "restoration": {
+          "cpu_seconds": 0.1631169529999852,
+          "wall_seconds": 0.16320464300224558,
+          "process_lifetime_peak_rss_bytes_after": 303775744
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 82,
+      "seed_searches": 82,
+      "branches": 2436,
+      "families": 2436,
+      "fragments": 649,
+      "paths": 2502,
+      "branch_composition_sha256": "efe711a2433bd794deff988e146c2e0e59e549df62c71bfc4e26a75c4b257243",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 10,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "catalogue_content_sha256": null,
+      "minimum_events": 10,
+      "minimum_proven": true,
+      "serialized_bytes": 10954459,
+      "process_lifetime_peak_rss_bytes": 303775744,
+      "case": "00873/reverse",
+      "baseline": {
+        "cpu_seconds": 130.93950678,
+        "compute_seconds": 130.9820312219672,
+        "publish_seconds": 0.16040257411077619,
+        "publish_cpu_seconds": 0.1558234970000285,
+        "peak_tree_rss_bytes": 781754368
+      }
+    },
+    {
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.15300232700000016,
+          "wall_seconds": 0.21049882697116118,
+          "process_lifetime_peak_rss_bytes_after": 72085504
+        },
+        "reduction": {
+          "cpu_seconds": 0.16423616200000035,
+          "wall_seconds": 0.16436593502294272,
+          "process_lifetime_peak_rss_bytes_after": 72085504
+        },
+        "verification": {
+          "cpu_seconds": 0.0012307660000000498,
+          "wall_seconds": 0.0012312409962760285,
+          "process_lifetime_peak_rss_bytes_after": 72351744
+        },
+        "decoding": {
+          "cpu_seconds": 0.917268623,
+          "wall_seconds": 0.9180712119996315,
+          "process_lifetime_peak_rss_bytes_after": 102359040
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.008058271000000117,
+          "wall_seconds": 0.008058562001679093,
+          "process_lifetime_peak_rss_bytes_after": 102359040
+        },
+        "export": {
+          "cpu_seconds": 0.1377511360000001,
+          "wall_seconds": 0.1378574620030122,
+          "process_lifetime_peak_rss_bytes_after": 123985920
+        },
+        "serialization": {
+          "cpu_seconds": 0.03726699499999997,
+          "wall_seconds": 0.03726558299968019,
+          "process_lifetime_peak_rss_bytes_after": 140275712
+        },
+        "restoration": {
+          "cpu_seconds": 0.07224442899999994,
+          "wall_seconds": 0.07226245300262235,
+          "process_lifetime_peak_rss_bytes_after": 160149504
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 75,
+      "seed_searches": 75,
+      "branches": 1316,
+      "families": 1316,
+      "fragments": 572,
+      "paths": 1319,
+      "branch_composition_sha256": "7427c92ceb834958026dd4fe64ba86ec09f3c01c13164094a40af012ea2856bc",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 12,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "catalogue_content_sha256": null,
+      "minimum_events": 10,
+      "minimum_proven": true,
+      "serialized_bytes": 4582076,
+      "process_lifetime_peak_rss_bytes": 160149504,
+      "case": "00890/reverse",
+      "baseline": {
+        "cpu_seconds": 127.02700207999999,
+        "compute_seconds": 127.03384690894745,
+        "publish_seconds": 0.10692514711990952,
+        "publish_cpu_seconds": 0.10338803700000199,
+        "peak_tree_rss_bytes": 379650048
+      }
+    },
+    {
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 0.09052509299999983,
+          "wall_seconds": 0.13914172802469693,
+          "process_lifetime_peak_rss_bytes_after": 64196608
+        },
+        "reduction": {
+          "cpu_seconds": 0.08624563300000038,
+          "wall_seconds": 0.08639114801189862,
+          "process_lifetime_peak_rss_bytes_after": 64196608
+        },
+        "verification": {
+          "cpu_seconds": 0.0015981299999999754,
+          "wall_seconds": 0.00159868600894697,
+          "process_lifetime_peak_rss_bytes_after": 64196608
+        },
+        "decoding": {
+          "cpu_seconds": 40.883217231,
+          "wall_seconds": 40.884951325992006,
+          "process_lifetime_peak_rss_bytes_after": 91283456
+        },
+        "decoded_reference": {
+          "cpu_seconds": 0.01149240600000212,
+          "wall_seconds": 0.011528575996635482,
+          "process_lifetime_peak_rss_bytes_after": 91283456
+        },
+        "export": {
+          "cpu_seconds": 0.19632742399999614,
+          "wall_seconds": 0.1963627630029805,
+          "process_lifetime_peak_rss_bytes_after": 110477312
+        },
+        "serialization": {
+          "cpu_seconds": 0.02502035300000216,
+          "wall_seconds": 0.025026077011716552,
+          "process_lifetime_peak_rss_bytes_after": 119668736
+        },
+        "restoration": {
+          "cpu_seconds": 0.024774490000005756,
+          "wall_seconds": 0.024774026009254158,
+          "process_lifetime_peak_rss_bytes_after": 143458304
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 69,
+      "seed_searches": 69,
+      "branches": 331,
+      "families": 335,
+      "fragments": 230,
+      "paths": 360,
+      "branch_composition_sha256": "42306f1c217ed3400f416b129d0310243defb78db95413e9ab64dbc9d72ccefe",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "recovered",
+        "event_count": 11,
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "catalogue_content_sha256": null,
+      "minimum_events": 11,
+      "minimum_proven": true,
+      "serialized_bytes": 3425342,
+      "process_lifetime_peak_rss_bytes": 143458304,
+      "case": "00154/forward",
+      "baseline": {
+        "cpu_seconds": 121.97763746500002,
+        "compute_seconds": 121.98446783004329,
+        "publish_seconds": 0.049554833909496665,
+        "publish_cpu_seconds": 0.046960942999987765,
+        "peak_tree_rss_bytes": 306810880
+      }
+    }
+  ]
+}

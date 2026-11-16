@@ -1931,22 +1931,26 @@
   "scope": "Recovery uses all Golden cases, including unknowns. CPU comparisons use the same mutually completed cases, excluding measured saving/loading. AAM includes process/IPC setup; SLAP workflow timing excludes worker startup. Not a full-cost or equal-resource cluster latency comparison. Holdout has no annotated ground truth.",
   "sources": [
     {
-      "path": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/aam_seed1_20260910/case_metrics.json",
+      "path": "private-reference-917546039ea4b03ab63d",
       "sha256": "2d5248d7738e9792d1ac54d39ef6eefad1a14d8cd4f6a65d61594d38673cfbc7"
     },
     {
-      "path": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/aam_seed2_20260910/case_metrics.json",
+      "path": "private-reference-10405d6545fe987a91cd",
       "sha256": "14bfea8ae2dcd4dd9174a993eb93b4385ac8ace556165decd96dcb7f6f627f59"
     },
     {
-      "path": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/aam_seed3_20260910/case_metrics.json",
+      "path": "private-reference-2e5922aef6612a014590",
       "sha256": "a41d6cc6e9642f1029c3fea4ed2313d5133fa2a7379451a4d3bc142fbfc35b08"
     },
     {
-      "path": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/slap_sweep_cut_20260910/case_metrics.json",
+      "path": "private-reference-2ab850442fb7074dd8b7",
       "sha256": "8b6f60e208f330bc484d705b8655838a9675dcc3e722177b16ac92b8248ba7ac"
     }
   ],
   "aam_engine_commit": "98b01b175eeed31f70d13e7cbf178b80bf07c9e0",
-  "only_search_config_variation": "seed_count"
+  "only_search_config_variation": "seed_count",
+  "privacy_projection": {
+    "original_sha256": "452e6573db95e23f3d1e44a3545b36bfaef63aa184734c8566402b2ca79ca5ba",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

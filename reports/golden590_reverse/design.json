@@ -1,6 +1,6 @@
 {
   "index": 590,
-  "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seed_diversity_20260907/random/590",
+  "source": "private-reference-0713feb1a3c90dfb4ba8",
   "direction": "P_to_R",
   "config": {
     "cut_floor": 0.2,
@@ -18,5 +18,9 @@
     "seed_selection": "random"
   },
   "workers": 16,
-  "note": "Forced direction only; ordinary sequential AAM and single-cut sweep."
+  "note": "Forced direction only; ordinary sequential AAM and single-cut sweep.",
+  "privacy_projection": {
+    "original_sha256": "0e8b722fd0484854dd8f977cdb20c10ddb620aa80685a7fa9cb24c4aed0c64ee",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

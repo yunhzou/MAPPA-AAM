@@ -1,0 +1,264 @@
+"""Shared binary symmetry responses and their endpoint-conditioned queries."""
+from collections import defaultdict
+from dataclasses import replace
+from functools import cached_property
+from weakref import proxy
+
+import numpy as np
+
+from mappa.mappa_core.core.symmetry.program import OrderedSymmetryEvents, ProgramMinimum
+from mappa.mappa_core.core.symmetry.minimum import SymmetryWork
+from mappa.mappa_core.utils.bonds import bond_event_threshold
+
+
+def count_bounds(index, response):
+    """Independent-term lower bound and the saved valid witness's count."""
+    mapping = dict(response.mapping)
+    lower = sum(bool(np.all(term.response.categories != 0)) for term in response.terms)
+    upper = sum(abs(float(index.p[mapping[a], mapping[b]]) - term.response.source_weight)
+                > term.response.threshold for term in response.terms for a, b in (term.atoms,))
+    return int(lower), int(upper)
+
+
+class FragmentCountIndex:
+    """Reaction-owned certificates and weight bags, shared across fragment uses."""
+    def __init__(self, index, decoder):
+        self.index = index
+        # The decoder owns this index. A back-reference must not keep its large
+        # working tables alive after the independent saved record is returned.
+        self.decoder = proxy(decoder)
+        self.groups = {}
+        self.bags = {}
+        self.incident_bags = {}
+
+    def preserves_weights(self, action):
+        if action not in self.groups:
+            kind, generators = action
+            elements = np.asarray(self.index.problem.product.elements)
+            self.groups[action] = kind == 'group' and all(
+                np.array_equal(elements, elements[np.asarray(g)]) and
+                np.array_equal(self.index.p, self.index.p[np.ix_(g, g)]) for g in generators)
+        return self.groups[action]
+
+    def fixed_pair_bag(self, response):
+        """Set permutations and subsequent weighted placements preserve pair bags."""
+        selected = frozenset(p for _, p in response.mapping)
+        groups_started = False
+        for action in response.actions:
+            kind, value = action
+            if kind == 'group':
+                if not self.preserves_weights(action):
+                    return False
+                groups_started = True
+            elif kind == 'relation':
+                support = frozenset(value.target_atoms)
+                if groups_started or (selected & support and not support <= selected):
+                    return False
+            else:
+                raise ValueError(f'Unknown fragment action: {kind}')
+        return True
+
+    def bag(self, side, atoms, anchor=None):
+        key = side, atoms
+        endpoint = getattr(self.index.problem, side)
+        if key not in self.bags:
+            grouped = defaultdict(list)
+            for i, a in enumerate(atoms):
+                for b in atoms[i + 1:]:
+                    elements = tuple(sorted((endpoint.elements[a], endpoint.elements[b])))
+                    grouped[elements, False].append(float(endpoint.wbo[a, b]))
+            self.bags[key] = {kind: np.unique(values, return_counts=True)
+                              for kind, values in grouped.items()}
+        base = self.bags[key]
+        if anchor is None:
+            return base
+        incident_key = side, atoms, anchor
+        if incident_key not in self.incident_bags:
+            grouped = defaultdict(list)
+            for atom in atoms:
+                if atom != anchor:
+                    elements = tuple(sorted((endpoint.elements[anchor], endpoint.elements[atom])))
+                    grouped[elements, True].append(float(endpoint.wbo[anchor, atom]))
+            self.incident_bags[incident_key] = {
+                kind: np.unique(values, return_counts=True) for kind, values in grouped.items()}
+        incident = self.incident_bags[incident_key]
+        result = dict(base)
+        for (elements, _), (weights, counts) in incident.items():
+            values, totals = base[elements, False]
+            remaining = totals.copy()
+            remaining[np.searchsorted(values, weights)] -= counts
+            result[elements, False] = values, remaining
+        # Only incident summaries persist per endpoint. The large nonincident
+        # bag shares the fragment's values and is released after this comparison.
+        result.update(incident)
+        return result
+
+    def distance(self, source, target):
+        representatives = {element: a for a, element in enumerate(self.index.elements)}
+        lower = 0
+        for key, (xs, counts_x) in source.items():
+            elements, _ = key
+            ys, counts_y = target[key]
+            a, b = (representatives[e] for e in elements)
+            threshold = bond_event_threshold(self.index.elements, a, b,
+                default_threshold=self.index.threshold, metal_threshold=self.index.metal_threshold)
+            i = j = matches = 0
+            left = int(counts_x[0]) if len(xs) else 0
+            right = int(counts_y[0]) if len(ys) else 0
+            while i < len(xs) and j < len(ys):
+                delta = float(xs[i]) - float(ys[j])
+                if not left or delta < -threshold:
+                    i += 1
+                    left = int(counts_x[i]) if i < len(xs) else 0
+                elif not right or delta > threshold:
+                    j += 1
+                    right = int(counts_y[j]) if j < len(ys) else 0
+                else:
+                    matched = min(left, right)
+                    matches += matched
+                    left -= matched
+                    right -= matched
+            lower += int(counts_x.sum()) - matches
+        return lower
+
+    def aggregate_bound(self, response):
+        if not self.fixed_pair_bag(response):
+            return 0
+        source_atoms = tuple(a for a, _ in response.mapping)
+        target_atoms = tuple(sorted(p for _, p in response.mapping))
+        return self.distance(self.bag('reactant', source_atoms), self.bag('product', target_atoms))
+
+    def endpoint_bounds(self, response, atom, lower):
+        """Keep incident and nonincident pair costs separate for a sweep endpoint."""
+        if not self.fixed_pair_bag(response):
+            return {p: lower for p in response.atom_domains[atom]}
+        source_atoms = tuple(a for a, _ in response.mapping)
+        target_atoms = tuple(sorted(p for _, p in response.mapping))
+        source = self.bag('reactant', source_atoms, atom)
+        target_elements = self.index.problem.product.elements
+        bounds = {p: max(lower, self.distance(source, self.bag('product', target_atoms, p)))
+                  for p in target_atoms if target_elements[p] == self.index.elements[atom]}
+        for action in response.actions:
+            if action[0] == 'group':
+                domains = self.index.action_domains(action)
+                advanced = {}
+                for p, count in bounds.items():
+                    for q in domains[p]:
+                        advanced[q] = min(advanced.get(q, count), count)
+                bounds = advanced
+        return {p: bounds[p] for p in response.atom_domains[atom] if p in bounds}
+
+
+class FragmentEventCounts:
+    """An event projection shared by all uses of one contextual fragment.
+
+    A simple completed fragment uses its prepared response directly. Historical
+    overlapping actions retain their order in the same core symmetry search.
+    Neither representation builds a full attainable-count table.
+    """
+    def __init__(self, owner, response):
+        self.owner, self.response = owner, response
+
+    @cached_property
+    def lower(self):
+        # The shared core already certifies fixed events across this fragment's
+        # correlated choices. Do not rebuild per-bond domain tables for its cost.
+        prepared = self.prepared_fragment
+        local = (prepared.response.fixed_events if prepared is not None
+                 else count_bounds(self.owner.index, self.response)[0])
+        return max(local, self.owner.aggregate_bound(self.response))
+
+    @cached_property
+    def prepared_fragment(self):
+        """One complete local response, followed only by cost-preserving moves."""
+        actions = self.response.actions
+        if not actions or actions[0][0] != 'relation':
+            return None
+        fragment = actions[0][1]
+        if (self.response.mapping == fragment.witness
+                and self.response.piece.source_atoms == fragment.source_atoms
+                and all(self.owner.preserves_weights(action) for action in actions[1:])):
+            return self.owner.decoder.prepare(fragment)
+        return None
+
+    @cached_property
+    def direct(self):
+        return len(self.response.actions) == 1 and self.prepared_fragment is not None
+
+    @cached_property
+    def program(self):
+        owner, response = self.owner, self.response
+        if self.direct:
+            return self.prepared_fragment.response
+        actions = tuple((action, owner.decoder.prepare(action[1]).response if action[0] == 'relation' else None)
+                        for action in response.actions)
+        # A whole fragment followed only by weight-preserving placements has
+        # exactly its prepared internal costs. Placements still move endpoints.
+        if self.prepared_fragment is not None:
+            return OrderedSymmetryEvents(response.mapping, actions, owner.index.p, (),
+                projections=((self.prepared_fragment.response, (0,)),))
+        terms = tuple((term.atoms, term.response.source_weight, term.response.threshold,
+                       term.response.constant) for term in response.terms)
+        return OrderedSymmetryEvents(response.mapping, actions, owner.index.p, terms)
+
+    @cached_property
+    def bounds(self):
+        data = self.program
+        prefix = np.arange(data.size)
+        return self.lower, data.fixed_events + int(data.score(prefix, data.pairs))
+
+    @cached_property
+    def minimum_result(self):
+        if self.prepared_fragment is not None:
+            answer = self.prepared_fragment.optimization
+            if self.direct:
+                return answer
+            return ProgramMinimum(answer.witness, self.minimum_choices, answer.event_count,
+                                  answer.lower_bound, answer.complete, 0., SymmetryWork())
+        lower, attained = self.bounds
+        if lower == attained:
+            return self.program.result(np.arange(self.program.size), attained, True, 0., SymmetryWork())
+        return self.program.solve(seconds=self.owner.decoder.fragment_seconds)
+
+    @property
+    def minimum(self):
+        return self.minimum_result.event_count
+
+    @property
+    def minimum_proven(self):
+        return self.minimum_result.complete
+
+    @cached_property
+    def minimum_choices(self):
+        if self.prepared_fragment is not None:
+            result = self.prepared_fragment.optimization
+            local = dict(discovery=dict(result.discovery_witness),
+                source_permutation=result.source_operation, target_permutation=result.target_operation)
+            identity = dict(permutation=tuple(range(self.owner.index.m)))
+            return (local,) + (identity,) * (len(self.response.actions) - 1)
+        return self.minimum_result.choices
+
+    @cached_property
+    def minimum_operations(self):
+        """Validate each shared local witness once, before branch composition."""
+        from mappa.mappa_core.core.symmetry.actions import apply_action
+        identity = np.arange(self.owner.index.m)
+        operations = tuple(apply_action(identity, action, choice, len(identity))
+                           for action, choice in zip(self.response.actions, self.minimum_choices))
+        for operation in operations:
+            operation.setflags(write=False)
+        return operations
+
+    @property
+    def constant(self):
+        return self.program.fixed_events if not self.program.pairs else None
+
+    def find(self, lower, upper=None, *, assignments=None, seconds=None):
+        answer = self.program.select(lower, upper).find(assignments=assignments,
+            seconds=self.owner.decoder.fragment_seconds if seconds is None else seconds)
+        if self.direct and answer.status == 'found':
+            answer = replace(answer, choices=(answer.choices,))
+        return answer
+
+    def endpoint_bounds(self, atom):
+        return self.owner.endpoint_bounds(self.response, atom, self.lower)

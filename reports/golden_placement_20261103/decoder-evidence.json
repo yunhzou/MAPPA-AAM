@@ -1,0 +1,301 @@
+{
+  "schema": "mappa.decoder_preparation_evidence/v1",
+  "date_utc": "2026-11-03",
+  "sources": {
+    "baseline_saved_record_identity": "c557077902062d7a0e08940544f1f4e0d57b92ce56d9e31b1413ff40acba6f4a",
+    "baseline_scientific_commit": "1710f690f5c49b34d11de69782aa54b1f4d79304",
+    "historical_module_commit": "2dbbfa4be0840aae86a7f13e963d63153c3aa0c6",
+    "fixed_disk_source_engine_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+    "historical_module_sha256": {
+      "mappa.mappa_core.core.symmetry.actions": "99409d4b8cbd7ba107fc46a1505b36e7bb4b2467189fd041a3b9d805ec147a53",
+      "mappa.mappa_core.post_processing.decoder.events": "4968766ff811c4ccc92260aff6d9052277397709a6305277e0eddd67dbadd7bd"
+    },
+    "fixed_module_sha256": {
+      "mappa.mappa_core.core.symmetry.actions": "69830388de22a2c770bfdff4ea0661478a10e8e8e597e68c788aa4ea9b2e6099",
+      "mappa.mappa_core.post_processing.decoder.events": "c8db07557bf74310557d3e176eeac35e340d21d89d840e7be00ff6fc93d17e40"
+    },
+    "historical_execution": "Only actions.py and decoder/events.py loaded from the recorded historical commit using an in-memory import loader before importing MAPPA. All other code is the identical current checkout. No alternate production path or source files were added.",
+    "source_stable_during_capture": true
+  },
+  "method": {
+    "repetitions_per_case_per_implementation": 1,
+    "process_order": [
+      {
+        "case": "golden-1518-forward-full-sweep",
+        "implementation": "old"
+      },
+      {
+        "case": "golden-1518-forward-full-sweep",
+        "implementation": "fixed"
+      },
+      {
+        "case": "golden-1410-reverse-cut40",
+        "implementation": "fixed"
+      },
+      {
+        "case": "golden-1410-reverse-cut40",
+        "implementation": "old"
+      }
+    ],
+    "timing": "time.process_time CPU and time.perf_counter elapsed in each fresh process; no matching or reduction rerun. Decode CPU is preparation plus lazy assembly/export, which includes local and boundary event work and record conversion. Catalogue load and binary publication are separate.",
+    "memory": "macOS resource.getrusage(RUSAGE_SELF).ru_maxrss bytes, sampled after publication and before validation. Each process starts fresh; peak includes imports, catalogue load, decoding and publication. No prior matching. Phase resident bytes use psutil. Full-record hashing, baseline-record loading and comparison are excluded from operation memory and timing.",
+    "correctness": "Complete decoded record with no omitted fields: canonical JSON SHA-256 plus deep Python value equality to the saved baseline, in all four processes.",
+    "canonical_json": {
+      "sort_keys": true,
+      "separators": [
+        ",",
+        ":"
+      ]
+    }
+  },
+  "tests": {
+    "groups": [
+      {
+        "name": "smoke",
+        "passed": 26
+      },
+      {
+        "name": "event checks",
+        "passed": 64
+      },
+      {
+        "name": "fragment event inventory",
+        "passed": 15
+      },
+      {
+        "name": "related relaxed-fragment, shared-pair, relaxed-automorphism, isomorphism, event-pattern and checkpoint coverage",
+        "passed": 68
+      },
+      {
+        "name": "checkpoint checks after stale relocation cleanup",
+        "passed": 5
+      }
+    ],
+    "counts_are_not_a_unique_total": true,
+    "critical_behaviors": [
+      "Independent fragments reuse prepared relationships across different family orders",
+      "Ordered joint placement preserves cut and unmatched-boundary events",
+      "One relaxed relationship is applied once without introducing transitive closure"
+    ]
+  },
+  "entries": [
+    {
+      "name": "golden-1518-forward-full-sweep",
+      "scope": {
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 1.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 1,
+          "branch_limit": 2000,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true,
+          "self_tolerance": 1.0
+        },
+        "cuts": 104,
+        "retained_paths": 31687
+      },
+      "input_sha256": "ce244529bb86d89ee6ec3eab34dd30c932545f29ab14c607feddf6a2fad61d11",
+      "saved_catalogue_sha256": "b57417b60fa8175d2fa13b7c6e9e27873758d427de5f94aabc9678105c7c657e",
+      "saved_full_record_blob_sha256": "c5ed010791686c6819fe38e5cf911787d686190364d96318a326fd289a564ff9",
+      "canonical_full_record_sha256": "621abbc732f226483c724d4725fa94cbdbdcbfef53f0379f12ca3a073963c565",
+      "families": 31687,
+      "tables": 31687,
+      "shared_numeric_responses": 22,
+      "runs": {
+        "old": {
+          "phases": {
+            "load_catalogue": {
+              "cpu_seconds": 1.678579,
+              "wall_seconds": 1.680120959179476,
+              "process_lifetime_peak_rss_bytes": 310853632,
+              "resident_rss_bytes": 310853632
+            },
+            "decode_preparation": {
+              "cpu_seconds": 1.6550409999999998,
+              "wall_seconds": 1.65505037503317,
+              "process_lifetime_peak_rss_bytes": 387170304,
+              "resident_rss_bytes": 387170304
+            },
+            "lazy_assembly_export": {
+              "cpu_seconds": 30.778412999999997,
+              "wall_seconds": 30.796810957835987,
+              "process_lifetime_peak_rss_bytes": 821772288,
+              "resident_rss_bytes": 821772288
+            },
+            "publication": {
+              "cpu_seconds": 0.8737239999999957,
+              "wall_seconds": 0.8825874580070376,
+              "process_lifetime_peak_rss_bytes": 1067024384,
+              "resident_rss_bytes": 1066926080
+            }
+          },
+          "decode_cpu_seconds": 32.433454,
+          "isolated_operation_peak_rss_bytes": 1067024384,
+          "publication": {
+            "size": 5143831,
+            "sha256": "ad2c1273fcf03737b5c60fc3ca92a13fbf031cbf7b2e9fc21dd799717fbe6e61"
+          },
+          "complete_record_deep_equal": true,
+          "canonical_full_record_sha256": "621abbc732f226483c724d4725fa94cbdbdcbfef53f0379f12ca3a073963c565"
+        },
+        "fixed": {
+          "phases": {
+            "load_catalogue": {
+              "cpu_seconds": 1.6806649999999999,
+              "wall_seconds": 1.681097166845575,
+              "process_lifetime_peak_rss_bytes": 310886400,
+              "resident_rss_bytes": 310886400
+            },
+            "decode_preparation": {
+              "cpu_seconds": 1.6160199999999998,
+              "wall_seconds": 1.6160672919359058,
+              "process_lifetime_peak_rss_bytes": 387366912,
+              "resident_rss_bytes": 387366912
+            },
+            "lazy_assembly_export": {
+              "cpu_seconds": 22.521567,
+              "wall_seconds": 22.52541200001724,
+              "process_lifetime_peak_rss_bytes": 816857088,
+              "resident_rss_bytes": 816857088
+            },
+            "publication": {
+              "cpu_seconds": 0.9231909999999992,
+              "wall_seconds": 0.9321901658549905,
+              "process_lifetime_peak_rss_bytes": 1062109184,
+              "resident_rss_bytes": 1062010880
+            }
+          },
+          "decode_cpu_seconds": 24.137587,
+          "isolated_operation_peak_rss_bytes": 1062109184,
+          "publication": {
+            "size": 5143831,
+            "sha256": "ad2c1273fcf03737b5c60fc3ca92a13fbf031cbf7b2e9fc21dd799717fbe6e61"
+          },
+          "complete_record_deep_equal": true,
+          "canonical_full_record_sha256": "621abbc732f226483c724d4725fa94cbdbdcbfef53f0379f12ca3a073963c565"
+        }
+      },
+      "decode_cpu_reduction_fraction": 0.25578117581926363,
+      "decode_cpu_speedup": 1.3436908171475466
+    },
+    {
+      "name": "golden-1410-reverse-cut40",
+      "scope": {
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 1.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 1,
+          "branch_limit": 2000,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "cut": [
+          [
+            19,
+            20
+          ]
+        ]
+      },
+      "input_sha256": "1f95b38f8d6fb11446f70fef4222de9ac08926e96b4ea9ac9fd6ff53e40dd967",
+      "saved_catalogue_sha256": "c5753fd1ea151043f58e8e3c6aa53e47002f9797bf1dbd2b95574d0083cebc9f",
+      "saved_full_record_blob_sha256": "daf88fd38dae062e100f2036ff8012cfe770f3084c63f3a8a237b854d09f057e",
+      "canonical_full_record_sha256": "a26de51c32a67b79dfb1252834d8329bb999459389021f1b008e2163dc27e37b",
+      "families": 1997,
+      "tables": 1997,
+      "shared_numeric_responses": 5,
+      "runs": {
+        "fixed": {
+          "phases": {
+            "load_catalogue": {
+              "cpu_seconds": 0.264816,
+              "wall_seconds": 0.2649867080617696,
+              "process_lifetime_peak_rss_bytes": 67174400,
+              "resident_rss_bytes": 67174400
+            },
+            "decode_preparation": {
+              "cpu_seconds": 0.07333699999999999,
+              "wall_seconds": 0.0733528749551624,
+              "process_lifetime_peak_rss_bytes": 77594624,
+              "resident_rss_bytes": 77594624
+            },
+            "lazy_assembly_export": {
+              "cpu_seconds": 2.906702,
+              "wall_seconds": 2.907915374962613,
+              "process_lifetime_peak_rss_bytes": 106987520,
+              "resident_rss_bytes": 106987520
+            },
+            "publication": {
+              "cpu_seconds": 0.033720000000000194,
+              "wall_seconds": 0.03982025012373924,
+              "process_lifetime_peak_rss_bytes": 121765888,
+              "resident_rss_bytes": 121765888
+            }
+          },
+          "decode_cpu_seconds": 2.980039,
+          "isolated_operation_peak_rss_bytes": 121765888,
+          "publication": {
+            "size": 166340,
+            "sha256": "daf88fd38dae062e100f2036ff8012cfe770f3084c63f3a8a237b854d09f057e"
+          },
+          "complete_record_deep_equal": true,
+          "canonical_full_record_sha256": "a26de51c32a67b79dfb1252834d8329bb999459389021f1b008e2163dc27e37b"
+        },
+        "old": {
+          "phases": {
+            "load_catalogue": {
+              "cpu_seconds": 0.26741999999999994,
+              "wall_seconds": 0.26760749984532595,
+              "process_lifetime_peak_rss_bytes": 70303744,
+              "resident_rss_bytes": 70303744
+            },
+            "decode_preparation": {
+              "cpu_seconds": 0.06916500000000003,
+              "wall_seconds": 0.06917037512175739,
+              "process_lifetime_peak_rss_bytes": 79642624,
+              "resident_rss_bytes": 79642624
+            },
+            "lazy_assembly_export": {
+              "cpu_seconds": 3.37204,
+              "wall_seconds": 3.374069374985993,
+              "process_lifetime_peak_rss_bytes": 110575616,
+              "resident_rss_bytes": 110575616
+            },
+            "publication": {
+              "cpu_seconds": 0.03329800000000027,
+              "wall_seconds": 0.04036804218776524,
+              "process_lifetime_peak_rss_bytes": 125845504,
+              "resident_rss_bytes": 125845504
+            }
+          },
+          "decode_cpu_seconds": 3.441205,
+          "isolated_operation_peak_rss_bytes": 125845504,
+          "publication": {
+            "size": 166340,
+            "sha256": "daf88fd38dae062e100f2036ff8012cfe770f3084c63f3a8a237b854d09f057e"
+          },
+          "complete_record_deep_equal": true,
+          "canonical_full_record_sha256": "a26de51c32a67b79dfb1252834d8329bb999459389021f1b008e2163dc27e37b"
+        }
+      },
+      "decode_cpu_reduction_fraction": 0.1340129402345981,
+      "decode_cpu_speedup": 1.1547516660016865
+    }
+  ],
+  "limitations": [
+    "Two local diagnostic catalogues, one repetition per implementation and case; this is not a full Golden rerun or a universal speed guarantee.",
+    "No material memory reduction is demonstrated on the large catalogue. This repair does not establish recovery of the frozen campaign memory failures.",
+    "Cluster scientific code and campaign results were unchanged by the local decoder repair."
+  ]
+}

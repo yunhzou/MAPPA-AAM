@@ -15,7 +15,7 @@
     "pattern_extraction": {
       "complete": false,
       "visited_paths": 110,
-      "checkpoint": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_pattern_collection_20260908_v2/results/1033/P_to_R/patterns.jsonl.gz"
+      "checkpoint": "private-reference-354af971577fa60b0fa9"
     }
   }
 ]

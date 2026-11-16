@@ -1,0 +1,319 @@
+{
+  "schema": "mappa.golden_comparison_results/v1",
+  "complete": true,
+  "terminal_complete": true,
+  "terminal_stage_rows": 48,
+  "expected_stage_rows": 48,
+  "case_outcomes": {
+    "binary_iso1": {
+      "recovered": 3,
+      "not_recovered": 1
+    },
+    "weighted_iso10": {
+      "recovered": 3,
+      "not_recovered": 1
+    }
+  },
+  "paired_comparison": {
+    "shared_recovered": [
+      0,
+      1553,
+      1739
+    ],
+    "binary_recovered_weighted_not_recovered": [],
+    "weighted_recovered_binary_not_recovered": [],
+    "both_not_recovered": [
+      1228
+    ],
+    "inconclusive": []
+  },
+  "stage_metrics": {
+    "binary_iso1": {
+      "matching": {
+        "states": {
+          "complete": 8
+        },
+        "measured_phases": {
+          "preparation": {
+            "cpu_seconds": 0.025252000000008906,
+            "wall_seconds": 0.029385958332568407
+          },
+          "matching": {
+            "cpu_seconds": 25.027728999999976,
+            "wall_seconds": 25.078004965325817
+          },
+          "finalization": {
+            "cpu_seconds": 35.616387,
+            "wall_seconds": 35.71462742704898
+          },
+          "reduction": {
+            "cpu_seconds": 51.0279340000001,
+            "wall_seconds": 51.145060011418536
+          },
+          "audit": {
+            "cpu_seconds": 0.0720999999999965,
+            "wall_seconds": 0.07233683601953089
+          },
+          "catalogue_publication": {
+            "cpu_seconds": 2.7332130000000063,
+            "wall_seconds": 2.7723705016542226
+          }
+        },
+        "total_worker_cpu_seconds": 115.8055,
+        "failed_sampled_cpu_seconds": 0.0,
+        "maximum_sampled_rss_bytes": 1388937216,
+        "attempts": 8
+      },
+      "decoding": {
+        "states": {
+          "complete": 8
+        },
+        "measured_phases": {
+          "loading": {
+            "cpu_seconds": 8.801025999999993,
+            "wall_seconds": 8.810302749741822
+          },
+          "decoding": {
+            "cpu_seconds": 100.78961299999997,
+            "wall_seconds": 101.17425783281215
+          },
+          "decoded_publication": {
+            "cpu_seconds": 1.7188990000000075,
+            "wall_seconds": 1.7659112506080419
+          }
+        },
+        "total_worker_cpu_seconds": 111.560408,
+        "failed_sampled_cpu_seconds": 0.0,
+        "maximum_sampled_rss_bytes": 1147682816,
+        "attempts": 8
+      },
+      "verification": {
+        "states": {
+          "complete": 8
+        },
+        "measured_phases": {
+          "loading": {
+            "cpu_seconds": 8.425684000000004,
+            "wall_seconds": 8.43859258107841
+          },
+          "verification": {
+            "cpu_seconds": 21.981296999999984,
+            "wall_seconds": 22.308784707915038
+          }
+        },
+        "total_worker_cpu_seconds": 30.516090000000005,
+        "failed_sampled_cpu_seconds": 0.0,
+        "maximum_sampled_rss_bytes": 1008713728,
+        "attempts": 8
+      }
+    },
+    "weighted_iso10": {
+      "matching": {
+        "states": {
+          "complete": 8
+        },
+        "measured_phases": {
+          "preparation": {
+            "cpu_seconds": 0.02383800000000727,
+            "wall_seconds": 0.023868250427767634
+          },
+          "matching": {
+            "cpu_seconds": 25.017074000000054,
+            "wall_seconds": 25.072731773136184
+          },
+          "finalization": {
+            "cpu_seconds": 35.69125700000004,
+            "wall_seconds": 35.78887408133596
+          },
+          "reduction": {
+            "cpu_seconds": 50.899871000000076,
+            "wall_seconds": 51.00831765588373
+          },
+          "audit": {
+            "cpu_seconds": 0.07212599999995262,
+            "wall_seconds": 0.07235567108727992
+          },
+          "catalogue_publication": {
+            "cpu_seconds": 2.753731000000009,
+            "wall_seconds": 2.7908233751077205
+          }
+        },
+        "total_worker_cpu_seconds": 115.80786499999999,
+        "failed_sampled_cpu_seconds": 0.0,
+        "maximum_sampled_rss_bytes": 1387053056,
+        "attempts": 8
+      },
+      "decoding": {
+        "states": {
+          "complete": 8
+        },
+        "measured_phases": {
+          "loading": {
+            "cpu_seconds": 8.821876000000046,
+            "wall_seconds": 8.831110041821375
+          },
+          "decoding": {
+            "cpu_seconds": 101.716044,
+            "wall_seconds": 102.08644795836881
+          },
+          "decoded_publication": {
+            "cpu_seconds": 1.7411869999999965,
+            "wall_seconds": 1.777246333193034
+          }
+        },
+        "total_worker_cpu_seconds": 112.55704300000002,
+        "failed_sampled_cpu_seconds": 0.0,
+        "maximum_sampled_rss_bytes": 1137508352,
+        "attempts": 8
+      },
+      "verification": {
+        "states": {
+          "complete": 8
+        },
+        "measured_phases": {
+          "loading": {
+            "cpu_seconds": 8.70360599999998,
+            "wall_seconds": 8.71498129190877
+          },
+          "verification": {
+            "cpu_seconds": 21.98725400000002,
+            "wall_seconds": 22.294944708934054
+          }
+        },
+        "total_worker_cpu_seconds": 30.801067000000046,
+        "failed_sampled_cpu_seconds": 0.0,
+        "maximum_sampled_rss_bytes": 1004437504,
+        "attempts": 8
+      }
+    }
+  },
+  "peak_overlapping_attempts": 4,
+  "invocation_elapsed_seconds": 144.5291708749719,
+  "measurement_scope": "Stage measurements include explicit large-artifact publication; supervised worker CPU also includes this publication. Failed sampled CPU is separate from measured worker CPU. Summed wall times are not parallel elapsed time. Process-lifetime RSS can include earlier tasks.",
+  "baseline_scope": "Archived 1830/1851 Golden result: one seed, cap100, original WBO tolerance1. The two new arms use cap2000; differences are not attributed to tolerance alone.",
+  "scope": "Four-case preflight; not a full Golden recovery estimate",
+  "cases": [
+    0,
+    1228,
+    1553,
+    1739
+  ],
+  "directions_per_arm": 8,
+  "arms": {
+    "binary_iso1": {
+      "cut_floor": 0.2,
+      "graph_floor": 0.2,
+      "iso_tolerance": 1.0,
+      "event_threshold": 0.5,
+      "metal_event_threshold": 0.3,
+      "seed_count": 1,
+      "branch_limit": 2000,
+      "task_chunksize": 1,
+      "anchors": [],
+      "seed_selection": "random",
+      "random_seed": 42,
+      "sweep_cuts": true
+    },
+    "weighted_iso10": {
+      "cut_floor": 0.2,
+      "graph_floor": 0.2,
+      "iso_tolerance": 10.0,
+      "event_threshold": 0.5,
+      "metal_event_threshold": 0.3,
+      "seed_count": 1,
+      "branch_limit": 2000,
+      "task_chunksize": 1,
+      "anchors": [],
+      "seed_selection": "random",
+      "random_seed": 42,
+      "sweep_cuts": true
+    }
+  },
+  "source_commit": "4ba1939cee22646141875bde54398a310cbaa726",
+  "code_identity": "7ccbb4b94beaefce637f6264a5c8941db143ae42747cb31cfd7d1199186f8ff3",
+  "runner_sha256": "02e386b82d90e30bab2bc5f83ad929c0dff4c3763f8e06856732bed07187c5ad",
+  "input_index_sha256": "c8e68b400a3cb7e7a78449a9e46ada5e71c182c0c8c8b79031acf69e602f2328",
+  "resources": {
+    "workers": 4,
+    "memory_guard_bytes": 8589934592,
+    "stage_seconds": 1800.0
+  },
+  "case_results": [
+    {
+      "case": 0,
+      "arms": {
+        "binary_iso1": {
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        "weighted_iso10": {
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        }
+      }
+    },
+    {
+      "case": 1228,
+      "arms": {
+        "binary_iso1": {
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        "weighted_iso10": {
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        }
+      }
+    },
+    {
+      "case": 1553,
+      "arms": {
+        "binary_iso1": {
+          "status": "recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "recovered"
+          }
+        },
+        "weighted_iso10": {
+          "status": "recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "recovered"
+          }
+        }
+      }
+    },
+    {
+      "case": 1739,
+      "arms": {
+        "binary_iso1": {
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        "weighted_iso10": {
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        }
+      }
+    }
+  ]
+}

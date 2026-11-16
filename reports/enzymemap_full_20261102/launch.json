@@ -1,0 +1,43 @@
+{
+  "utc": "2026-11-02T00:47:15.118442+00:00",
+  "revision": "0f86f117d5705da31c8bc022419c6b80b3add761",
+  "code_identity": "a1de1349a144cb3dfb5a8adae1f55f8f99e99eb393b07b95df38fdd2a168d207",
+  "output": "private-reference-1c3a4578f735e673867f",
+  "cases": 47974,
+  "directions": 95948,
+  "fresh": true,
+  "worker_memory_gib": 2,
+  "commands": [
+    {
+      "total_workers": 168
+    },
+    {
+      "total_workers": 168
+    },
+    {
+      "total_workers": 168
+    }
+  ],
+  "stage_barrier": "All matching and reduction across all40batches must succeed before decoding and verification",
+  "planned_batch_weights": 100,
+  "first_batch_workers": 168,
+  "bulk_batch_workers": 168,
+  "bulk_max_concurrent_workers": 168,
+  "verification": "exact annotated heavy-atom indices; no endpoint-symmetry relaxation;1000ms per family",
+  "superseded_pending_commands": [
+    {
+      "total_workers": 180
+    },
+    {
+      "total_workers": 180
+    }
+  ],
+  "resource_revision": {
+    "utc": "2026-11-02T00:51:17.836832+00:00",
+    "running_first_batch_unchanged": true
+  },
+  "privacy_projection": {
+    "original_sha256": "90e000b67a3c7c8a883211c6a530aa9a87db64b2f30ec11ef7cb8c97b195b8a2",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
+}

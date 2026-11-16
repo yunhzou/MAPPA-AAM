@@ -1,0 +1,1 @@
+"""MAPPA algorithm components."""

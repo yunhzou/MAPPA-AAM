@@ -35,10 +35,6 @@ The Python and native graphs again agree exactly and neither hits the cap in thi
 
 Full graphs and event traces:
 
-```
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cause986_20260908
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cause986_audit_20260908
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_cause1285_audit_20260908
-```
+Full artifacts and raw operational records are retained privately.
 
 Reproduce with `bench/golden_cause_probe.py`; summarize without rerunning search using `bench/report_golden_cause.py`. Each completed individual probe took under 0.04 seconds; execution was guarded by a 290-second timeout. Graph saves and traces are retained. These are diagnostic measurements, not performance benchmarks.

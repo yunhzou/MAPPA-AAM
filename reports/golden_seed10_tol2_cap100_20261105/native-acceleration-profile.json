@@ -1,0 +1,3092 @@
+{
+  "schema": "mappa.native_acceleration_investigation/v1",
+  "revision": "023ba5ab1a53080da63979dffe04731a22769a8a",
+  "hardware": {
+    "cpu_model": "Apple M4 Pro",
+    "machine": "arm64",
+    "python": "3.12.14",
+    "packages": {
+      "numpy": "2.3.5",
+      "scipy": "1.16.3",
+      "sympy": "1.14.0",
+      "pynauty": "2.8.8.1",
+      "z3-solver": "5.1.0.0"
+    }
+  },
+  "method": {
+    "profiled": true,
+    "repetitions": 1,
+    "numerical_threads": 1,
+    "matching_repeated": false,
+    "old_algorithm_rerun": false,
+    "source_changes": false,
+    "phase_scope": {
+      "reduction": "FinalBranchCatalogue.add_graph over all original cut graphs; saved-graph loading excluded",
+      "decoding": "decode_events and materialize its event window",
+      "export": "decoded_events_record; excludes file serialization"
+    },
+    "limitations": [
+      "cProfile overhead changes elapsed time and can change wall-budgeted exploration; profile timings are attribution, not production timings or a measured native speedup.",
+      "Cumulative function times overlap; self times are exclusive, but built-in calls include both Python container operations and compiled numerical kernels.",
+      "Summary count/minimum agreement is not a complete decoded-relation equality audit. No new reference verification was run.",
+      "Two selected ten-seed directions do not establish whole-Golden or EnzymeMap speedups."
+    ],
+    "memory_guard_bytes": 8589934592,
+    "timeout_seconds": 600
+  },
+  "runs": [
+    {
+      "kind": "result",
+      "case": "01640/forward/seeds10",
+      "source_identity": "7556bd7d1bc5d77815249d709169673abd662e1573b0acdda3cc92da7ea1af86",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "cuts": 95,
+      "raw_paths": 2563,
+      "branches": 1232,
+      "families": 1253,
+      "fragments": 876,
+      "prepared_fragments": 648,
+      "optimization_complete": 629,
+      "optimization_time_limit_reached": 0,
+      "minimum_events": 3,
+      "minimum_proven": true,
+      "window_contexts": 644,
+      "phases": {
+        "reduction": {
+          "cpu_seconds": 0.435909,
+          "wall_seconds": 0.4361817503813654
+        },
+        "decoding": {
+          "cpu_seconds": 128.790976,
+          "wall_seconds": 128.81995670800097
+        },
+        "export": {
+          "cpu_seconds": 2.8605429999999785,
+          "wall_seconds": 2.860884875059128
+        }
+      },
+      "peak_rss_bytes": 1590722560,
+      "exported_fragments": 648,
+      "process_wall_seconds": 134.93759437510744,
+      "peak_sampled_rss_bytes": 1590738944,
+      "status": "ok",
+      "profiles": {
+        "reduction": {
+          "sha256": "9f411500738a5b6408a395ef970f53fdb489ffaf6d38ad230e4c52b7a21d3547",
+          "total_recorded_seconds": 0.4337167780000001,
+          "total_calls": 2751443,
+          "primitive_calls": 2749631,
+          "top_cumulative": [
+            {
+              "file": "<string>",
+              "line": 24,
+              "function": "<lambda>",
+              "primitive_calls": 95,
+              "calls": 95,
+              "self_seconds": 0.0008490770000000001,
+              "cumulative_seconds": 0.43429457600000004
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 304,
+              "function": "add_graph",
+              "primitive_calls": 95,
+              "calls": 95,
+              "self_seconds": 0.015159367000000002,
+              "cumulative_seconds": 0.433445499
+            },
+            {
+              "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+              "line": 53,
+              "function": "from_atom_sets",
+              "primitive_calls": 876,
+              "calls": 876,
+              "self_seconds": 0.013755985,
+              "cumulative_seconds": 0.30558456700000003
+            },
+            {
+              "file": "<string>",
+              "line": 2,
+              "function": "__init__",
+              "primitive_calls": 876,
+              "calls": 876,
+              "self_seconds": 0.0015459760000000001,
+              "cumulative_seconds": 0.176573856
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+              "line": 62,
+              "function": "__post_init__",
+              "primitive_calls": 876,
+              "calls": 876,
+              "self_seconds": 0.020646872,
+              "cumulative_seconds": 0.17502788000000002
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.any>",
+              "primitive_calls": 8004,
+              "calls": 8004,
+              "self_seconds": 0.015023719000000001,
+              "cumulative_seconds": 0.157698304
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.isinstance>",
+              "primitive_calls": 243042,
+              "calls": 243042,
+              "self_seconds": 0.02373952,
+              "cumulative_seconds": 0.10495916100000001
+            },
+            {
+              "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+              "line": 68,
+              "function": "side",
+              "primitive_calls": 1752,
+              "calls": 1752,
+              "self_seconds": 0.00118555,
+              "cumulative_seconds": 0.10066873600000001
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+              "line": 123,
+              "function": "binary_symmetry",
+              "primitive_calls": 936,
+              "calls": 936,
+              "self_seconds": 0.026174195,
+              "cumulative_seconds": 0.099393405
+            },
+            {
+              "file": "<runtime>/<frozen abc>",
+              "line": 117,
+              "function": "__instancecheck__",
+              "primitive_calls": 249507,
+              "calls": 249507,
+              "self_seconds": 0.017948497,
+              "cumulative_seconds": 0.08253943500000001
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+              "line": 75,
+              "function": "<genexpr>",
+              "primitive_calls": 128126,
+              "calls": 128126,
+              "self_seconds": 0.014225645,
+              "cumulative_seconds": 0.072836235
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method _abc._abc_instancecheck>",
+              "primitive_calls": 249507,
+              "calls": 249507,
+              "self_seconds": 0.027594165,
+              "cumulative_seconds": 0.064590938
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+              "line": 188,
+              "function": "_validate_discovery",
+              "primitive_calls": 876,
+              "calls": 876,
+              "self_seconds": 0.00312077,
+              "cumulative_seconds": 0.044023208
+            },
+            {
+              "file": "<runtime>/<frozen abc>",
+              "line": 121,
+              "function": "__subclasscheck__",
+              "primitive_calls": 236413,
+              "calls": 236413,
+              "self_seconds": 0.017280774000000002,
+              "cumulative_seconds": 0.036996773000000004
+            },
+            {
+              "file": "src/mappa/mappa_core/core/search/graph.py",
+              "line": 232,
+              "function": "collect",
+              "primitive_calls": 95,
+              "calls": 95,
+              "self_seconds": 0.013179694,
+              "cumulative_seconds": 0.033303086
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+              "line": 190,
+              "function": "<genexpr>",
+              "primitive_calls": 63318,
+              "calls": 63318,
+              "self_seconds": 0.005669754,
+              "cumulative_seconds": 0.033024788
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+              "line": 135,
+              "function": "<genexpr>",
+              "primitive_calls": 47656,
+              "calls": 47656,
+              "self_seconds": 0.004738783,
+              "cumulative_seconds": 0.025269350000000003
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method mappa._group_ops.fragment_compositions>",
+              "primitive_calls": 95,
+              "calls": 95,
+              "self_seconds": 0.018139317000000002,
+              "cumulative_seconds": 0.020008917
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method _abc._abc_subclasscheck>",
+              "primitive_calls": 236413,
+              "calls": 236413,
+              "self_seconds": 0.019715666,
+              "cumulative_seconds": 0.019715999
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.sorted>",
+              "primitive_calls": 48807,
+              "calls": 48807,
+              "self_seconds": 0.011978005,
+              "cumulative_seconds": 0.017366681000000002
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 221,
+              "function": "intern_actions",
+              "primitive_calls": 1487,
+              "calls": 1487,
+              "self_seconds": 0.007463228000000001,
+              "cumulative_seconds": 0.014088073000000001
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 288,
+              "function": "_composition",
+              "primitive_calls": 2563,
+              "calls": 2563,
+              "self_seconds": 0.004519861,
+              "cumulative_seconds": 0.013832566000000001
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 281,
+              "function": "_fragment_id",
+              "primitive_calls": 1826,
+              "calls": 1826,
+              "self_seconds": 0.001342401,
+              "cumulative_seconds": 0.013739860000000001
+            },
+            {
+              "file": "<runtime>/functools.py",
+              "line": 982,
+              "function": "__get__",
+              "primitive_calls": 1813,
+              "calls": 3625,
+              "self_seconds": 0.0014569770000000001,
+              "cumulative_seconds": 0.011150938
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.all>",
+              "primitive_calls": 4800,
+              "calls": 4800,
+              "self_seconds": 0.0047799,
+              "cumulative_seconds": 0.010212820000000001
+            },
+            {
+              "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+              "line": 135,
+              "function": "__hash__",
+              "primitive_calls": 8908,
+              "calls": 8908,
+              "self_seconds": 0.0008426270000000001,
+              "cumulative_seconds": 0.010132285000000001
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'setdefault' of 'dict' objects>",
+              "primitive_calls": 45660,
+              "calls": 45660,
+              "self_seconds": 0.008219921,
+              "cumulative_seconds": 0.008847396
+            },
+            {
+              "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+              "line": 131,
+              "function": "_hash",
+              "primitive_calls": 876,
+              "calls": 876,
+              "self_seconds": 0.00026247,
+              "cumulative_seconds": 0.008755239
+            },
+            {
+              "file": "numpy/_core/numeric.py",
+              "line": 2524,
+              "function": "array_equal",
+              "primitive_calls": 936,
+              "calls": 936,
+              "self_seconds": 0.006125384,
+              "cumulative_seconds": 0.007500513
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+              "line": 145,
+              "function": "<genexpr>",
+              "primitive_calls": 49832,
+              "calls": 49832,
+              "self_seconds": 0.007491995,
+              "cumulative_seconds": 0.007491995
+            }
+          ],
+          "top_self": [
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method _abc._abc_instancecheck>",
+              "primitive_calls": 249507,
+              "calls": 249507,
+              "self_seconds": 0.027594165,
+              "cumulative_seconds": 0.064590938
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+              "line": 123,
+              "function": "binary_symmetry",
+              "primitive_calls": 936,
+              "calls": 936,
+              "self_seconds": 0.026174195,
+              "cumulative_seconds": 0.099393405
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.isinstance>",
+              "primitive_calls": 243042,
+              "calls": 243042,
+              "self_seconds": 0.02373952,
+              "cumulative_seconds": 0.10495916100000001
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+              "line": 62,
+              "function": "__post_init__",
+              "primitive_calls": 876,
+              "calls": 876,
+              "self_seconds": 0.020646872,
+              "cumulative_seconds": 0.17502788000000002
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method _abc._abc_subclasscheck>",
+              "primitive_calls": 236413,
+              "calls": 236413,
+              "self_seconds": 0.019715666,
+              "cumulative_seconds": 0.019715999
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method mappa._group_ops.fragment_compositions>",
+              "primitive_calls": 95,
+              "calls": 95,
+              "self_seconds": 0.018139317000000002,
+              "cumulative_seconds": 0.020008917
+            },
+            {
+              "file": "<runtime>/<frozen abc>",
+              "line": 117,
+              "function": "__instancecheck__",
+              "primitive_calls": 249507,
+              "calls": 249507,
+              "self_seconds": 0.017948497,
+              "cumulative_seconds": 0.08253943500000001
+            },
+            {
+              "file": "<runtime>/<frozen abc>",
+              "line": 121,
+              "function": "__subclasscheck__",
+              "primitive_calls": 236413,
+              "calls": 236413,
+              "self_seconds": 0.017280774000000002,
+              "cumulative_seconds": 0.036996773000000004
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 304,
+              "function": "add_graph",
+              "primitive_calls": 95,
+              "calls": 95,
+              "self_seconds": 0.015159367000000002,
+              "cumulative_seconds": 0.433445499
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.any>",
+              "primitive_calls": 8004,
+              "calls": 8004,
+              "self_seconds": 0.015023719000000001,
+              "cumulative_seconds": 0.157698304
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+              "line": 75,
+              "function": "<genexpr>",
+              "primitive_calls": 128126,
+              "calls": 128126,
+              "self_seconds": 0.014225645,
+              "cumulative_seconds": 0.072836235
+            },
+            {
+              "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+              "line": 53,
+              "function": "from_atom_sets",
+              "primitive_calls": 876,
+              "calls": 876,
+              "self_seconds": 0.013755985,
+              "cumulative_seconds": 0.30558456700000003
+            },
+            {
+              "file": "src/mappa/mappa_core/core/search/graph.py",
+              "line": 232,
+              "function": "collect",
+              "primitive_calls": 95,
+              "calls": 95,
+              "self_seconds": 0.013179694,
+              "cumulative_seconds": 0.033303086
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.sorted>",
+              "primitive_calls": 48807,
+              "calls": 48807,
+              "self_seconds": 0.011978005,
+              "cumulative_seconds": 0.017366681000000002
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'setdefault' of 'dict' objects>",
+              "primitive_calls": 45660,
+              "calls": 45660,
+              "self_seconds": 0.008219921,
+              "cumulative_seconds": 0.008847396
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+              "line": 145,
+              "function": "<genexpr>",
+              "primitive_calls": 49832,
+              "calls": 49832,
+              "self_seconds": 0.007491995,
+              "cumulative_seconds": 0.007491995
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 221,
+              "function": "intern_actions",
+              "primitive_calls": 1487,
+              "calls": 1487,
+              "self_seconds": 0.007463228000000001,
+              "cumulative_seconds": 0.014088073000000001
+            },
+            {
+              "file": "numpy/_core/numeric.py",
+              "line": 2524,
+              "function": "array_equal",
+              "primitive_calls": 936,
+              "calls": 936,
+              "self_seconds": 0.006125384,
+              "cumulative_seconds": 0.007500513
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'nonzero' of 'numpy.ndarray' objects>",
+              "primitive_calls": 936,
+              "calls": 936,
+              "self_seconds": 0.006085306,
+              "cumulative_seconds": 0.006085306
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'get' of 'dict' objects>",
+              "primitive_calls": 37001,
+              "calls": 37001,
+              "self_seconds": 0.005959334,
+              "cumulative_seconds": 0.005959334
+            }
+          ],
+          "self_seconds_by_module": {
+            "~": 0.17633848900000004,
+            "src/mappa/mappa_core/core/symmetry/relations.py": 0.070380372,
+            "src/mappa/mappa_core/core/symmetry/structure.py": 0.040485424,
+            "src/mappa/mappa_core/post_processing/final_branches.py": 0.040358711000000005,
+            "<runtime>": 0.036761117,
+            "src/mappa/mappa_core/core/matching/representation/records.py": 0.026139546,
+            "src/mappa/mappa_core/core/search/graph.py": 0.019915156,
+            "numpy": 0.016970186999999998,
+            "src/mappa/mappa_core/core/symmetry/actions.py": 0.002676124,
+            "<string>": 0.0023950530000000003,
+            "src/mappa/mappa_core/domain.py": 0.0007461680000000001,
+            "src/mappa/mappa_core/core/search/pairs.py": 0.000549806,
+            "_distutils_hack": 6.25e-07
+          }
+        },
+        "decoding": {
+          "sha256": "44944a7935c8e76dedcb9293452d7b04229ed77807950609efaa702b94b329a2",
+          "total_recorded_seconds": 127.70358991700003,
+          "total_calls": 654427440,
+          "primitive_calls": 654215004,
+          "top_cumulative": [
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+              "line": 103,
+              "function": "prepare",
+              "primitive_calls": 3884,
+              "calls": 3884,
+              "self_seconds": 0.042825445000000004,
+              "cumulative_seconds": 114.102270437
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+              "line": 119,
+              "function": "optimize_fragment",
+              "primitive_calls": 648,
+              "calls": 648,
+              "self_seconds": 0.058181169000000005,
+              "cumulative_seconds": 107.443779883
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+              "line": 153,
+              "function": "<genexpr>",
+              "primitive_calls": 2833,
+              "calls": 2833,
+              "self_seconds": 0.0010285630000000001,
+              "cumulative_seconds": 100.02198506500001
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+              "line": 79,
+              "function": "__init__",
+              "primitive_calls": 992,
+              "calls": 992,
+              "self_seconds": 0.10386493000000001,
+              "cumulative_seconds": 97.39651790900001
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+              "line": 76,
+              "function": "_search",
+              "primitive_calls": 7258,
+              "calls": 153118,
+              "self_seconds": 2.0136060380000003,
+              "cumulative_seconds": 91.431049789
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+              "line": 148,
+              "function": "program",
+              "primitive_calls": 414,
+              "calls": 1029,
+              "self_seconds": 0.003150612,
+              "cumulative_seconds": 50.04650483
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+              "line": 47,
+              "function": "_bound",
+              "primitive_calls": 141348,
+              "calls": 141348,
+              "self_seconds": 32.466379884000006,
+              "cumulative_seconds": 37.266909061
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+              "line": 145,
+              "function": "propagate",
+              "primitive_calls": 141348,
+              "calls": 141348,
+              "self_seconds": 17.402162146000002,
+              "cumulative_seconds": 35.358052513000004
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+              "line": 145,
+              "function": "optimize_start",
+              "primitive_calls": 836,
+              "calls": 836,
+              "self_seconds": 0.007643139,
+              "cumulative_seconds": 33.840841881
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+              "line": 268,
+              "function": "_prepare_two_sided",
+              "primitive_calls": 221,
+              "calls": 221,
+              "self_seconds": 0.32174404100000004,
+              "cumulative_seconds": 26.928516013000003
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+              "line": 248,
+              "function": "_invariant_group",
+              "primitive_calls": 572,
+              "calls": 572,
+              "self_seconds": 0.46504225000000005,
+              "cumulative_seconds": 17.08646745
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+              "line": 42,
+              "function": "_domains",
+              "primitive_calls": 141348,
+              "calls": 141348,
+              "self_seconds": 2.459467715,
+              "cumulative_seconds": 15.747642961
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.sorted>",
+              "primitive_calls": 29409700,
+              "calls": 29448077,
+              "self_seconds": 9.017311619000001,
+              "cumulative_seconds": 15.00587306
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+              "line": 131,
+              "function": "prepared_fragment",
+              "primitive_calls": 1030,
+              "calls": 1030,
+              "self_seconds": 0.0017420360000000002,
+              "cumulative_seconds": 14.273728407
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+              "line": 144,
+              "function": "direct",
+              "primitive_calls": 1030,
+              "calls": 1030,
+              "self_seconds": 0.000341735,
+              "cumulative_seconds": 14.269039807
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 504,
+              "function": "<genexpr>",
+              "primitive_calls": 3436,
+              "calls": 3436,
+              "self_seconds": 0.014104983000000001,
+              "cumulative_seconds": 9.020257369000001
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+              "line": 143,
+              "function": "fragment",
+              "primitive_calls": 2692,
+              "calls": 2692,
+              "self_seconds": 0.710972923,
+              "cumulative_seconds": 8.99317793
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+              "line": 91,
+              "function": "restrict",
+              "primitive_calls": 10787548,
+              "calls": 10787548,
+              "self_seconds": 4.180837886,
+              "cumulative_seconds": 8.520944693
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+              "line": 81,
+              "function": "domain",
+              "primitive_calls": 80272078,
+              "calls": 80272078,
+              "self_seconds": 5.7235222320000005,
+              "cumulative_seconds": 8.105524546
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+              "line": 164,
+              "function": "bounds",
+              "primitive_calls": 162,
+              "calls": 1005,
+              "self_seconds": 0.002363384,
+              "cumulative_seconds": 6.0110526790000005
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/groups.py",
+              "line": 8,
+              "function": "permutation_group",
+              "primitive_calls": 6083,
+              "calls": 6083,
+              "self_seconds": 0.033472473,
+              "cumulative_seconds": 5.321808792000001
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+              "line": 44,
+              "function": "<genexpr>",
+              "primitive_calls": 160728946,
+              "calls": 160728946,
+              "self_seconds": 5.272384775,
+              "cumulative_seconds": 5.272384775
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+              "line": 121,
+              "function": "bond",
+              "primitive_calls": 887820,
+              "calls": 887820,
+              "self_seconds": 1.7198037290000001,
+              "cumulative_seconds": 4.705275873000001
+            },
+            {
+              "file": "sympy/combinatorics/permutations.py",
+              "line": 902,
+              "function": "__new__",
+              "primitive_calls": 47851,
+              "calls": 47851,
+              "self_seconds": 0.414695727,
+              "cumulative_seconds": 4.608434628
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+              "line": 211,
+              "function": "_event_terms",
+              "primitive_calls": 771,
+              "calls": 771,
+              "self_seconds": 2.264518568,
+              "cumulative_seconds": 4.329949047
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/groups.py",
+              "line": 30,
+              "function": "pair_orbits",
+              "primitive_calls": 517813,
+              "calls": 517813,
+              "self_seconds": 2.5402981590000002,
+              "cumulative_seconds": 3.9534588360000003
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+              "line": 178,
+              "function": "bind",
+              "primitive_calls": 1675,
+              "calls": 1675,
+              "self_seconds": 0.9186266230000001,
+              "cumulative_seconds": 3.902050829
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.isinstance>",
+              "primitive_calls": 107638245,
+              "calls": 107638245,
+              "self_seconds": 3.3753489670000003,
+              "cumulative_seconds": 3.5857396030000004
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/groups.py",
+              "line": 63,
+              "function": "binary_group",
+              "primitive_calls": 572,
+              "calls": 572,
+              "self_seconds": 1.990657195,
+              "cumulative_seconds": 3.3186182950000003
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'intersection' of 'set' objects>",
+              "primitive_calls": 11000390,
+              "calls": 11000390,
+              "self_seconds": 2.941711166,
+              "cumulative_seconds": 2.941851594
+            }
+          ],
+          "top_self": [
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+              "line": 47,
+              "function": "_bound",
+              "primitive_calls": 141348,
+              "calls": 141348,
+              "self_seconds": 32.466379884000006,
+              "cumulative_seconds": 37.266909061
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+              "line": 145,
+              "function": "propagate",
+              "primitive_calls": 141348,
+              "calls": 141348,
+              "self_seconds": 17.402162146000002,
+              "cumulative_seconds": 35.358052513000004
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.sorted>",
+              "primitive_calls": 29409700,
+              "calls": 29448077,
+              "self_seconds": 9.017311619000001,
+              "cumulative_seconds": 15.00587306
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+              "line": 81,
+              "function": "domain",
+              "primitive_calls": 80272078,
+              "calls": 80272078,
+              "self_seconds": 5.7235222320000005,
+              "cumulative_seconds": 8.105524546
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+              "line": 44,
+              "function": "<genexpr>",
+              "primitive_calls": 160728946,
+              "calls": 160728946,
+              "self_seconds": 5.272384775,
+              "cumulative_seconds": 5.272384775
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/constraints.py",
+              "line": 91,
+              "function": "restrict",
+              "primitive_calls": 10787548,
+              "calls": 10787548,
+              "self_seconds": 4.180837886,
+              "cumulative_seconds": 8.520944693
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.isinstance>",
+              "primitive_calls": 107638245,
+              "calls": 107638245,
+              "self_seconds": 3.3753489670000003,
+              "cumulative_seconds": 3.5857396030000004
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'intersection' of 'set' objects>",
+              "primitive_calls": 11000390,
+              "calls": 11000390,
+              "self_seconds": 2.941711166,
+              "cumulative_seconds": 2.941851594
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.len>",
+              "primitive_calls": 74349337,
+              "calls": 74349337,
+              "self_seconds": 2.75823215,
+              "cumulative_seconds": 2.75823215
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/groups.py",
+              "line": 30,
+              "function": "pair_orbits",
+              "primitive_calls": 517813,
+              "calls": 517813,
+              "self_seconds": 2.5402981590000002,
+              "cumulative_seconds": 3.9534588360000003
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+              "line": 42,
+              "function": "_domains",
+              "primitive_calls": 141348,
+              "calls": 141348,
+              "self_seconds": 2.459467715,
+              "cumulative_seconds": 15.747642961
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+              "line": 211,
+              "function": "_event_terms",
+              "primitive_calls": 771,
+              "calls": 771,
+              "self_seconds": 2.264518568,
+              "cumulative_seconds": 4.329949047
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+              "line": 76,
+              "function": "_search",
+              "primitive_calls": 7258,
+              "calls": 153118,
+              "self_seconds": 2.0136060380000003,
+              "cumulative_seconds": 91.431049789
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/groups.py",
+              "line": 63,
+              "function": "binary_group",
+              "primitive_calls": 572,
+              "calls": 572,
+              "self_seconds": 1.990657195,
+              "cumulative_seconds": 3.3186182950000003
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+              "line": 121,
+              "function": "bond",
+              "primitive_calls": 887820,
+              "calls": 887820,
+              "self_seconds": 1.7198037290000001,
+              "cumulative_seconds": 4.705275873000001
+            },
+            {
+              "file": "numpy/lib/_arraysetops_impl.py",
+              "line": 348,
+              "function": "_unique1d",
+              "primitive_calls": 518879,
+              "calls": 518879,
+              "self_seconds": 1.202976934,
+              "cumulative_seconds": 1.68502641
+            },
+            {
+              "file": "sympy/utilities/iterables.py",
+              "line": 3083,
+              "function": "is_sequence",
+              "primitive_calls": 9428350,
+              "calls": 9428350,
+              "self_seconds": 1.174362048,
+              "cumulative_seconds": 1.7216828640000001
+            },
+            {
+              "file": "src/mappa/mappa_core/utils/bonds.py",
+              "line": 15,
+              "function": "is_metal_element",
+              "primitive_calls": 1483827,
+              "calls": 1483827,
+              "self_seconds": 1.099889377,
+              "cumulative_seconds": 1.344732261
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'reduce' of 'numpy.ufunc' objects>",
+              "primitive_calls": 2421001,
+              "calls": 2421001,
+              "self_seconds": 1.0969678630000002,
+              "cumulative_seconds": 1.0969678630000002
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+              "line": 178,
+              "function": "bind",
+              "primitive_calls": 1675,
+              "calls": 1675,
+              "self_seconds": 0.9186266230000001,
+              "cumulative_seconds": 3.902050829
+            }
+          ],
+          "self_seconds_by_module": {
+            "src/mappa/mappa_core/core/symmetry/optimization.py": 42.66971752000001,
+            "src/mappa/mappa_core/core/symmetry/constraints.py": 27.328125632000003,
+            "~": 27.309183244000003,
+            "sympy": 5.12672831,
+            "numpy": 4.930880732,
+            "src/mappa/mappa_core/core/symmetry/groups.py": 4.793053371,
+            "src/mappa/mappa_core/post_processing/decoder/fragments.py": 3.8776322490000004,
+            "src/mappa/mappa_core/core/symmetry/minimum.py": 3.6986084720000005,
+            "src/mappa/mappa_core/post_processing/decoder/local_counts.py": 1.507493718,
+            "src/mappa/mappa_core/utils/bonds.py": 1.255275288,
+            "<runtime>": 1.1222767690000002,
+            "src/mappa/mappa_core/core/symmetry/objective.py": 1.105881471,
+            "src/mappa/mappa_core/core/symmetry/actions.py": 1.035422659,
+            "src/mappa/mappa_core/core/symmetry/responses.py": 0.7480597710000001,
+            "src/mappa/mappa_core/post_processing/decoder/events.py": 0.6439166120000002,
+            "src/mappa/mappa_core/core/symmetry/relations.py": 0.238359017,
+            "src/mappa/mappa_core/core/symmetry/structure.py": 0.14922329500000003,
+            "src/mappa/mappa_core/core/symmetry/program.py": 0.135456772,
+            "src/mappa/mappa_core/core/matching/representation/records.py": 0.012959592000000002,
+            "src/mappa/mappa_core/post_processing/decoder/records.py": 0.009458765000000001,
+            "<string>": 0.003712594,
+            "src/mappa/mappa_core/post_processing/final_branches.py": 0.0017693400000000003,
+            "src/mappa/mappa_core/post_processing/decoder/window.py": 0.00034214000000000005,
+            "src/mappa/mappa_core/post_processing/decoder/api.py": 5.1751000000000006e-05,
+            "_distutils_hack": 8.33e-07
+          }
+        },
+        "export": {
+          "sha256": "1c68d7e974b287db7e44d63ba881294d3b285747ae1985caff6332303f7b7d57",
+          "total_recorded_seconds": 2.397812174,
+          "total_calls": 21228505,
+          "primitive_calls": 20824067,
+          "top_cumulative": [
+            {
+              "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+              "line": 152,
+              "function": "to_record",
+              "primitive_calls": 60,
+              "calls": 783,
+              "self_seconds": 0.0035451840000000003,
+              "cumulative_seconds": 2.816256079
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+              "line": 62,
+              "function": "to_record",
+              "primitive_calls": 121,
+              "calls": 1682,
+              "self_seconds": 0.023937,
+              "cumulative_seconds": 2.805119328
+            },
+            {
+              "file": "src/mappa/mappa_core/utils/io/records.py",
+              "line": 126,
+              "function": "groups_record",
+              "primitive_calls": 1288,
+              "calls": 1288,
+              "self_seconds": 0.0016099390000000001,
+              "cumulative_seconds": 1.7200611790000002
+            },
+            {
+              "file": "src/mappa/mappa_core/utils/io/records.py",
+              "line": 121,
+              "function": "terms_record",
+              "primitive_calls": 1505,
+              "calls": 1505,
+              "self_seconds": 0.20097473100000002,
+              "cumulative_seconds": 1.718101396
+            },
+            {
+              "file": "src/mappa/mappa_core/utils/io/records.py",
+              "line": 109,
+              "function": "term_record",
+              "primitive_calls": 892998,
+              "calls": 892998,
+              "self_seconds": 0.393120048,
+              "cumulative_seconds": 0.896076226
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.hash>",
+              "primitive_calls": 5599013,
+              "calls": 5599013,
+              "self_seconds": 0.490698456,
+              "cumulative_seconds": 0.665741875
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+              "line": 170,
+              "function": "_export_tables",
+              "primitive_calls": 645,
+              "calls": 645,
+              "self_seconds": 0.0034340240000000004,
+              "cumulative_seconds": 0.6299661470000001
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+              "line": 156,
+              "function": "_prepare_table",
+              "primitive_calls": 644,
+              "calls": 644,
+              "self_seconds": 0.0015059320000000002,
+              "cumulative_seconds": 0.624763372
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 485,
+              "function": "__init__",
+              "primitive_calls": 644,
+              "calls": 644,
+              "self_seconds": 0.009766459,
+              "cumulative_seconds": 0.622920278
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 229,
+              "function": "bind",
+              "primitive_calls": 644,
+              "calls": 644,
+              "self_seconds": 0.28206234,
+              "cumulative_seconds": 0.487376061
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 722,
+              "function": "statistics",
+              "primitive_calls": 644,
+              "calls": 644,
+              "self_seconds": 0.066259343,
+              "cumulative_seconds": 0.311954375
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.sum>",
+              "primitive_calls": 5796,
+              "calls": 5796,
+              "self_seconds": 0.101612876,
+              "cumulative_seconds": 0.20679039600000002
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 155,
+              "function": "__hash__",
+              "primitive_calls": 5601381,
+              "calls": 5601381,
+              "self_seconds": 0.17583594400000002,
+              "cumulative_seconds": 0.17583594400000002
+            },
+            {
+              "file": "<runtime>/dataclasses.py",
+              "line": 1308,
+              "function": "asdict",
+              "primitive_calls": 648,
+              "calls": 648,
+              "self_seconds": 0.000157111,
+              "cumulative_seconds": 0.101544351
+            },
+            {
+              "file": "<runtime>/dataclasses.py",
+              "line": 1332,
+              "function": "_asdict_inner",
+              "primitive_calls": 648,
+              "calls": 237128,
+              "self_seconds": 0.05817523300000001,
+              "cumulative_seconds": 0.10125666100000001
+            },
+            {
+              "file": "<runtime>/dataclasses.py",
+              "line": 1373,
+              "function": "<genexpr>",
+              "primitive_calls": 111436,
+              "calls": 274702,
+              "self_seconds": 0.023590715,
+              "cumulative_seconds": 0.085136872
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'setdefault' of 'dict' objects>",
+              "primitive_calls": 1451884,
+              "calls": 1451884,
+              "self_seconds": 0.08306571800000001,
+              "cumulative_seconds": 0.08343171
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'add' of 'set' objects>",
+              "primitive_calls": 1279174,
+              "calls": 1279174,
+              "self_seconds": 0.06990826600000001,
+              "cumulative_seconds": 0.06990826600000001
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 616,
+              "function": "_dependency_components",
+              "primitive_calls": 644,
+              "calls": 644,
+              "self_seconds": 0.012694988,
+              "cumulative_seconds": 0.06972381300000001
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 629,
+              "function": "join",
+              "primitive_calls": 53714,
+              "calls": 53714,
+              "self_seconds": 0.020137593000000002,
+              "cumulative_seconds": 0.054325249000000006
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 213,
+              "function": "_advance",
+              "primitive_calls": 96919,
+              "calls": 96919,
+              "self_seconds": 0.026287195000000003,
+              "cumulative_seconds": 0.042348889
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.id>",
+              "primitive_calls": 1104293,
+              "calls": 1104293,
+              "self_seconds": 0.038820806,
+              "cumulative_seconds": 0.038820806
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 729,
+              "function": "<genexpr>",
+              "primitive_calls": 1100974,
+              "calls": 1100974,
+              "self_seconds": 0.038363608,
+              "cumulative_seconds": 0.038363608
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 730,
+              "function": "<genexpr>",
+              "primitive_calls": 1100974,
+              "calls": 1100974,
+              "self_seconds": 0.037789255,
+              "cumulative_seconds": 0.037789255
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 623,
+              "function": "root",
+              "primitive_calls": 155096,
+              "calls": 155096,
+              "self_seconds": 0.026291783000000003,
+              "cumulative_seconds": 0.035221726
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 439,
+              "function": "prepare_boundary_events",
+              "primitive_calls": 644,
+              "calls": 644,
+              "self_seconds": 0.018688952,
+              "cumulative_seconds": 0.028605272
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 733,
+              "function": "<genexpr>",
+              "primitive_calls": 1100974,
+              "calls": 1100974,
+              "self_seconds": 0.028146787000000003,
+              "cumulative_seconds": 0.028146787000000003
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'tolist' of 'numpy.ndarray' objects>",
+              "primitive_calls": 2226,
+              "calls": 2226,
+              "self_seconds": 0.025620911000000003,
+              "cumulative_seconds": 0.025620911000000003
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 504,
+              "function": "<genexpr>",
+              "primitive_calls": 2857,
+              "calls": 2857,
+              "self_seconds": 0.0010367290000000001,
+              "cumulative_seconds": 0.019392049
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+              "line": 143,
+              "function": "fragment",
+              "primitive_calls": 2213,
+              "calls": 2213,
+              "self_seconds": 0.010252044,
+              "cumulative_seconds": 0.01835532
+            }
+          ],
+          "top_self": [
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.hash>",
+              "primitive_calls": 5599013,
+              "calls": 5599013,
+              "self_seconds": 0.490698456,
+              "cumulative_seconds": 0.665741875
+            },
+            {
+              "file": "src/mappa/mappa_core/utils/io/records.py",
+              "line": 109,
+              "function": "term_record",
+              "primitive_calls": 892998,
+              "calls": 892998,
+              "self_seconds": 0.393120048,
+              "cumulative_seconds": 0.896076226
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 229,
+              "function": "bind",
+              "primitive_calls": 644,
+              "calls": 644,
+              "self_seconds": 0.28206234,
+              "cumulative_seconds": 0.487376061
+            },
+            {
+              "file": "src/mappa/mappa_core/utils/io/records.py",
+              "line": 121,
+              "function": "terms_record",
+              "primitive_calls": 1505,
+              "calls": 1505,
+              "self_seconds": 0.20097473100000002,
+              "cumulative_seconds": 1.718101396
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 155,
+              "function": "__hash__",
+              "primitive_calls": 5601381,
+              "calls": 5601381,
+              "self_seconds": 0.17583594400000002,
+              "cumulative_seconds": 0.17583594400000002
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.sum>",
+              "primitive_calls": 5796,
+              "calls": 5796,
+              "self_seconds": 0.101612876,
+              "cumulative_seconds": 0.20679039600000002
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'setdefault' of 'dict' objects>",
+              "primitive_calls": 1451884,
+              "calls": 1451884,
+              "self_seconds": 0.08306571800000001,
+              "cumulative_seconds": 0.08343171
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'add' of 'set' objects>",
+              "primitive_calls": 1279174,
+              "calls": 1279174,
+              "self_seconds": 0.06990826600000001,
+              "cumulative_seconds": 0.06990826600000001
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 722,
+              "function": "statistics",
+              "primitive_calls": 644,
+              "calls": 644,
+              "self_seconds": 0.066259343,
+              "cumulative_seconds": 0.311954375
+            },
+            {
+              "file": "<runtime>/dataclasses.py",
+              "line": 1332,
+              "function": "_asdict_inner",
+              "primitive_calls": 648,
+              "calls": 237128,
+              "self_seconds": 0.05817523300000001,
+              "cumulative_seconds": 0.10125666100000001
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.id>",
+              "primitive_calls": 1104293,
+              "calls": 1104293,
+              "self_seconds": 0.038820806,
+              "cumulative_seconds": 0.038820806
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 729,
+              "function": "<genexpr>",
+              "primitive_calls": 1100974,
+              "calls": 1100974,
+              "self_seconds": 0.038363608,
+              "cumulative_seconds": 0.038363608
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 730,
+              "function": "<genexpr>",
+              "primitive_calls": 1100974,
+              "calls": 1100974,
+              "self_seconds": 0.037789255,
+              "cumulative_seconds": 0.037789255
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 733,
+              "function": "<genexpr>",
+              "primitive_calls": 1100974,
+              "calls": 1100974,
+              "self_seconds": 0.028146787000000003,
+              "cumulative_seconds": 0.028146787000000003
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 623,
+              "function": "root",
+              "primitive_calls": 155096,
+              "calls": 155096,
+              "self_seconds": 0.026291783000000003,
+              "cumulative_seconds": 0.035221726
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 213,
+              "function": "_advance",
+              "primitive_calls": 96919,
+              "calls": 96919,
+              "self_seconds": 0.026287195000000003,
+              "cumulative_seconds": 0.042348889
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'tolist' of 'numpy.ndarray' objects>",
+              "primitive_calls": 2226,
+              "calls": 2226,
+              "self_seconds": 0.025620911000000003,
+              "cumulative_seconds": 0.025620911000000003
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+              "line": 62,
+              "function": "to_record",
+              "primitive_calls": 121,
+              "calls": 1682,
+              "self_seconds": 0.023937,
+              "cumulative_seconds": 2.805119328
+            },
+            {
+              "file": "<runtime>/dataclasses.py",
+              "line": 1373,
+              "function": "<genexpr>",
+              "primitive_calls": 111436,
+              "calls": 274702,
+              "self_seconds": 0.023590715,
+              "cumulative_seconds": 0.085136872
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 629,
+              "function": "join",
+              "primitive_calls": 53714,
+              "calls": 53714,
+              "self_seconds": 0.020137593000000002,
+              "cumulative_seconds": 0.054325249000000006
+            }
+          ],
+          "self_seconds_by_module": {
+            "~": 0.871097021,
+            "src/mappa/mappa_core/utils/io/records.py": 0.5957430530000001,
+            "src/mappa/mappa_core/core/symmetry/actions.py": 0.4918005140000001,
+            "src/mappa/mappa_core/post_processing/decoder/events.py": 0.263050649,
+            "<runtime>": 0.091985812,
+            "src/mappa/mappa_core/core/symmetry/structure.py": 0.031894549,
+            "src/mappa/mappa_core/post_processing/decoder/fragments.py": 0.022997919999999998,
+            "src/mappa/mappa_core/post_processing/final_branches.py": 0.010588594000000002,
+            "src/mappa/mappa_core/post_processing/decoder/records.py": 0.005803252000000002,
+            "src/mappa/mappa_core/core/matching/representation/records.py": 0.004559250000000001,
+            "src/mappa/mappa_core/core/symmetry/minimum.py": 0.003563708,
+            "sympy": 0.0019404930000000002,
+            "<string>": 0.001381588,
+            "numpy": 0.001010091,
+            "src/mappa/mappa_core/utils/bonds.py": 0.000222088,
+            "src/mappa/mappa_core/core/symmetry/responses.py": 0.000107466,
+            "src/mappa/mappa_core/post_processing/decoder/window.py": 4.6667000000000006e-05,
+            "src/mappa/mappa_core/core/search/graph.py": 1.9459e-05
+          }
+        }
+      },
+      "input_index_sha256": "33b63ca427ea72df69a0b1c2f149c28b57767950fbaf31395da0038831fc6c18",
+      "unprofiled_observation": {
+        "revision": "63088bd44aed5af1a88bbcd919f788ba2260f395",
+        "phases": {
+          "reduction": {
+            "cpu_seconds": 0.20046700000000012,
+            "wall_seconds": 0.20062083075754344
+          },
+          "decoding": {
+            "cpu_seconds": 73.59841399999999,
+            "wall_seconds": 73.61677533388138
+          },
+          "export": {
+            "cpu_seconds": 1.1508660000000077,
+            "wall_seconds": 1.1509935001377016
+          }
+        }
+      },
+      "summary_checks_against_unprofiled": {
+        "branches": true,
+        "families": true,
+        "fragments": true,
+        "minimum_events": true,
+        "minimum_proven": true,
+        "raw_paths": true
+      }
+    },
+    {
+      "kind": "result",
+      "case": "01606/reverse/seeds10",
+      "source_identity": "7556bd7d1bc5d77815249d709169673abd662e1573b0acdda3cc92da7ea1af86",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true
+      },
+      "decode_config": {
+        "threshold": 0.5,
+        "metal_threshold": 0.3,
+        "event_slack": 5,
+        "fragment_seconds": 5.0
+      },
+      "cuts": 86,
+      "raw_paths": 71199,
+      "branches": 24523,
+      "families": 26419,
+      "fragments": 2339,
+      "prepared_fragments": 1301,
+      "optimization_complete": 1278,
+      "optimization_time_limit_reached": 1,
+      "minimum_events": 7,
+      "minimum_proven": true,
+      "window_contexts": 17444,
+      "phases": {
+        "reduction": {
+          "cpu_seconds": 2.428009000000001,
+          "wall_seconds": 2.429105254355818
+        },
+        "decoding": {
+          "cpu_seconds": 112.816326,
+          "wall_seconds": 112.8846730410587
+        },
+        "export": {
+          "cpu_seconds": 50.39485599999999,
+          "wall_seconds": 50.409044166095555
+        }
+      },
+      "peak_rss_bytes": 1548140544,
+      "exported_fragments": 1301,
+      "process_wall_seconds": 174.55688041704707,
+      "peak_sampled_rss_bytes": 1548156928,
+      "status": "ok",
+      "profiles": {
+        "reduction": {
+          "sha256": "773898b78b46441f00cd03f9ebab1cd98b955b725a17db72607ef8b59842e489",
+          "total_recorded_seconds": 2.418311557,
+          "total_calls": 12406488,
+          "primitive_calls": 12403440,
+          "top_cumulative": [
+            {
+              "file": "<string>",
+              "line": 24,
+              "function": "<lambda>",
+              "primitive_calls": 86,
+              "calls": 86,
+              "self_seconds": 0.006588834,
+              "cumulative_seconds": 2.4264747090000003
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 304,
+              "function": "add_graph",
+              "primitive_calls": 86,
+              "calls": 86,
+              "self_seconds": 0.309399028,
+              "cumulative_seconds": 2.4198858750000003
+            },
+            {
+              "file": "src/mappa/mappa_core/core/search/graph.py",
+              "line": 232,
+              "function": "collect",
+              "primitive_calls": 86,
+              "calls": 86,
+              "self_seconds": 0.17538603400000002,
+              "cumulative_seconds": 0.384605876
+            },
+            {
+              "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+              "line": 53,
+              "function": "from_atom_sets",
+              "primitive_calls": 2339,
+              "calls": 2339,
+              "self_seconds": 0.014428350000000001,
+              "cumulative_seconds": 0.337214669
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.all>",
+              "primitive_calls": 112640,
+              "calls": 112640,
+              "self_seconds": 0.147882379,
+              "cumulative_seconds": 0.32496167800000003
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 288,
+              "function": "_composition",
+              "primitive_calls": 71199,
+              "calls": 71199,
+              "self_seconds": 0.10526299500000001,
+              "cumulative_seconds": 0.287070539
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method mappa._group_ops.fragment_compositions>",
+              "primitive_calls": 86,
+              "calls": 86,
+              "self_seconds": 0.21046229900000002,
+              "cumulative_seconds": 0.22306629200000003
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 46,
+              "function": "add",
+              "primitive_calls": 71199,
+              "calls": 71199,
+              "self_seconds": 0.19642412,
+              "cumulative_seconds": 0.205840356
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 354,
+              "function": "<genexpr>",
+              "primitive_calls": 4760509,
+              "calls": 4760509,
+              "self_seconds": 0.18236332900000002,
+              "cumulative_seconds": 0.18236332900000002
+            },
+            {
+              "file": "<string>",
+              "line": 2,
+              "function": "__init__",
+              "primitive_calls": 2339,
+              "calls": 2339,
+              "self_seconds": 0.0027915400000000003,
+              "cumulative_seconds": 0.15628376500000002
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 221,
+              "function": "intern_actions",
+              "primitive_calls": 3612,
+              "calls": 3612,
+              "self_seconds": 0.088602361,
+              "cumulative_seconds": 0.154047959
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+              "line": 62,
+              "function": "__post_init__",
+              "primitive_calls": 2339,
+              "calls": 2339,
+              "self_seconds": 0.024416243,
+              "cumulative_seconds": 0.153492225
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.sorted>",
+              "primitive_calls": 132880,
+              "calls": 132880,
+              "self_seconds": 0.086235507,
+              "cumulative_seconds": 0.117186837
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.any>",
+              "primitive_calls": 17791,
+              "calls": 17791,
+              "self_seconds": 0.010363358000000001,
+              "cumulative_seconds": 0.11384867900000001
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'setdefault' of 'dict' objects>",
+              "primitive_calls": 156750,
+              "calls": 156750,
+              "self_seconds": 0.096253054,
+              "cumulative_seconds": 0.111088579
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 218,
+              "function": "_intern",
+              "primitive_calls": 34244,
+              "calls": 34244,
+              "self_seconds": 0.004228486,
+              "cumulative_seconds": 0.096181734
+            },
+            {
+              "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+              "line": 86,
+              "function": "<genexpr>",
+              "primitive_calls": 16982,
+              "calls": 16982,
+              "self_seconds": 0.091037564,
+              "cumulative_seconds": 0.091037564
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.isinstance>",
+              "primitive_calls": 139463,
+              "calls": 139463,
+              "self_seconds": 0.013685176,
+              "cumulative_seconds": 0.069813762
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+              "line": 75,
+              "function": "<genexpr>",
+              "primitive_calls": 57593,
+              "calls": 57593,
+              "self_seconds": 0.024941745,
+              "cumulative_seconds": 0.06851565600000001
+            },
+            {
+              "file": "src/mappa/mappa_core/core/search/graph.py",
+              "line": 239,
+              "function": "append",
+              "primitive_calls": 80141,
+              "calls": 80141,
+              "self_seconds": 0.024777241000000002,
+              "cumulative_seconds": 0.06774166200000001
+            },
+            {
+              "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+              "line": 68,
+              "function": "side",
+              "primitive_calls": 4678,
+              "calls": 4678,
+              "self_seconds": 0.0018619690000000002,
+              "cumulative_seconds": 0.066086542
+            },
+            {
+              "file": "<runtime>/<frozen abc>",
+              "line": 117,
+              "function": "__instancecheck__",
+              "primitive_calls": 173068,
+              "calls": 173068,
+              "self_seconds": 0.015148894000000001,
+              "cumulative_seconds": 0.065967524
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+              "line": 123,
+              "function": "binary_symmetry",
+              "primitive_calls": 709,
+              "calls": 709,
+              "self_seconds": 0.017660985,
+              "cumulative_seconds": 0.064119883
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method _abc._abc_instancecheck>",
+              "primitive_calls": 173068,
+              "calls": 173068,
+              "self_seconds": 0.01698939,
+              "cumulative_seconds": 0.050818630000000004
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 77,
+              "function": "__hash__",
+              "primitive_calls": 1291447,
+              "calls": 1291447,
+              "self_seconds": 0.046766968000000006,
+              "cumulative_seconds": 0.046766968000000006
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'get' of 'dict' objects>",
+              "primitive_calls": 29245,
+              "calls": 29245,
+              "self_seconds": 0.040641597,
+              "cumulative_seconds": 0.040641597
+            },
+            {
+              "file": "src/mappa/mappa_core/core/search/graph.py",
+              "line": 204,
+              "function": "add",
+              "primitive_calls": 80141,
+              "calls": 80141,
+              "self_seconds": 0.024171541,
+              "cumulative_seconds": 0.038293777
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'append' of 'list' objects>",
+              "primitive_calls": 630971,
+              "calls": 630971,
+              "self_seconds": 0.035756115000000005,
+              "cumulative_seconds": 0.035756115000000005
+            },
+            {
+              "file": "<runtime>/<frozen abc>",
+              "line": 121,
+              "function": "__subclasscheck__",
+              "primitive_calls": 102270,
+              "calls": 102270,
+              "self_seconds": 0.024642909,
+              "cumulative_seconds": 0.033829240000000003
+            },
+            {
+              "file": "<runtime>/functools.py",
+              "line": 982,
+              "function": "__get__",
+              "primitive_calls": 5184,
+              "calls": 8232,
+              "self_seconds": 0.003169078,
+              "cumulative_seconds": 0.031008208000000002
+            }
+          ],
+          "top_self": [
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 304,
+              "function": "add_graph",
+              "primitive_calls": 86,
+              "calls": 86,
+              "self_seconds": 0.309399028,
+              "cumulative_seconds": 2.4198858750000003
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method mappa._group_ops.fragment_compositions>",
+              "primitive_calls": 86,
+              "calls": 86,
+              "self_seconds": 0.21046229900000002,
+              "cumulative_seconds": 0.22306629200000003
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 46,
+              "function": "add",
+              "primitive_calls": 71199,
+              "calls": 71199,
+              "self_seconds": 0.19642412,
+              "cumulative_seconds": 0.205840356
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 354,
+              "function": "<genexpr>",
+              "primitive_calls": 4760509,
+              "calls": 4760509,
+              "self_seconds": 0.18236332900000002,
+              "cumulative_seconds": 0.18236332900000002
+            },
+            {
+              "file": "src/mappa/mappa_core/core/search/graph.py",
+              "line": 232,
+              "function": "collect",
+              "primitive_calls": 86,
+              "calls": 86,
+              "self_seconds": 0.17538603400000002,
+              "cumulative_seconds": 0.384605876
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.all>",
+              "primitive_calls": 112640,
+              "calls": 112640,
+              "self_seconds": 0.147882379,
+              "cumulative_seconds": 0.32496167800000003
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 288,
+              "function": "_composition",
+              "primitive_calls": 71199,
+              "calls": 71199,
+              "self_seconds": 0.10526299500000001,
+              "cumulative_seconds": 0.287070539
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'setdefault' of 'dict' objects>",
+              "primitive_calls": 156750,
+              "calls": 156750,
+              "self_seconds": 0.096253054,
+              "cumulative_seconds": 0.111088579
+            },
+            {
+              "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+              "line": 86,
+              "function": "<genexpr>",
+              "primitive_calls": 16982,
+              "calls": 16982,
+              "self_seconds": 0.091037564,
+              "cumulative_seconds": 0.091037564
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 221,
+              "function": "intern_actions",
+              "primitive_calls": 3612,
+              "calls": 3612,
+              "self_seconds": 0.088602361,
+              "cumulative_seconds": 0.154047959
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.sorted>",
+              "primitive_calls": 132880,
+              "calls": 132880,
+              "self_seconds": 0.086235507,
+              "cumulative_seconds": 0.117186837
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 77,
+              "function": "__hash__",
+              "primitive_calls": 1291447,
+              "calls": 1291447,
+              "self_seconds": 0.046766968000000006,
+              "cumulative_seconds": 0.046766968000000006
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'get' of 'dict' objects>",
+              "primitive_calls": 29245,
+              "calls": 29245,
+              "self_seconds": 0.040641597,
+              "cumulative_seconds": 0.040641597
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'append' of 'list' objects>",
+              "primitive_calls": 630971,
+              "calls": 630971,
+              "self_seconds": 0.035756115000000005,
+              "cumulative_seconds": 0.035756115000000005
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+              "line": 75,
+              "function": "<genexpr>",
+              "primitive_calls": 57593,
+              "calls": 57593,
+              "self_seconds": 0.024941745,
+              "cumulative_seconds": 0.06851565600000001
+            },
+            {
+              "file": "src/mappa/mappa_core/core/search/graph.py",
+              "line": 239,
+              "function": "append",
+              "primitive_calls": 80141,
+              "calls": 80141,
+              "self_seconds": 0.024777241000000002,
+              "cumulative_seconds": 0.06774166200000001
+            },
+            {
+              "file": "<runtime>/<frozen abc>",
+              "line": 121,
+              "function": "__subclasscheck__",
+              "primitive_calls": 102270,
+              "calls": 102270,
+              "self_seconds": 0.024642909,
+              "cumulative_seconds": 0.033829240000000003
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 291,
+              "function": "<genexpr>",
+              "primitive_calls": 213341,
+              "calls": 213341,
+              "self_seconds": 0.024614548,
+              "cumulative_seconds": 0.024614548
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+              "line": 62,
+              "function": "__post_init__",
+              "primitive_calls": 2339,
+              "calls": 2339,
+              "self_seconds": 0.024416243,
+              "cumulative_seconds": 0.153492225
+            },
+            {
+              "file": "src/mappa/mappa_core/core/search/graph.py",
+              "line": 204,
+              "function": "add",
+              "primitive_calls": 80141,
+              "calls": 80141,
+              "self_seconds": 0.024171541,
+              "cumulative_seconds": 0.038293777
+            }
+          ],
+          "self_seconds_by_module": {
+            "src/mappa/mappa_core/post_processing/final_branches.py": 1.006368311,
+            "~": 0.7779342030000004,
+            "src/mappa/mappa_core/core/search/graph.py": 0.25230846300000004,
+            "src/mappa/mappa_core/core/matching/representation/records.py": 0.12779657800000002,
+            "src/mappa/mappa_core/core/symmetry/relations.py": 0.07820497800000001,
+            "src/mappa/mappa_core/core/symmetry/actions.py": 0.07167575500000001,
+            "<runtime>": 0.043098884,
+            "src/mappa/mappa_core/core/symmetry/structure.py": 0.024996973,
+            "numpy": 0.01646942,
+            "<string>": 0.009380374,
+            "src/mappa/mappa_core/domain.py": 0.00731123,
+            "src/mappa/mappa_core/core/search/pairs.py": 0.002765055,
+            "_distutils_hack": 1.333e-06
+          }
+        },
+        "decoding": {
+          "sha256": "e1116a8e517fab83605245798d6a3a30058d53f447d06f92131ddb834330224d",
+          "total_recorded_seconds": 113.11616530899995,
+          "total_calls": 680916550,
+          "primitive_calls": 679511588,
+          "top_cumulative": [
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 562,
+              "function": "minimum_result",
+              "primitive_calls": 988,
+              "calls": 988,
+              "self_seconds": 0.000920357,
+              "cumulative_seconds": 49.533229763
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/program.py",
+              "line": 369,
+              "function": "solve",
+              "primitive_calls": 988,
+              "calls": 988,
+              "self_seconds": 0.023759871000000002,
+              "cumulative_seconds": 49.193214078000004
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+              "line": 503,
+              "function": "run",
+              "primitive_calls": 195,
+              "calls": 195,
+              "self_seconds": 0.003949509,
+              "cumulative_seconds": 45.529317992
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+              "line": 427,
+              "function": "_solve",
+              "primitive_calls": 195,
+              "calls": 7360,
+              "self_seconds": 0.039875142,
+              "cumulative_seconds": 35.185705581
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/groups.py",
+              "line": 8,
+              "function": "permutation_group",
+              "primitive_calls": 10126,
+              "calls": 10126,
+              "self_seconds": 0.10009719800000001,
+              "cumulative_seconds": 27.378661104000003
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+              "line": 364,
+              "function": "_metadata",
+              "primitive_calls": 683,
+              "calls": 683,
+              "self_seconds": 0.049300294,
+              "cumulative_seconds": 25.111152006
+            },
+            {
+              "file": "sympy/combinatorics/permutations.py",
+              "line": 902,
+              "function": "__new__",
+              "primitive_calls": 73650,
+              "calls": 73650,
+              "self_seconds": 1.9752049390000002,
+              "cumulative_seconds": 24.462269037000002
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/groups.py",
+              "line": 77,
+              "function": "independent_factors",
+              "primitive_calls": 513,
+              "calls": 7336,
+              "self_seconds": 0.6156725270000001,
+              "cumulative_seconds": 22.838332527000002
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 229,
+              "function": "bind",
+              "primitive_calls": 18641,
+              "calls": 18641,
+              "self_seconds": 10.239600357,
+              "cumulative_seconds": 17.855657855
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/program.py",
+              "line": 162,
+              "function": "group",
+              "primitive_calls": 312,
+              "calls": 312,
+              "self_seconds": 0.28928412400000003,
+              "cumulative_seconds": 15.838089000000002
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+              "line": 164,
+              "function": "bounds",
+              "primitive_calls": 6271,
+              "calls": 6271,
+              "self_seconds": 0.006330871,
+              "cumulative_seconds": 15.213760255
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+              "line": 148,
+              "function": "program",
+              "primitive_calls": 6271,
+              "calls": 6271,
+              "self_seconds": 0.014494643000000001,
+              "cumulative_seconds": 15.172660612000001
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 566,
+              "function": "composed_minimum",
+              "primitive_calls": 17653,
+              "calls": 17653,
+              "self_seconds": 0.297977051,
+              "cumulative_seconds": 13.62943283
+            },
+            {
+              "file": "sympy/utilities/iterables.py",
+              "line": 57,
+              "function": "flatten",
+              "primitive_calls": 73650,
+              "calls": 73650,
+              "self_seconds": 3.202422047,
+              "cumulative_seconds": 12.828999031
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 12,
+              "function": "apply_action",
+              "primitive_calls": 160686,
+              "calls": 251384,
+              "self_seconds": 0.456342175,
+              "cumulative_seconds": 12.440750647000002
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.any>",
+              "primitive_calls": 877404,
+              "calls": 877404,
+              "self_seconds": 0.824745213,
+              "cumulative_seconds": 11.780792155
+            },
+            {
+              "file": "sympy/combinatorics/perm_groups.py",
+              "line": 2917,
+              "function": "orbits",
+              "primitive_calls": 7819,
+              "calls": 7819,
+              "self_seconds": 0.002932037,
+              "cumulative_seconds": 11.592686774
+            },
+            {
+              "file": "sympy/combinatorics/perm_groups.py",
+              "line": 5109,
+              "function": "_orbits",
+              "primitive_calls": 7819,
+              "calls": 7819,
+              "self_seconds": 9.174722784,
+              "cumulative_seconds": 11.589754737000002
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+              "line": 103,
+              "function": "prepare",
+              "primitive_calls": 89336,
+              "calls": 89336,
+              "self_seconds": 0.200002553,
+              "cumulative_seconds": 10.295606889
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/local_counts.py",
+              "line": 153,
+              "function": "<genexpr>",
+              "primitive_calls": 34647,
+              "calls": 34647,
+              "self_seconds": 0.0033881420000000002,
+              "cumulative_seconds": 9.818483013
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/minimum.py",
+              "line": 386,
+              "function": "_representatives",
+              "primitive_calls": 171,
+              "calls": 171,
+              "self_seconds": 0.00371365,
+              "cumulative_seconds": 9.498941550000001
+            },
+            {
+              "file": "sympy/utilities/iterables.py",
+              "line": 3083,
+              "function": "is_sequence",
+              "primitive_calls": 52163182,
+              "calls": 52163182,
+              "self_seconds": 6.504642234,
+              "cumulative_seconds": 9.450335923
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/program.py",
+              "line": 177,
+              "function": "invariant_group",
+              "primitive_calls": 170,
+              "calls": 312,
+              "self_seconds": 0.120740887,
+              "cumulative_seconds": 8.535133447
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+              "line": 119,
+              "function": "optimize_fragment",
+              "primitive_calls": 1301,
+              "calls": 1301,
+              "self_seconds": 0.011107911,
+              "cumulative_seconds": 8.403385884
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.isinstance>",
+              "primitive_calls": 52560377,
+              "calls": 52560377,
+              "self_seconds": 3.023002553,
+              "cumulative_seconds": 8.197106051
+            },
+            {
+              "file": "sympy/utilities/iterables.py",
+              "line": 104,
+              "function": "reducible",
+              "primitive_calls": 26002539,
+              "calls": 26002539,
+              "self_seconds": 2.157231524,
+              "cumulative_seconds": 8.187629130000001
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+              "line": 117,
+              "function": "bounds",
+              "primitive_calls": 71342,
+              "calls": 88273,
+              "self_seconds": 0.011150182000000002,
+              "cumulative_seconds": 7.630911839
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+              "line": 76,
+              "function": "_search",
+              "primitive_calls": 66,
+              "calls": 34730,
+              "self_seconds": 0.202024573,
+              "cumulative_seconds": 7.5816490430000005
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/program.py",
+              "line": 60,
+              "function": "__init__",
+              "primitive_calls": 7259,
+              "calls": 7259,
+              "self_seconds": 1.510326002,
+              "cumulative_seconds": 7.193304427
+            },
+            {
+              "file": "sympy/utilities/iterables.py",
+              "line": 1948,
+              "function": "has_variety",
+              "primitive_calls": 84458,
+              "calls": 84458,
+              "self_seconds": 1.3961138480000002,
+              "cumulative_seconds": 6.861734827
+            }
+          ],
+          "top_self": [
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 229,
+              "function": "bind",
+              "primitive_calls": 18641,
+              "calls": 18641,
+              "self_seconds": 10.239600357,
+              "cumulative_seconds": 17.855657855
+            },
+            {
+              "file": "sympy/combinatorics/perm_groups.py",
+              "line": 5109,
+              "function": "_orbits",
+              "primitive_calls": 7819,
+              "calls": 7819,
+              "self_seconds": 9.174722784,
+              "cumulative_seconds": 11.589754737000002
+            },
+            {
+              "file": "sympy/utilities/iterables.py",
+              "line": 3083,
+              "function": "is_sequence",
+              "primitive_calls": 52163182,
+              "calls": 52163182,
+              "self_seconds": 6.504642234,
+              "cumulative_seconds": 9.450335923
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'add' of 'set' objects>",
+              "primitive_calls": 71583275,
+              "calls": 71583275,
+              "self_seconds": 3.5461735620000003,
+              "cumulative_seconds": 3.5499367470000003
+            },
+            {
+              "file": "sympy/utilities/iterables.py",
+              "line": 57,
+              "function": "flatten",
+              "primitive_calls": 73650,
+              "calls": 73650,
+              "self_seconds": 3.202422047,
+              "cumulative_seconds": 12.828999031
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.isinstance>",
+              "primitive_calls": 52560377,
+              "calls": 52560377,
+              "self_seconds": 3.023002553,
+              "cumulative_seconds": 8.197106051
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'setdefault' of 'dict' objects>",
+              "primitive_calls": 50203147,
+              "calls": 50203147,
+              "self_seconds": 2.808498917,
+              "cumulative_seconds": 2.808498917
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/optimization.py",
+              "line": 47,
+              "function": "_bound",
+              "primitive_calls": 34688,
+              "calls": 34688,
+              "self_seconds": 2.254475524,
+              "cumulative_seconds": 3.096333537
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'append' of 'list' objects>",
+              "primitive_calls": 40843668,
+              "calls": 40843668,
+              "self_seconds": 2.226540456,
+              "cumulative_seconds": 2.226540456
+            },
+            {
+              "file": "sympy/combinatorics/perm_groups.py",
+              "line": 5032,
+              "function": "_orbit",
+              "primitive_calls": 3089233,
+              "calls": 3089233,
+              "self_seconds": 2.1752692110000003,
+              "cumulative_seconds": 2.428510966
+            },
+            {
+              "file": "sympy/utilities/iterables.py",
+              "line": 104,
+              "function": "reducible",
+              "primitive_calls": 26002539,
+              "calls": 26002539,
+              "self_seconds": 2.157231524,
+              "cumulative_seconds": 8.187629130000001
+            },
+            {
+              "file": "sympy/combinatorics/permutations.py",
+              "line": 976,
+              "function": "<genexpr>",
+              "primitive_calls": 26076189,
+              "calls": 26076189,
+              "self_seconds": 2.115106421,
+              "cumulative_seconds": 5.453180274
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.hasattr>",
+              "primitive_calls": 56170296,
+              "calls": 56170296,
+              "self_seconds": 2.0375474650000003,
+              "cumulative_seconds": 2.0375474650000003
+            },
+            {
+              "file": "sympy/combinatorics/permutations.py",
+              "line": 902,
+              "function": "__new__",
+              "primitive_calls": 73650,
+              "calls": 73650,
+              "self_seconds": 1.9752049390000002,
+              "cumulative_seconds": 24.462269037000002
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 255,
+              "function": "_action_orbits",
+              "primitive_calls": 34200,
+              "calls": 34200,
+              "self_seconds": 1.8572996510000002,
+              "cumulative_seconds": 4.205368018000001
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method _abc._abc_instancecheck>",
+              "primitive_calls": 15679137,
+              "calls": 15679137,
+              "self_seconds": 1.749936675,
+              "cumulative_seconds": 4.053650708
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/program.py",
+              "line": 270,
+              "function": "project_pair",
+              "primitive_calls": 1668,
+              "calls": 1668,
+              "self_seconds": 1.6406956810000002,
+              "cumulative_seconds": 1.649012747
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 439,
+              "function": "prepare_boundary_events",
+              "primitive_calls": 49285,
+              "calls": 49285,
+              "self_seconds": 1.550194561,
+              "cumulative_seconds": 2.332933575
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/program.py",
+              "line": 60,
+              "function": "__init__",
+              "primitive_calls": 7259,
+              "calls": 7259,
+              "self_seconds": 1.510326002,
+              "cumulative_seconds": 7.193304427
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 266,
+              "function": "<genexpr>",
+              "primitive_calls": 4403768,
+              "calls": 4403768,
+              "self_seconds": 1.4855001870000002,
+              "cumulative_seconds": 1.4855001870000002
+            }
+          ],
+          "self_seconds_by_module": {
+            "sympy": 34.222160412,
+            "~": 27.09985448199999,
+            "src/mappa/mappa_core/core/symmetry/actions.py": 17.497411685,
+            "src/mappa/mappa_core/core/symmetry/program.py": 6.68652989,
+            "src/mappa/mappa_core/post_processing/decoder/events.py": 5.135628993000001,
+            "src/mappa/mappa_core/post_processing/decoder/fragments.py": 3.650789752,
+            "<runtime>": 3.1717535300000006,
+            "src/mappa/mappa_core/core/symmetry/optimization.py": 3.073290482,
+            "src/mappa/mappa_core/core/symmetry/constraints.py": 2.3363955480000005,
+            "src/mappa/mappa_core/core/symmetry/groups.py": 2.1464370170000007,
+            "numpy": 1.8013122009999996,
+            "src/mappa/mappa_core/core/symmetry/relations.py": 1.581795821,
+            "src/mappa/mappa_core/core/symmetry/minimum.py": 1.1136966640000001,
+            "src/mappa/mappa_core/post_processing/decoder/local_counts.py": 0.8530801060000001,
+            "src/mappa/mappa_core/core/symmetry/structure.py": 0.769750181,
+            "src/mappa/mappa_core/utils/bonds.py": 0.702939187,
+            "src/mappa/mappa_core/post_processing/decoder/records.py": 0.352639019,
+            "src/mappa/mappa_core/core/symmetry/objective.py": 0.345927507,
+            "src/mappa/mappa_core/core/symmetry/responses.py": 0.27783071200000004,
+            "src/mappa/mappa_core/post_processing/final_branches.py": 0.141245084,
+            "src/mappa/mappa_core/core/matching/representation/records.py": 0.129857047,
+            "<string>": 0.012732976,
+            "src/mappa/mappa_core/post_processing/decoder/window.py": 0.012330179,
+            "src/mappa/mappa_core/post_processing/decoder/api.py": 0.000776126,
+            "_distutils_hack": 7.08e-07
+          }
+        },
+        "export": {
+          "sha256": "60cbad5db4ee2c036c3c77d532c82470e9c5a2f21aa1e6eadfa84f7c425a8e4a",
+          "total_recorded_seconds": 44.89374336800001,
+          "total_calls": 400544806,
+          "primitive_calls": 400313633,
+          "top_cumulative": [
+            {
+              "file": "src/mappa/mappa_core/core/matching/representation/records.py",
+              "line": 152,
+              "function": "to_record",
+              "primitive_calls": 52,
+              "calls": 2103,
+              "self_seconds": 0.08631482700000001,
+              "cumulative_seconds": 50.449598788
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/structure.py",
+              "line": 62,
+              "function": "to_record",
+              "primitive_calls": 105,
+              "calls": 4574,
+              "self_seconds": 0.192452706,
+              "cumulative_seconds": 49.39474246
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+              "line": 170,
+              "function": "_export_tables",
+              "primitive_calls": 17445,
+              "calls": 17445,
+              "self_seconds": 0.075978772,
+              "cumulative_seconds": 20.880336394
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/records.py",
+              "line": 156,
+              "function": "_prepare_table",
+              "primitive_calls": 17444,
+              "calls": 17444,
+              "self_seconds": 0.033903184,
+              "cumulative_seconds": 20.765505259
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 485,
+              "function": "__init__",
+              "primitive_calls": 17444,
+              "calls": 17444,
+              "self_seconds": 0.294935985,
+              "cumulative_seconds": 20.723019476
+            },
+            {
+              "file": "src/mappa/mappa_core/utils/io/records.py",
+              "line": 126,
+              "function": "groups_record",
+              "primitive_calls": 34888,
+              "calls": 34888,
+              "self_seconds": 0.037265485,
+              "cumulative_seconds": 17.641715598
+            },
+            {
+              "file": "src/mappa/mappa_core/utils/io/records.py",
+              "line": 121,
+              "function": "terms_record",
+              "primitive_calls": 42160,
+              "calls": 42160,
+              "self_seconds": 3.099259372,
+              "cumulative_seconds": 17.595211037000002
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 229,
+              "function": "bind",
+              "primitive_calls": 17444,
+              "calls": 17444,
+              "self_seconds": 9.535671971000001,
+              "cumulative_seconds": 16.661553444000003
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 722,
+              "function": "statistics",
+              "primitive_calls": 17444,
+              "calls": 17444,
+              "self_seconds": 2.0020917480000002,
+              "cumulative_seconds": 9.350220588
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.hash>",
+              "primitive_calls": 69095687,
+              "calls": 69095687,
+              "self_seconds": 6.074738252,
+              "cumulative_seconds": 8.231234067
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.sum>",
+              "primitive_calls": 156996,
+              "calls": 156996,
+              "self_seconds": 3.0353394550000004,
+              "cumulative_seconds": 6.218373448
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'setdefault' of 'dict' objects>",
+              "primitive_calls": 46825457,
+              "calls": 46825457,
+              "self_seconds": 3.42565949,
+              "cumulative_seconds": 3.4368503080000004
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'add' of 'set' objects>",
+              "primitive_calls": 41430571,
+              "calls": 41430571,
+              "self_seconds": 2.2422455180000003,
+              "cumulative_seconds": 2.2422455180000003
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 155,
+              "function": "__hash__",
+              "primitive_calls": 69199287,
+              "calls": 69199287,
+              "self_seconds": 2.175434261,
+              "cumulative_seconds": 2.175434261
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 616,
+              "function": "_dependency_components",
+              "primitive_calls": 17444,
+              "calls": 17444,
+              "self_seconds": 0.352397169,
+              "cumulative_seconds": 2.1141151330000003
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 629,
+              "function": "join",
+              "primitive_calls": 1393935,
+              "calls": 1393935,
+              "self_seconds": 0.586381681,
+              "cumulative_seconds": 1.6616037090000002
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 213,
+              "function": "_advance",
+              "primitive_calls": 3174826,
+              "calls": 3174826,
+              "self_seconds": 0.9799869800000001,
+              "cumulative_seconds": 1.617578836
+            },
+            {
+              "file": "src/mappa/mappa_core/utils/io/records.py",
+              "line": 109,
+              "function": "term_record",
+              "primitive_calls": 872707,
+              "calls": 872707,
+              "self_seconds": 0.7762793490000001,
+              "cumulative_seconds": 1.2669789580000002
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 729,
+              "function": "<genexpr>",
+              "primitive_calls": 32837248,
+              "calls": 32837248,
+              "self_seconds": 1.156349945,
+              "cumulative_seconds": 1.156349945
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.id>",
+              "primitive_calls": 32926025,
+              "calls": 32926025,
+              "self_seconds": 1.14179734,
+              "cumulative_seconds": 1.14179734
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 730,
+              "function": "<genexpr>",
+              "primitive_calls": 32837248,
+              "calls": 32837248,
+              "self_seconds": 1.135759403,
+              "cumulative_seconds": 1.135759403
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 623,
+              "function": "root",
+              "primitive_calls": 4767927,
+              "calls": 4767927,
+              "self_seconds": 0.8456535380000001,
+              "cumulative_seconds": 1.124807975
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 182,
+              "function": "to_record",
+              "primitive_calls": 26419,
+              "calls": 26419,
+              "self_seconds": 0.029164374000000003,
+              "cumulative_seconds": 0.987190698
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 185,
+              "function": "<genexpr>",
+              "primitive_calls": 406125,
+              "calls": 406125,
+              "self_seconds": 0.924123943,
+              "cumulative_seconds": 0.9369054250000001
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 733,
+              "function": "<genexpr>",
+              "primitive_calls": 32837248,
+              "calls": 32837248,
+              "self_seconds": 0.8597278920000001,
+              "cumulative_seconds": 0.8597278920000001
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 439,
+              "function": "prepare_boundary_events",
+              "primitive_calls": 17444,
+              "calls": 17444,
+              "self_seconds": 0.5198326090000001,
+              "cumulative_seconds": 0.808578397
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 504,
+              "function": "<genexpr>",
+              "primitive_calls": 100512,
+              "calls": 100512,
+              "self_seconds": 0.031575748,
+              "cumulative_seconds": 0.576858704
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/fragments.py",
+              "line": 143,
+              "function": "fragment",
+              "primitive_calls": 83068,
+              "calls": 83068,
+              "self_seconds": 0.29212412000000004,
+              "cumulative_seconds": 0.545282956
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'get' of 'dict' objects>",
+              "primitive_calls": 8777566,
+              "calls": 8777566,
+              "self_seconds": 0.47572786800000005,
+              "cumulative_seconds": 0.47572786800000005
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'difference' of 'set' objects>",
+              "primitive_calls": 1972535,
+              "calls": 1972535,
+              "self_seconds": 0.45645333000000005,
+              "cumulative_seconds": 0.45645333000000005
+            }
+          ],
+          "top_self": [
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 229,
+              "function": "bind",
+              "primitive_calls": 17444,
+              "calls": 17444,
+              "self_seconds": 9.535671971000001,
+              "cumulative_seconds": 16.661553444000003
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.hash>",
+              "primitive_calls": 69095687,
+              "calls": 69095687,
+              "self_seconds": 6.074738252,
+              "cumulative_seconds": 8.231234067
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'setdefault' of 'dict' objects>",
+              "primitive_calls": 46825457,
+              "calls": 46825457,
+              "self_seconds": 3.42565949,
+              "cumulative_seconds": 3.4368503080000004
+            },
+            {
+              "file": "src/mappa/mappa_core/utils/io/records.py",
+              "line": 121,
+              "function": "terms_record",
+              "primitive_calls": 42160,
+              "calls": 42160,
+              "self_seconds": 3.099259372,
+              "cumulative_seconds": 17.595211037000002
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.sum>",
+              "primitive_calls": 156996,
+              "calls": 156996,
+              "self_seconds": 3.0353394550000004,
+              "cumulative_seconds": 6.218373448
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'add' of 'set' objects>",
+              "primitive_calls": 41430571,
+              "calls": 41430571,
+              "self_seconds": 2.2422455180000003,
+              "cumulative_seconds": 2.2422455180000003
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 155,
+              "function": "__hash__",
+              "primitive_calls": 69199287,
+              "calls": 69199287,
+              "self_seconds": 2.175434261,
+              "cumulative_seconds": 2.175434261
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 722,
+              "function": "statistics",
+              "primitive_calls": 17444,
+              "calls": 17444,
+              "self_seconds": 2.0020917480000002,
+              "cumulative_seconds": 9.350220588
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 729,
+              "function": "<genexpr>",
+              "primitive_calls": 32837248,
+              "calls": 32837248,
+              "self_seconds": 1.156349945,
+              "cumulative_seconds": 1.156349945
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<built-in method builtins.id>",
+              "primitive_calls": 32926025,
+              "calls": 32926025,
+              "self_seconds": 1.14179734,
+              "cumulative_seconds": 1.14179734
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 730,
+              "function": "<genexpr>",
+              "primitive_calls": 32837248,
+              "calls": 32837248,
+              "self_seconds": 1.135759403,
+              "cumulative_seconds": 1.135759403
+            },
+            {
+              "file": "src/mappa/mappa_core/core/symmetry/actions.py",
+              "line": 213,
+              "function": "_advance",
+              "primitive_calls": 3174826,
+              "calls": 3174826,
+              "self_seconds": 0.9799869800000001,
+              "cumulative_seconds": 1.617578836
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+              "line": 185,
+              "function": "<genexpr>",
+              "primitive_calls": 406125,
+              "calls": 406125,
+              "self_seconds": 0.924123943,
+              "cumulative_seconds": 0.9369054250000001
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 733,
+              "function": "<genexpr>",
+              "primitive_calls": 32837248,
+              "calls": 32837248,
+              "self_seconds": 0.8597278920000001,
+              "cumulative_seconds": 0.8597278920000001
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 623,
+              "function": "root",
+              "primitive_calls": 4767927,
+              "calls": 4767927,
+              "self_seconds": 0.8456535380000001,
+              "cumulative_seconds": 1.124807975
+            },
+            {
+              "file": "src/mappa/mappa_core/utils/io/records.py",
+              "line": 109,
+              "function": "term_record",
+              "primitive_calls": 872707,
+              "calls": 872707,
+              "self_seconds": 0.7762793490000001,
+              "cumulative_seconds": 1.2669789580000002
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 629,
+              "function": "join",
+              "primitive_calls": 1393935,
+              "calls": 1393935,
+              "self_seconds": 0.586381681,
+              "cumulative_seconds": 1.6616037090000002
+            },
+            {
+              "file": "src/mappa/mappa_core/post_processing/decoder/events.py",
+              "line": 439,
+              "function": "prepare_boundary_events",
+              "primitive_calls": 17444,
+              "calls": 17444,
+              "self_seconds": 0.5198326090000001,
+              "cumulative_seconds": 0.808578397
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'get' of 'dict' objects>",
+              "primitive_calls": 8777566,
+              "calls": 8777566,
+              "self_seconds": 0.47572786800000005,
+              "cumulative_seconds": 0.47572786800000005
+            },
+            {
+              "file": "~",
+              "line": 0,
+              "function": "<method 'difference' of 'set' objects>",
+              "primitive_calls": 1972535,
+              "calls": 1972535,
+              "self_seconds": 0.45645333000000005,
+              "cumulative_seconds": 0.45645333000000005
+            }
+          ],
+          "self_seconds_by_module": {
+            "~": 17.831676072000008,
+            "src/mappa/mappa_core/core/symmetry/actions.py": 12.988908786000001,
+            "src/mappa/mappa_core/post_processing/decoder/events.py": 7.907515394999999,
+            "src/mappa/mappa_core/utils/io/records.py": 3.9128257470000003,
+            "src/mappa/mappa_core/post_processing/final_branches.py": 1.032805056,
+            "src/mappa/mappa_core/post_processing/decoder/fragments.py": 0.5882767690000001,
+            "src/mappa/mappa_core/core/symmetry/structure.py": 0.196239918,
+            "src/mappa/mappa_core/post_processing/decoder/records.py": 0.12761709699999998,
+            "src/mappa/mappa_core/core/matching/representation/records.py": 0.11155937400000002,
+            "<runtime>": 0.08686113200000001,
+            "<string>": 0.039020378,
+            "numpy": 0.033294547,
+            "src/mappa/mappa_core/utils/bonds.py": 0.022952447000000004,
+            "src/mappa/mappa_core/core/symmetry/responses.py": 0.01027665,
+            "src/mappa/mappa_core/core/symmetry/minimum.py": 0.002165799,
+            "sympy": 0.001125949,
+            "src/mappa/mappa_core/post_processing/decoder/window.py": 0.000602083,
+            "src/mappa/mappa_core/core/search/graph.py": 2.0169000000000003e-05
+          }
+        }
+      },
+      "input_index_sha256": "2246e9747f3351e54608435de201402a2998a0d3e3e4372cc0b93708224ba95f",
+      "unprofiled_observation": {
+        "revision": {
+          "revision": "df1c3b52fba4dca135b232f72ebf2074b716ba78",
+          "source_identity": "388303f0e0852a8cbe16773061fec7b7a1abbd1631b109aeacac76d5531b30eb"
+        },
+        "phases": {
+          "reduction": {
+            "cpu_seconds": 1.4207919999999992,
+            "wall_seconds": 1.4216872102115303
+          },
+          "decoding": {
+            "cpu_seconds": 54.00191099999999,
+            "wall_seconds": 54.06911991722882
+          },
+          "export": {
+            "cpu_seconds": 18.492326000000006,
+            "wall_seconds": 18.50651075015776
+          }
+        }
+      },
+      "summary_checks_against_unprofiled": {
+        "branches": true,
+        "families": true,
+        "fragments": true,
+        "minimum_events": true,
+        "minimum_proven": true,
+        "raw_paths": true
+      }
+    }
+  ]
+}

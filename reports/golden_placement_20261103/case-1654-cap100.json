@@ -1,0 +1,193 @@
+{
+  "case": 1654,
+  "source_commit": "1dd00f685b83fa443c573cb75e7bd818382768fa",
+  "platform": "arm64",
+  "protocol": {
+    "seed_count": 1,
+    "iso_tolerance": 1,
+    "self_tolerance": 1,
+    "random_seed": 42,
+    "sweep_cuts": true,
+    "directions": 2,
+    "workers": 4,
+    "memory_gib": 2,
+    "shared_reaction_cache": true,
+    "cache": "Fresh per study; reuse enabled within each study",
+    "decoding": "Not run",
+    "timing": "Task compute CPU includes input loading and preparation; publication recorded separately. One run per cap on the same Mac."
+  },
+  "studies": [
+    {
+      "branch_cap": 100,
+      "matching_and_reduction_elapsed_seconds": 6.5641544170212,
+      "max_simultaneous_matching_tasks": 4,
+      "directions": {
+        "forward": {
+          "deduplication": {
+            "state": "complete",
+            "families": 3355,
+            "branches": 3333,
+            "cuts": 171,
+            "stop_occurrences": {
+              "capped": 57308,
+              "stalled": 3355
+            },
+            "tasks": 1,
+            "attempts": 1,
+            "cpu_seconds": 1.6877119999999999,
+            "publication_cpu_seconds": 0.2905010000000008,
+            "summed_compute_seconds": 1.7625293750315905,
+            "median_task_seconds": 1.7625293750315905,
+            "max_task_seconds": 1.7625293750315905,
+            "stage_elapsed_seconds": 2.0607807636260986
+          },
+          "matching": {
+            "state": "complete",
+            "tasks": 171,
+            "attempts": 171,
+            "cpu_seconds": 5.449914,
+            "publication_cpu_seconds": 0.445428,
+            "summed_compute_seconds": 5.652919419808313,
+            "median_task_seconds": 0.010656707920134068,
+            "max_task_seconds": 0.3644021248910576,
+            "stage_elapsed_seconds": 2.223464012145996
+          },
+          "verification": {
+            "state": "complete",
+            "verification": {
+              "status": "recovered",
+              "family": 2,
+              "heavy_atoms": 62,
+              "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+            },
+            "tasks": 1,
+            "attempts": 1,
+            "cpu_seconds": 2.580731,
+            "publication_cpu_seconds": 0.0008210000000001827,
+            "summed_compute_seconds": 2.806448208866641,
+            "median_task_seconds": 2.806448208866641,
+            "max_task_seconds": 2.806448208866641,
+            "stage_elapsed_seconds": 2.842318058013916
+          }
+        },
+        "reverse": {
+          "deduplication": {
+            "state": "complete",
+            "families": 3007,
+            "branches": 2937,
+            "cuts": 149,
+            "stop_occurrences": {
+              "capped": 111712,
+              "objective_met": 3007
+            },
+            "tasks": 1,
+            "attempts": 1,
+            "cpu_seconds": 1.6380930000000005,
+            "publication_cpu_seconds": 0.21807700000000008,
+            "summed_compute_seconds": 1.7151241661049426,
+            "median_task_seconds": 1.7151241661049426,
+            "max_task_seconds": 1.7151241661049426,
+            "stage_elapsed_seconds": 1.941662073135376
+          },
+          "matching": {
+            "state": "complete",
+            "tasks": 149,
+            "attempts": 149,
+            "cpu_seconds": 4.238505000000001,
+            "publication_cpu_seconds": 0.3258610000000013,
+            "summed_compute_seconds": 4.264528969535604,
+            "median_task_seconds": 0.011156916851177812,
+            "max_task_seconds": 0.3844567500054836,
+            "stage_elapsed_seconds": 1.5585668087005615
+          },
+          "verification": {
+            "state": "complete",
+            "verification": {
+              "status": "recovered",
+              "family": 0,
+              "heavy_atoms": 62,
+              "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+            },
+            "tasks": 1,
+            "attempts": 1,
+            "cpu_seconds": 2.636121,
+            "publication_cpu_seconds": 0.0008860000000003865,
+            "summed_compute_seconds": 2.8420142920222133,
+            "median_task_seconds": 2.8420142920222133,
+            "max_task_seconds": 2.8420142920222133,
+            "stage_elapsed_seconds": 2.8501222133636475
+          }
+        }
+      }
+    },
+    {
+      "branch_cap": 2000,
+      "matching_and_reduction_elapsed_seconds": 34.83151291706599,
+      "max_simultaneous_matching_tasks": 4,
+      "directions": {
+        "forward": {
+          "deduplication": {
+            "state": "complete",
+            "families": 59119,
+            "branches": 59097,
+            "cuts": 171,
+            "stop_occurrences": {
+              "capped": 893891,
+              "stalled": 59119
+            },
+            "tasks": 1,
+            "attempts": 1,
+            "cpu_seconds": 17.591052,
+            "publication_cpu_seconds": 1.8252209999999955,
+            "summed_compute_seconds": 17.607676749816164,
+            "median_task_seconds": 17.607676749816164,
+            "max_task_seconds": 17.607676749816164,
+            "stage_elapsed_seconds": 19.440743923187256
+          },
+          "matching": {
+            "state": "complete",
+            "tasks": 171,
+            "attempts": 171,
+            "cpu_seconds": 24.485498000000003,
+            "publication_cpu_seconds": 1.790283000000003,
+            "summed_compute_seconds": 24.573998539010063,
+            "median_task_seconds": 0.011248124996200204,
+            "max_task_seconds": 3.1828382920939475,
+            "stage_elapsed_seconds": 7.269769191741943
+          }
+        },
+        "reverse": {
+          "deduplication": {
+            "state": "complete",
+            "families": 37468,
+            "branches": 37398,
+            "cuts": 149,
+            "stop_occurrences": {
+              "capped": 2036320,
+              "objective_met": 37468
+            },
+            "tasks": 1,
+            "attempts": 1,
+            "cpu_seconds": 13.323306,
+            "publication_cpu_seconds": 0.9685780000000008,
+            "summed_compute_seconds": 13.32746524992399,
+            "median_task_seconds": 13.32746524992399,
+            "max_task_seconds": 13.32746524992399,
+            "stage_elapsed_seconds": 14.304363012313843
+          },
+          "matching": {
+            "state": "complete",
+            "tasks": 149,
+            "attempts": 149,
+            "cpu_seconds": 24.963351,
+            "publication_cpu_seconds": 1.2687730000000021,
+            "summed_compute_seconds": 25.00738603854552,
+            "median_task_seconds": 0.011013000039383769,
+            "max_task_seconds": 2.8976344999391586,
+            "stage_elapsed_seconds": 7.5709228515625
+          }
+        }
+      }
+    }
+  ]
+}

@@ -13,7 +13,7 @@
   "direction": "R_to_P",
   "branch_cap": 1000,
   "original_engine_commit": "98b01b175eeed31f70d13e7cbf178b80bf07c9e0",
-  "frozen_source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_cap1000_seed1_20260910",
+  "frozen_source": "private-reference-191c05ce9ed19d276ff3",
   "config": {
     "cut_floor": 0.2,
     "graph_floor": 0.2,
@@ -41,13 +41,17 @@
     "holdout_minimum_event_families.py": "c884db10f012d9ed819c00d7b96681b74302d21cba05901260079c12f9db04fe"
   },
   "sources_sha256": {
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_cap1000_seed1_20260910/manifest.json": "849cb74b3cc3baf52078cc68fa73036ad0b0ad2a662d31998db6a451e2927dd3",
-    "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/holdout_forward_cap1000_seed1_20260910/per_case.json": "4b9bcff92061c52cbaf5c3f2ef84d3edd64eadc245a69947266b661d4aeeecce",
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910/manifest.json": "c021ebb15b06c4c4203c2884c3e2f58ee9b6f90185e8efad90d9a71a9495bcbe"
+    "private-reference-3b6b8df57d1872056046": "849cb74b3cc3baf52078cc68fa73036ad0b0ad2a662d31998db6a451e2927dd3",
+    "private-reference-4f9fd4f6c078c218c4ce": "4b9bcff92061c52cbaf5c3f2ef84d3edd64eadc245a69947266b661d4aeeecce",
+    "private-reference-f2d79722802a3b4d491c": "c021ebb15b06c4c4203c2884c3e2f58ee9b6f90185e8efad90d9a71a9495bcbe"
   },
   "input_sha256": {
     "11": "81c63d11bd635bf6304e865fd50b426eaee11551e1ad4e28e2fde9c433ba95ad",
     "64": "8a471bc868281f8487bbb8476dc784d472542ba5272ccc7d354a677f260ac562",
     "101": "5cad72d2146317f655e8d0a56342847630dfa3ceececdee8c3928e52bf574936"
+  },
+  "privacy_projection": {
+    "original_sha256": "bf674f74eedc8e6812a9e01e0db5bcd4f257a47cf8818d1f5d278222f3d470e5",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

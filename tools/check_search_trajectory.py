@@ -6,18 +6,13 @@ from pathlib import Path
 import numpy as np
 from playwright.sync_api import sync_playwright
 
-ROOT=Path(__file__).resolve().parents[1]
-
-
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('bundle',type=Path)
-    a=p.parse_args();bundle=a.bundle.resolve();data=json.loads((bundle/'trace.json').read_text())
+    p.add_argument('--trace',default='trace.json',help='Trace used for rendering, e.g. display-trace.json')
+    a=p.parse_args();bundle=a.bundle.resolve();data=json.loads((bundle/a.trace).read_text())
     environment=dict(os.environ)
-    libraries=ROOT/'manuscript/build/browser-libs/root/usr/lib/x86_64-linux-gnu'
-    if libraries.exists():environment['LD_LIBRARY_PATH']=str(libraries)+':'+environment.get('LD_LIBRARY_PATH','')
-    cached=Path('/h/399/yunhengzou/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome')
-    executable=os.environ.get('MANUSCRIPT_BROWSER',str(cached) if cached.exists() else None)
+    executable=os.environ.get('MANUSCRIPT_BROWSER')
     errors,external,checks=[],[],[]
     with sync_playwright() as pw:
         browser=pw.chromium.launch(executable_path=executable,env=environment,args=['--no-sandbox','--enable-unsafe-swiftshader'])
@@ -34,15 +29,22 @@ def main():
                 start=page.evaluate('searchTrajectory.getState()')['frame']
                 frame=path['frames'][start]
                 if run.get('focus'):
-                    assert frame['kind']=='pop' and frame['trial']['edge']==run['focus']['source_edge']
-                    assert page.locator('.selected-trial').count()==1
-                    assert f'P{run["focus"]["target"]}' in page.locator('.selected-trial').inner_text()
-                    assert len(frame['trial']['trials'][frame['preferred']])==page.locator('#trials tr').count()-1
-                    compatible=next((r for r in frame['trial']['trials'][frame['preferred']] if r['status']=='compatible'),None)
-                    if compatible:
-                        page.get_by_role('button',name=f'P{compatible["target"]}',exact=True).click()
-                        expected_preview={**frame['locked'],**compatible['witness']}
-                        assert page.evaluate('searchTrajectory.mapping()')==expected_preview
+                    assert frame['kind']=='pop' and frame['edge']==run['focus']['source_edge']
+                examples={}
+                for fi,frame in enumerate(path['frames']):
+                    examples.setdefault(frame['kind'],fi)
+                    if frame.get('candidate_kind')=='witness':
+                        assert len(frame['candidates'])<=1
+                    if frame['kind']=='seed_end':
+                        assert frame['candidate_kind']=='compressed_match'
+                for fi in examples.values():
+                    frame=path['frames'][fi]
+                    page.evaluate('(i)=>searchTrajectory.setFrame(i)',fi)
+                    if frame.get('candidate_kind')=='witness':
+                        assert len(frame['candidates'])<=1
+                        assert page.locator('#candidate-title').inner_text()=='Growth witness'
+                    if frame['kind']=='seed_end':
+                        assert frame['candidate_kind']=='compressed_match'
                 branching=next((i for i,f in enumerate(path['frames']) if len(f['candidates'])>1),None)
                 if branching is not None:
                     page.evaluate('(i)=>searchTrajectory.setFrame(i)',branching)
@@ -85,6 +87,19 @@ def main():
                     tuple(sorted(e['r'] if e['kind'] in ('broken','weakened') else e['p']))) for e in path['events'])
                 actual=sorted((e['side'],e['color'],tuple(sorted(e['pair']))) for e in page.evaluate('eventDraws'))
                 assert actual==expected
+                assert page.evaluate('searchTrajectory.mapping()')==path['mapping']
+                locks=[f for f in path['frames'] if f['kind']=='locked']
+                assert page.locator('#fragment option').count()==len(locks)
+                for lock in (locks[0],locks[-1]):
+                    page.locator('#fragment').select_option(str(lock['stage']))
+                    frame=path['frames'][page.evaluate('searchTrajectory.getState().frame')]
+                    assert frame['stage']==lock['stage']
+                page.locator('#terminal').click()
+                assert page.evaluate('searchTrajectory.getState().frame')==len(path['frames'])-1
+                view=page.evaluate('viewers.r.getView()')
+                page.locator('#r canvas').first.hover()
+                page.mouse.down();page.mouse.move(430,570,steps=5);page.mouse.up()
+                assert page.evaluate('viewers.r.getView()')!=view
                 page.evaluate('searchTrajectory.setFrame(0)');page.locator('#next').click()
                 assert page.evaluate('searchTrajectory.getState().frame')==1
                 page.locator('#prev').click();assert page.evaluate('searchTrajectory.getState().frame')==0
@@ -92,6 +107,8 @@ def main():
                 page.locator('#play').click();assert not page.evaluate('searchTrajectory.getState().playing')
                 page.locator('#critical').click() if run.get('focus') else page.evaluate('searchTrajectory.setFrame(0)')
                 if path['terminal']==run['default_terminal']:
+                    after_lock=next((i+1 for i,f in enumerate(path['frames'][:-1]) if f['kind']=='locked'),0)
+                    page.evaluate('(i)=>searchTrajectory.setFrame(i)',after_lock)
                     page.screenshot(path=str(bundle/f'run_{ri}_decision.png'),full_page=True)
                 checks.append(dict(context=run['context'],terminal=path['terminal'],fixed_geometry='passed',
                                    event_colors='passed',candidate_selection='passed',playback='passed',

@@ -41,10 +41,10 @@ Directional counts, caps, phase exceptions, and all changed-case witnesses are i
 From the paper checkout:
 
 ```bash
-/project/yunhengzou/coordinate_alignment/.venv/bin/python bench/golden_tolerance_benchmark.py prepare --run /path/to/new_run
-/project/yunhengzou/coordinate_alignment/.venv/bin/python bench/golden_tolerance_benchmark.py submit --run /path/to/new_run
+python bench/golden_tolerance_benchmark.py prepare --run /path/to/new_run
+python bench/golden_tolerance_benchmark.py submit --run /path/to/new_run
 # After both phases finish:
-PYTHONPATH=/path/to/new_run/original/src:/path/to/new_run/engine/bench /project/yunhengzou/coordinate_alignment/.venv/bin/python bench/publish_golden_tolerance.py --run /path/to/new_run --destination /path/to/new_report
+PYTHONPATH=/path/to/new_run/original/src:/path/to/new_run/engine/bench python bench/publish_golden_tolerance.py --run /path/to/new_run --destination /path/to/new_report
 ```
 
-Raw archives and logs: `/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_tol15_20260911`.
+Raw archives and logs: private artifact storage.

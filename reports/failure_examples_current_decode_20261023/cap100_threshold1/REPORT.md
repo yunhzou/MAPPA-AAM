@@ -39,6 +39,6 @@ Only the branch cap changed in the runner. Both runs used the same unchanged inp
 - [Measured result](result.json) and [exact configuration/input hashes](configuration.json).
 - [Cluster audit](independent-audit.json): all 342 witnesses rescored and checked against constructive family certificates.
 - [Local validation](local-validation.json): repeated WBO rescoring of all 342 witnesses; verified all 27,295 complete family reports, all 91 cut checkpoints, input hashes and archive checksum.
-- [Full saved evidence](evidence.tar.gz) and [checksum](evidence.sha256).
-- [Runner](run_decode.py), [submission](run.sbatch), [scheduler completion](scheduler-final.txt), cluster job **7573145**.
+- Full saved evidence (raw archive retained privately) and [checksum](evidence.sha256).
+- [Runner](run_decode.py); site-specific submission and raw scheduler records are retained privately.
 - The exact frozen engine is the parent report's `source.tar.gz` and `source_sha256.json`.

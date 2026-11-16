@@ -6,7 +6,7 @@ A **28-second 3D demonstration** of checking a candidate XYZ against a 135-atom 
 
 ![135-atom MAPPA verification: grow one fragment and check all connections](molecule-verification-preview.gif)
 
-[Full-resolution MP4](molecule-verification.mp4) · [Offline interactive film](index.html) · [Self-contained XYZ example](../../../examples/molecule_verification/README.md)
+[Full-resolution MP4](molecule-verification.mp4) · [Offline interactive film](index.html) · [Historical inputs and reproduction](https://github.com/yunhzou/MAPPA-AAM/tree/b13898ad97311ffcb47d6b9fb78d7d8d4a160e42/examples/molecule_verification)
 
 ## Sequence
 
@@ -23,19 +23,8 @@ Both binary connection matrices are inferred independently from the XYZ files wi
 
 [Verification result](verification.json) · [Recorded trajectory](trajectory.json.gz) · [Frame-level validation](science-validation.json) · [Browser validation](browser-validation.json) · [Film data](film-data.json)
 
-From an installed checkout with RDKit:
-
-```bash
-python examples/molecule_verification/verify.py --output verification-output --capture
-python manuscript/scripts/verification_film/build.py \
-  --run verification-output \
-  --output manuscript/animations/molecule_verification \
-  --library src/mappa/static/3Dmol-min.js \
-  --preparation examples/molecule_verification/preparation.json
-node manuscript/scripts/verification_film/render.cjs \
-  manuscript/animations/molecule_verification --video
-python manuscript/scripts/verification_film/export_gif.py \
-  manuscript/animations/molecule_verification
-```
+The original preparation and verification commands are preserved in the
+[recorded example revision](https://github.com/yunhzou/MAPPA-AAM/tree/b13898ad97311ffcb47d6b9fb78d7d8d4a160e42/examples/molecule_verification). Run those commands from that
+revision; the example runner is no longer shipped on main.
 
 Rendering requires Playwright, Chrome and FFmpeg. Set `PLAYWRIGHT_MODULE`, `CHROME` or `FFMPEG` for their local paths. The HTML film is self-contained after downloading. The MP4 is 1440 × 900 at 24 fps; the GIF is 960 × 600 at 12 fps. Browser validation checks that every growth step appears in the MP4 timeline and that displayed mappings remain injective. The builder checks film frames against the saved trajectory and confirms that the display transformations preserve molecular distances.

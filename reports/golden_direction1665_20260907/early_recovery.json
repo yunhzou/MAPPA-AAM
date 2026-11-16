@@ -1,6 +1,6 @@
 {
   "direction": "P_to_R",
-  "source_cut": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/P_to_R/case1665_seeds3_cap2000/cuts/cut_00000.json",
+  "source_cut": "private-reference-2b78ac55922a7483285f",
   "terminal": 3,
   "original_R_to_P_mapping": [
     [
@@ -252,5 +252,9 @@
       40
     ]
   ],
-  "original_orientation_certificate_verified": true
+  "original_orientation_certificate_verified": true,
+  "privacy_projection": {
+    "original_sha256": "601ee5a209cfc954e5396d948a0cc4d6fb303e7ab03d5fd607e85c79ded76ede",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

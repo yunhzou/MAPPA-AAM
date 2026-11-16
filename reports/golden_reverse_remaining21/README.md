@@ -36,8 +36,7 @@ it is not a new full-dataset score for one fixed bidirectional configuration.
 
 ## Resources and persistence
 
-Slurm array **443210**, 16 CPUs / 48 GiB requested per case, at most 10 cases
-concurrent (up to 160 CPUs). All 20 tasks completed successfully. Search watchdog
+Each case used 16 workers. All 20 tasks completed successfully. Search watchdog
 300 seconds; verification watchdog 260 seconds; each allocation limited to
 10 minutes.
 
@@ -49,9 +48,7 @@ elapsed time. Do not compare these directly with runs on different allocations.
 
 All raw cuts, finalized cuts, complete AAM archives, evaluation results, realized
 mapping witnesses, job statuses, and the frozen engine are retained at:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_reverse_remaining21_20260908`
-
+Full artifacts and raw operational records are retained privately.
 Per-case complete archive: `cases/<index>/cuts/aam.pkl.gz`.
 Per-case reference result and witness: `cases/<index>/evaluation.json`.
 Case 590 is a link to its previously completed archive; it was not recomputed.

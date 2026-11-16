@@ -1,54 +1,18 @@
-import json
-import math
-
 import numpy as np
 import pytest
 
 from mappa import classify_bonds
 from mappa import build_graph
 
-from mappa.alignment import (
-    cut_sweep,
-    match_wbo_graphs,
-    run_cut_sweep_chunk,
-    select_min_mechanisms,
-    _generate_seed_orders,
-    symmetry_repair_mapping,
-)
-from mappa.alignment.sweep import (
-    attach_completed_candidate_groups,
-    _branch_symmetry_record,
-    _color_groups_from_blocks,
-    _core_mapping_variants,
-    _mechanism_signature,
-    _orbit_bond_key,
-    _pool_add,
-    complete_chosen_automorphism_groups,
-)
-import mappa.alignment.branch as branch_mod
-from mappa.matcher import (
-    _PartialMappingCanonicalizer,
-    _SymBlock,
-    _SymCand,
-    _cand_map,
-    _cand_possible_p_atoms,
-    _dedup_sym_cands,
-    _extend_sym_cands,
-    _nauty_orbits,
-    _support_witness_for_value,
-    _symmetry_state,
-)
-from mappa.matcher.orbits import _wbo_tolerance_bucket_lookup
-from mappa.growth.result import _IsoResult
-from mappa.growth import IslandBranchLimitExceeded, grow_island
-
-
-def _represented_count(cand):
-    count = getattr(cand, "multiplicity", 1)
-    for block in getattr(cand, "blocks", ()):
-        count *= math.factorial(len(block.p_atoms)) // math.factorial(
-            len(block.p_atoms) - len(block.r_atoms))
-    return count
+from mappa.mappa_core.core.search.planning import _generate_seed_orders
+from mappa.mappa_core.core.search.queries.family import project_path_assignments
+import mappa.mappa_core.core.search.branching.construction as branch_mod
+from mappa.mappa_core.core.matching.representation.records import FragmentMatchResult
+from mappa.mappa_core.core.matching.representation.records import IslandBranchLimitExceeded
+from mappa.mappa_core.core.matching.growth.engine import grow_island
+from mappa.mappa_core.core.matching.growth.existence import FragmentQuery
+from mappa.mappa_core.core.matching.policy import DEFAULT_NODE_POLICY
+from test_growth_compression_exactness import complete, explicit, represented
 
 
 def _tetramethyl_metal_graph():
@@ -69,7 +33,8 @@ def _tetramethyl_metal_graph():
     return elements, wbo
 
 
-def test_fragment_branch_cap_is_loud_and_allows_exact_limit():
+def test_fragment_branch_cap_is_loud_and_allows_exact_limit(monkeypatch):
+    monkeypatch.setenv('MAPPA_NATIVE', '0')
     g_r = build_graph(["C"], np.zeros((1, 1)), bond_cut=0.2)
     wbo_two = np.zeros((4, 4))
     wbo_two[0, 2] = wbo_two[2, 0] = 1.0
@@ -81,14 +46,14 @@ def test_fragment_branch_cap_is_loud_and_allows_exact_limit():
     g_p_three = build_graph(
         ["C", "C", "C", "O", "N", "F"], wbo_three, bond_cut=0.2)
 
-    assert len(grow_island(g_r, g_p_two, 0, {}, max_branches=2)) == 2
+    assert len(grow_island(g_r, g_p_two, 0, {}, max_branches=2).matches) == 2
     with pytest.raises(IslandBranchLimitExceeded) as exc_info:
         grow_island(g_r, g_p_three, 0, {}, max_branches=2)
     assert exc_info.value.count == 3
     assert exc_info.value.limit == 2
 
 
-def test_completed_fragment_enforces_cap_after_symmetry_deduplication():
+def test_completed_fragment_enforces_cap_on_distinct_choices():
     g_r = build_graph(
         ["Si", "N"], np.array([[0.0, 1.0], [1.0, 0.0]]), bond_cut=0.2)
     wbo = np.zeros((9, 9))
@@ -108,69 +73,15 @@ def test_completed_fragment_enforces_cap_after_symmetry_deduplication():
             0,
             {},
             max_branches=2,
-            r_orbits=_nauty_orbits(g_r),
-            p_orbits=_nauty_orbits(g_p),
+
         )
 
-    assert exc_info.value.count == 4
+    assert exc_info.value.count == 3
     assert exc_info.value.limit == 2
 
 
-def test_partial_mapping_certificate_requires_exact_endpoint_transporter():
-    source = build_graph(["C"], np.zeros((1, 1)), bond_cut=0.2)
-    target_wbo = np.zeros((3, 3))
-    target_wbo[0, 1] = target_wbo[1, 0] = 1.0
-    target_wbo[1, 2] = target_wbo[2, 1] = 1.0
-    target = build_graph(["C", "C", "C"], target_wbo, bond_cut=0.2)
-    canonicalizer = _PartialMappingCanonicalizer(
-        source, target, wbo_tol=0.5)
-
-    left_end = canonicalizer.certificate({0: 0})
-    right_end = canonicalizer.certificate({0: 2})
-    center = canonicalizer.certificate({0: 1})
-
-    assert left_end == right_end
-    assert left_end != center
-    assert canonicalizer.equivalent({0: 0}, {0: 2})
-    assert not canonicalizer.equivalent({0: 0}, {0: 1})
-
-
-def test_cut_sweep_compact_metrics_are_opt_in_and_respect_branch_cap():
-    elements = ["C", "C"]
-    wbo = np.zeros((2, 2))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-
-    ordinary = cut_sweep(
-        elements, wbo, elements, wbo,
-        n_workers=0, n_seeds=1, max_branches=2,
-        symmetry_repair=False)
-    measured, metrics = cut_sweep(
-        elements, wbo, elements, wbo,
-        n_workers=0, n_seeds=1, max_branches=2,
-        symmetry_repair=False, return_metrics=True)
-
-    assert measured == ordinary
-    assert metrics["configured_max_branches"] == 2
-    assert metrics["cuts"] == 2
-    assert metrics["seed_orders"] == 2
-    assert metrics["growth_calls"] > 0
-    assert metrics["max_live_branches"] <= 2
-    assert metrics["max_growth_candidates"] <= 2
-
-    parallel, parallel_metrics = cut_sweep(
-        elements, wbo, elements, wbo,
-        n_workers=2, n_seeds=1, max_branches=2,
-        symmetry_repair=False, return_metrics=True)
-    # Multiprocessing may return a different symmetry-equivalent witness;
-    # mechanism-family keys and compact metrics are the invariant objects.
-    assert set(parallel) == set(ordinary)
-    assert parallel_metrics["cuts"] == metrics["cuts"]
-    assert parallel_metrics["seed_orders"] == metrics["seed_orders"]
-    assert parallel_metrics["max_live_branches"] <= 2
-
-
 def test_heavy_only_cut_items_keep_hydrogens_but_do_not_cut_xh_edges():
-    from mappa.alignment.sweep import cut_sweep_items
+    from mappa.mappa_core.core.search.planning import cut_sweep_items
 
     elements = ["C", "C", "H", "H"]
     wbo = np.zeros((4, 4))
@@ -181,126 +92,6 @@ def test_heavy_only_cut_items_keep_hydrogens_but_do_not_cut_xh_edges():
         wbo, elements=elements, heavy_only=True) == [(), ((0, 1),)]
 
 
-def test_worker_local_cut_compression_is_exactly_serial_equivalent():
-    elements = ["C", "O", "N"]
-    wbo = np.zeros((3, 3))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    wbo[1, 2] = wbo[2, 1] = 1.0
-    kwargs = {
-        "n_seeds": 2,
-        "max_branches": 100,
-        "symmetry_repair": False,
-    }
-
-    serial = cut_sweep(
-        elements, wbo, elements, wbo, n_workers=0, **kwargs)
-    compressed_parallel = cut_sweep(
-        elements, wbo, elements, wbo, n_workers=2, **kwargs)
-
-    assert compressed_parallel == serial
-
-
-def test_parallel_cut_sweep_persists_disjoint_reduction_buckets(tmp_path):
-    elements = ["C", "O", "N"]
-    wbo = np.zeros((3, 3))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    wbo[1, 2] = wbo[2, 1] = 1.0
-    kwargs = {
-        "n_seeds": 2,
-        "max_branches": 100,
-        "symmetry_repair": False,
-    }
-
-    serial = cut_sweep(
-        elements, wbo, elements, wbo, n_workers=0, **kwargs)
-    parallel = cut_sweep(
-        elements, wbo, elements, wbo, n_workers=2,
-        intermediate_dir=tmp_path, **kwargs)
-
-    assert parallel == serial
-    manifest = json.loads((tmp_path / "manifest.json").read_text())
-    assert manifest["mechanism_count"] == len(serial)
-    assert manifest["worker_pool_entries"] >= len(serial)
-    assert list(tmp_path.glob("raw_bucket_*.pkl"))
-    assert list(tmp_path.glob("reduced_bucket_*.pkl"))
-
-
-def test_one_cut_chunk_parallelizes_across_seed_orders(monkeypatch):
-    import mappa.alignment.sweep as sweep_module
-
-    observed = {}
-
-    def fake_parallel(_el_r, _wbo_r, _el_t, _wbo_t, cfg, workers,
-                      _core_r, cuts, **_kwargs):
-        observed["workers"] = workers
-        observed["seeds"] = cfg["n_seeds"]
-        observed["cuts"] = cuts
-        return {}
-
-    monkeypatch.setattr(
-        sweep_module, "_cut_sweep_chunk_parallel", fake_parallel)
-    elements = ["C", "C"]
-    wbo = np.zeros((2, 2))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-
-    result = run_cut_sweep_chunk(
-        elements, wbo, elements, wbo, [((0, 1),)],
-        n_workers=10, n_seeds=3, max_branches=10,
-        symmetry_repair=False)
-
-    assert result == {}
-    assert observed == {
-        "workers": 3,
-        "seeds": 3,
-        "cuts": [((0, 1),)],
-    }
-
-
-def test_parallel_cut_sweep_consumes_results_in_cut_seed_order(monkeypatch):
-    import mappa.alignment.sweep as sweep_module
-
-    consumed_work = []
-
-    class OrderedPool:
-        def __init__(self, *_args, **_kwargs):
-            pass
-
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *_args):
-            return False
-
-        def imap(self, _worker, work, chunksize=1):
-            assert chunksize == 1
-            consumed_work.extend(work)
-            return iter({'pool': {}} for _item in work)
-
-        def imap_unordered(self, *_args, **_kwargs):
-            raise AssertionError(
-                'completion-order merging changes retained representatives')
-
-    monkeypatch.setattr(sweep_module.mp, 'Pool', OrderedPool)
-    elements = ['C', 'O']
-    wbo = np.zeros((2, 2))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    cfg = {
-        'cut_floor': 0.2,
-        'max_branches': 100,
-        'n_seeds': 3,
-        'chunksize': 1,
-    }
-
-    result = sweep_module._cut_sweep_parallel(
-        elements, wbo, elements, wbo, cfg, 2, (),
-        collect_metrics=False)
-
-    assert result == {}
-    assert [seed for _cut, seed, *_rest in consumed_work] == [
-        0, 1, 2, 0, 1, 2,
-    ]
-
-
 def test_live_branch_cap_discards_only_overflowing_parent_subtree(monkeypatch):
     g_r = build_graph(["C", "O"], np.zeros((2, 2)), bond_cut=0.2)
     g_p = build_graph(
@@ -308,212 +99,102 @@ def test_live_branch_cap_discards_only_overflowing_parent_subtree(monkeypatch):
 
     def fake_grow(_g_r, _g_p, seed, mapping, **_kwargs):
         if seed == 0:
-            return [
-                _IsoResult({0: 0}, fragment={0}),
-                _IsoResult({0: 1}, fragment={0}),
-            ]
-        if mapping[0] == 0:
+            mappings = [{0: 0}, {0: 1}]
+        elif mapping[0] == 0:
             # This parent alone would create three children under a cap of
             # two, so its subtree must be removed atomically.
-            return [
-                _IsoResult({1: p}, fragment={1}) for p in (2, 3, 4)
-            ]
-        return [_IsoResult({1: 2}, fragment={1})]
+            mappings = [{1: p} for p in (2, 3, 4)]
+        else:
+            mappings = [{1: 2}]
+        from test_search_graph import iso
+        matches = tuple(iso(mapping) for mapping in mappings)
+        return FragmentMatchResult(matches, False, len(matches), 2, 0.)
 
-    import mappa.fragment as fragment_mod
+    import mappa.mappa_core.core.matching.api as fragment_mod
     monkeypatch.setattr(fragment_mod, "grow_island", fake_grow)
-    monkeypatch.setattr(
-        branch_mod, "_chemistry_orbit_signature",
-        lambda mapping, *_args, **_kwargs: tuple(sorted(mapping.items())))
 
     branches = branch_mod.find_islands(
-        g_r, g_p, [0, 1], orbit_dedup=False, max_branches=2)
+        g_r, g_p, [0, 1], max_branches=2)
 
     assert [branch.mapping for branch in branches.paths()] == [{0: 1, 1: 2}]
 
 
-def test_symcand_reassigns_correlated_block_witness():
-    wbo_p = np.zeros((4, 4))
-    wbo_p[1, 3] = wbo_p[3, 1] = 1.0
-    g_p = build_graph(["O", "O", "C", "C"], wbo_p, bond_cut=0.2)
-
-    cand = _SymCand(
-        {0: 0, 1: 1},
-        (_SymBlock((0, 1), (0, 1), extendable=True),),
-    )
-    support = _support_witness_for_value(
-        cand, 2, 3, bonded_in_frag=[0], r_wbos=[(0, 1.0)],
-        g_P=g_p, iso_tol=0.1,
-    )
-
-    assert support == {0: 1}
-    repaired = cand.with_witness(support)
-    assert repaired.materialize()[0] == 1
-    assert repaired.materialize()[1] == 0
-
-
-def test_mapping_variation_blocks_capture_branch_dedupe_pool():
-    blocks = branch_mod._mapping_variation_blocks([
-        {0: 11, 4: 9, 8: 0},
-        {0: 9, 4: 11, 8: 0},
-    ])
-
-    assert blocks == [{
-        "source": "interbranch",
-        "r_atoms": [0, 4],
-        "p_atoms": [9, 11],
-        "extendable": False,
-        "open": False,
-        "assignments": 2,
-    }]
-
-
-def test_branch_symmetry_record_closes_open_pool_with_mapping_owner():
-    from mappa.fragment import FragmentPlacement
-    branch = branch_mod._Branch()
-    branch.commit(
-        FragmentPlacement.from_match(_IsoResult(
-            {27: 27},
-            fragment={27},
-            symmetry={
-                "witness": {27: 27},
-                "blocks": [{
-                    "r_atoms": [27],
-                    "p_atoms": [26, 27],
-                    "extendable": False,
-                    "open": True,
-                    "assignments": "2",
-                }],
-            },
-        ),
-        build_graph(["H"] * 28, np.zeros((28, 28)), bond_cut=0.2)),
-    )
-    branch.mapping[22] = 26
-    branch.islands_R[22] = 2
-
-    record = _branch_symmetry_record(branch)
-
-    assert record["blocks"][0]["r_atoms"] == [22, 27]
-    assert record["blocks"][0]["p_atoms"] == [26, 27]
-    assert record["blocks"][0]["open"] is False
-    assert record["blocks"][0]["assignments"] == "2!"
-
-
-def test_extension_retains_correlated_placements_on_different_atom_sets():
-    elements = ["C", "C"]
-    wbo_r = np.zeros((2, 2))
-    wbo_r[0, 1] = wbo_r[1, 0] = 1.0
-    g_r = build_graph(elements, wbo_r, bond_cut=0.2)
-
-    wbo_p = np.zeros((4, 4))
-    wbo_p[0, 2] = wbo_p[2, 0] = 1.0
-    wbo_p[1, 3] = wbo_p[3, 1] = 1.0
-    g_p = build_graph(["C", "C", "C", "C"], wbo_p, bond_cut=0.2)
-
-    cand = _SymCand(
-        {0: 0},
-        (_SymBlock((0,), (0, 1), extendable=True),),
-    )
-    out = _extend_sym_cands(
-        [cand], {0}, 1, g_r, g_p, {}, 0.1, None,
-        p_orbits={0: 0, 1: 0, 2: 1, 3: 1},
-        r_orbits={0: 0, 1: 0},
-    )
-    mappings = {tuple(sorted(_cand_map(c).items())) for c in out}
-
-    assert mappings == {((0, 0), (1, 2)), ((0, 1), (1, 3))}
-
-
-def test_extension_ignores_inactive_r_pairs():
+def test_existence_reassigns_a_correlated_witness():
     wbo_r = np.zeros((3, 3))
-    wbo_r[1, 2] = wbo_r[2, 1] = 1.0
-    wbo_r[0, 2] = wbo_r[2, 0] = 0.4
-    g_r = build_graph(["C", "C", "O"], wbo_r, bond_cut=0.5)
-
-    wbo_p = np.zeros((3, 3))
-    wbo_p[1, 2] = wbo_p[2, 1] = 1.0
-    g_p = build_graph(["C", "C", "O"], wbo_p, bond_cut=0.5)
-
-    out = _extend_sym_cands(
-        [_SymCand({0: 0, 1: 1})], {0, 1}, 2,
-        g_r, g_p, {}, 0.1, None,
-    )
-
-    assert len(out) == 1
+    wbo_r[0, 2] = wbo_r[2, 0] = 1.
+    source = build_graph(['O', 'O', 'C'], wbo_r, bond_cut=.2)
+    wbo_p = np.zeros((4, 4))
+    wbo_p[1, 3] = wbo_p[3, 1] = 1.
+    target = build_graph(['O', 'O', 'C', 'C'], wbo_p, bond_cut=.2)
+    query = FragmentQuery(source, target, {0, 1, 2}, [(0, 2)], {},
+                          DEFAULT_NODE_POLICY, .1)
+    assert query.find(preferred={0: 0, 1: 1}) == {0: 1, 1: 0, 2: 3}
 
 
-def test_extension_rejects_active_r_pair_mismatch():
-    wbo_r = np.zeros((3, 3))
-    wbo_r[1, 2] = wbo_r[2, 1] = 1.0
-    wbo_r[0, 2] = wbo_r[2, 0] = 0.6
-    g_r = build_graph(["C", "C", "O"], wbo_r, bond_cut=0.5)
-
-    wbo_p = np.zeros((3, 3))
-    wbo_p[1, 2] = wbo_p[2, 1] = 1.0
-    g_p = build_graph(["C", "C", "O"], wbo_p, bond_cut=0.5)
-
-    out = _extend_sym_cands(
-        [_SymCand({0: 0, 1: 1})], {0, 1}, 2,
-        g_r, g_p, {}, 0.1, None,
-    )
-
-    assert out == []
+def test_completion_retains_placements_on_different_atom_sets():
+    source = build_graph(['C', 'C'], np.array([[0., 1.], [1., 0.]]), bond_cut=.2)
+    weights = np.zeros((4, 4))
+    weights[0, 2] = weights[2, 0] = weights[1, 3] = weights[3, 1] = 1.
+    target = build_graph(['C'] * 4, weights, bond_cut=.2)
+    candidates = complete(source, target, {0, 1}, [(0, 1)], .1)
+    # Exchanging the two identical components preserves the entire target.
+    assert len(candidates.matches) == 1
+    assert {frozenset(p for _, p in mapping) for mapping in represented(candidates)} == {
+        frozenset({0, 2}), frozenset({1, 3})}
+    assert represented(candidates) == {
+        ((0, a), (1, b)) for a, b in ((0, 2), (2, 0), (1, 3), (3, 1))}
 
 
-def test_unique_center_can_grow_to_many_compressed_targets():
-    wbo_r = np.zeros((2, 2))
-    wbo_r[0, 1] = wbo_r[1, 0] = 1.0
-    g_r = build_graph(["C", "H"], wbo_r, bond_cut=0.2)
+def test_completion_ignores_unaccepted_source_pairs():
+    weights = np.zeros((3, 3))
+    weights[1, 2] = weights[2, 1] = 1.
+    weights[0, 2] = weights[2, 0] = .4
+    source = build_graph(['C', 'C', 'O'], weights.copy(), bond_cut=.5)
+    weights[0, 2] = weights[2, 0] = 0.
+    target = build_graph(['C', 'C', 'O'], weights, bond_cut=.5)
+    result = complete(source, target, {0, 1, 2}, [(1, 2)], .1,
+                      locked={0: 0, 1: 1})
+    assert len(result.matches) == 1 and dict(result.matches[0].witness) == {0: 0, 1: 1, 2: 2}
 
-    wbo_p = np.zeros((3, 3))
-    wbo_p[0, 1] = wbo_p[1, 0] = 1.0
-    wbo_p[0, 2] = wbo_p[2, 0] = 1.0
-    g_p = build_graph(["C", "H", "H"], wbo_p, bond_cut=0.2)
 
-    out = _extend_sym_cands(
-        [_SymCand({0: 0})], {0}, 1, g_r, g_p, {}, 0.1, None,
-        p_orbits={0: 0, 1: 1, 2: 1},
-        r_orbits={0: 0, 1: 1},
-    )
+def test_completion_rejects_an_accepted_edge_mismatch():
+    weights = np.zeros((3, 3))
+    weights[1, 2] = weights[2, 1] = 1.
+    weights[0, 2] = weights[2, 0] = .6
+    source = build_graph(['C', 'C', 'O'], weights.copy(), bond_cut=.5)
+    weights[0, 2] = weights[2, 0] = 0.
+    target = build_graph(['C', 'C', 'O'], weights, bond_cut=.5)
+    assert complete(source, target, {0, 1, 2}, [(0, 2)], .1,
+                    locked={0: 0, 1: 1}).matches == ()
 
-    assert len(out) == 1
-    assert isinstance(out[0], _SymCand)
-    assert out[0].blocks[0].r_atoms == (1,)
-    assert out[0].blocks[0].p_atoms == (1, 2)
+
+def test_unique_center_compresses_equivalent_hydrogen_placements():
+    source = build_graph(['C', 'H'], np.array([[0., 1.], [1., 0.]]), bond_cut=.2)
+    weights = np.array([[0., 1., 1.], [1., 0., 0.], [1., 0., 0.]])
+    target = build_graph(['C', 'H', 'H'], weights, bond_cut=.2)
+    result = complete(source, target, {0, 1}, [(0, 1)], .1)
+    assert len(result.matches) == 1
+    assert represented(result) == {((0, 0), (1, p)) for p in (1, 2)}
 
 
 def test_planar_metal_tetramethyl_metal_carbon_branch_is_fourfold():
-    elements, wbo = _tetramethyl_metal_graph()
-    g_r = build_graph(elements, wbo, bond_cut=0.2)
-    g_p = build_graph(elements, wbo, bond_cut=0.2)
-    r_orbits = _nauty_orbits(g_r, wbo_tol=0.2)
-    p_orbits = _nauty_orbits(g_p, wbo_tol=0.2)
-
-    out = _extend_sym_cands(
-        [_SymCand({0: 0})], {0}, 1,
-        g_r, g_p, {}, 0.5, None,
-        p_orbits=p_orbits, r_orbits=r_orbits,
-        anchor_u=0, anchor_wbo=0.8,
-    )
-
-    assert len(out) == 1
-    assert _represented_count(out[0]) == 4
-    assert out[0].blocks[0].r_atoms == (1,)
-    assert out[0].blocks[0].p_atoms == (1, 5, 9, 13)
+    elements, weights = _tetramethyl_metal_graph()
+    source = build_graph(elements, weights, bond_cut=.2)
+    target = build_graph(elements, weights, bond_cut=.2)
+    result = complete(source, target, {0, 1}, [(0, 1)], .5)
+    # All four complete methyl arms are exactly interchangeable.
+    assert len(result.matches) == 1
+    assert represented(result) == {((0, 0), (1, p)) for p in (1, 5, 9, 13)}
 
 
 def test_core_alignment_expands_internal_branch_degeneracy():
     elements, wbo = _tetramethyl_metal_graph()
 
-    pool = run_cut_sweep_chunk(
-        elements, wbo, elements, wbo, [()],
-        core_R=[1, 5], n_workers=1, n_seeds=1,
-        max_branches=100, iso_tol=0.5, symmetry_wbo_tol=0.2)
-
-    mappings = {
-        tuple(sorted(info["mapping"].items()))
-        for info in pool.values()
-    }
+    from mappa import MolecularEndpoint, AAMSearchConfig, search_core_assignments
+    endpoint = MolecularEndpoint(tuple(elements), np.zeros((len(elements), 3)), wbo)
+    result = search_core_assignments(endpoint, endpoint, [1, 5],
+        config=AAMSearchConfig(seed_count=1, branch_limit=100, iso_tolerance=.5))
+    mappings = {assignment.pairs for assignment in result.assignments}
     expected_targets = {1, 5, 9, 13}
 
     assert len(mappings) == 12
@@ -525,19 +206,36 @@ def test_core_alignment_expands_internal_branch_degeneracy():
     }
 
 
-def test_core_mapping_variants_do_not_invent_global_orbit_swaps():
+def test_core_projection_does_not_invent_global_orbit_swaps():
     class Branch:
         mapping = {0: 0, 1: 1}
-        symmetry_paths = ((),)
+        transitions = ()
 
+    from mappa import AAMProblem, MolecularEndpoint
     wbo = np.zeros((2, 2))
-    g_p = build_graph(["H", "H"], wbo, bond_cut=0.2)
+    endpoint = MolecularEndpoint(("H", "H"), np.zeros((2, 3)), wbo)
 
-    variants = _core_mapping_variants(
-        Branch(), [0, 1], 100,
-        g_P=g_p, p_orbits={0: 0, 1: 0})
+    variants = project_path_assignments(
+        Branch(), AAMProblem(endpoint, endpoint), [0, 1], assignment_limit=100)
 
     assert variants == [{0: 0, 1: 1}]
+
+
+def test_core_projection_includes_tolerated_local_rearrangement_without_exact_symmetry():
+    from mappa import AAMProblem, AAMSearchConfig, MolecularEndpoint, search_core_assignments
+
+    weights = np.array([[0., 1., 1.1], [1., 0., 0.], [1.1, 0., 0.]])
+    endpoint = MolecularEndpoint(('C', 'H', 'H'), np.zeros((3, 3)), weights)
+    result = search_core_assignments(endpoint, endpoint, [1, 2],
+        config=AAMSearchConfig(seed_count=1, iso_tolerance=.2))
+    assert {assignment.pairs for assignment in result.assignments} == {
+        ((1, 1), (2, 2)), ((1, 2), (2, 1))}
+    path = result.branches[0].search_path
+    assert any(fragment.target_symmetry.generators for fragment in path.fragments)
+    with pytest.raises(branch_mod.BranchLimitExceeded) as exc_info:
+        project_path_assignments(path, AAMProblem(endpoint, endpoint), [1, 2],
+                                 assignment_limit=1)
+    assert exc_info.value.branch_count == 2
 
 
 def test_core_alignment_does_not_filter_nonmatching_core_edges():
@@ -551,509 +249,138 @@ def test_core_alignment_does_not_filter_nonmatching_core_edges():
     wbo_t[0, 1] = wbo_t[1, 0] = 0.0
     wbo_t[1, 2] = wbo_t[2, 1] = 1.67
 
-    pool = run_cut_sweep_chunk(
-        el_r, wbo_r, el_t, wbo_t, [()],
-        core_R=[0, 1, 2], n_workers=1, n_seeds=1,
-        graph_floor=0.2, iso_tol=0.1, max_branches=100)
-
-    assert {
-        tuple(sorted(info["mapping"].items()))
-        for info in pool.values()
-    } == {((0, 0), (1, 1), (2, 2))}
+    from mappa import MolecularEndpoint, AAMSearchConfig, search_core_assignments
+    result = search_core_assignments(
+        MolecularEndpoint(tuple(el_r), np.zeros((3, 3)), wbo_r),
+        MolecularEndpoint(tuple(el_t), np.zeros((3, 3)), wbo_t), [0, 1, 2],
+        config=AAMSearchConfig(seed_count=1, branch_limit=100, iso_tolerance=.1))
+    assert {assignment.pairs for assignment in result.assignments} == {((0, 0), (1, 1), (2, 2))}
 
 
-def test_nauty_orbits_group_near_wbo_by_tolerance():
-    pytest.importorskip("pynauty")
-    wbo = np.zeros((3, 3))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    wbo[0, 2] = wbo[2, 0] = 1.1
-    g = build_graph(["C", "H", "H"], wbo, bond_cut=0.2)
-
-    loose = _nauty_orbits(g, wbo_tol=0.2)
-    strict = _nauty_orbits(g, wbo_tol=0.05)
-
-    assert loose[1] == loose[2]
-    assert loose[0] != loose[1]
-    assert strict[1] != strict[2]
-
-
-def test_nauty_loose_tolerance_preserves_edges_and_methyl_orbit():
-    pytest.importorskip("pynauty")
-    wbo = np.zeros((4, 4))
-    for h, value in enumerate((0.982056, 0.980196, 0.960315), start=1):
-        wbo[0, h] = wbo[h, 0] = value
-    g = build_graph(["C", "H", "H", "H"], wbo, bond_cut=0.2)
-
-    buckets, zero_bucket = _wbo_tolerance_bucket_lookup(g, 1.0)
-    orbits = _nauty_orbits(g, wbo_tol=1.0)
-
-    assert all(buckets[(0, h)] != zero_bucket for h in (1, 2, 3))
-    assert buckets[(1, 2)] == zero_bucket
-    assert orbits[1] == orbits[2] == orbits[3]
-    assert orbits[0] != orbits[1]
-
-
-def test_nauty_masks_positive_wbo_below_graph_floor():
-    pytest.importorskip("pynauty")
-    wbo = np.zeros((5, 5))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    wbo[0, 2] = wbo[2, 0] = 1.0
-    wbo[1, 3] = wbo[3, 1] = 1.0
-    wbo[2, 4] = wbo[4, 2] = 1.0
-    wbo[1, 4] = wbo[4, 1] = 0.16
-    graph = build_graph(["B", "O", "O", "H", "H"], wbo, bond_cut=0.2)
-
-    buckets, zero_bucket = _wbo_tolerance_bucket_lookup(graph, 1.0)
-    orbits = _nauty_orbits(graph, wbo_tol=1.0)
-
-    assert buckets[(1, 4)] == zero_bucket
-    assert orbits[1] == orbits[2]
-    assert orbits[3] == orbits[4]
-
-
-def test_chosen_automorphism_closure_recovers_early_singleton():
-    pytest.importorskip("pynauty")
-    wbo = np.zeros((4, 4))
-    for h, value in enumerate((0.982056, 0.980196, 0.960315), start=1):
-        wbo[0, h] = wbo[h, 0] = value
-    graph = build_graph(["C", "H", "H", "H"], wbo, bond_cut=0.2)
-    partial = {
-        "fragments": [{"fragment_index": 0, "island_idx": 0,
-                       "fragment": [0, 1, 2, 3]}],
-        "blocks": [{
-            "r_atoms": [1, 2], "p_atoms": [1, 2], "source": "sym_block",
-        }],
-    }
-
-    complete = complete_chosen_automorphism_groups(
-        partial, {0: 0, 1: 1, 2: 2, 3: 3}, graph, graph, 1.0)
-
-    assert complete["color_groups"] == [{
-        "r_atoms": [1, 2, 3],
-        "p_atoms": [1, 2, 3],
-        "sources": ["chosen_candidate_automorph"],
-    }]
-
-
-def test_stored_branch_group_preserves_correlated_local_orbits():
-    wbo = np.zeros((5, 5))
-    for atom in range(1, 5):
-        wbo[0, atom] = wbo[atom, 0] = 1.0
-    graph = build_graph(["C", "H", "H", "F", "F"], wbo, bond_cut=0.2)
-    hierarchy = {"fragments": [{
-        "fragment_index": 0,
-        "island_idx": 1,
-        "fragment": [0, 1, 2, 3, 4],
-    }]}
-
-    complete = complete_chosen_automorphism_groups(
-        hierarchy, {atom: atom for atom in range(5)},
-        graph, graph, 1.0,
-        exact_target_generators=[
-            [0, 2, 1, 3, 4],
-            [0, 1, 2, 4, 3],
-        ])
-
-    groups = {
-        (block.get("center_R"), tuple(block["r_atoms"]))
-        for block in complete["blocks"]
-    }
-    assert (0, (1, 2)) in groups
-    assert (0, (3, 4)) in groups
-    assert all(block["source"] == "stored_AAM_branch_mapping_group"
-               for block in complete["blocks"])
-
-
-def test_cross_branch_assignment_relation_preserves_observed_shuffles():
-    wbo = np.zeros((5, 5))
-    for atom in range(1, 5):
-        wbo[0, atom] = wbo[atom, 0] = 1.0
-    graph = build_graph(["M", "H", "H", "F", "F"], wbo, bond_cut=0.2)
-    hierarchy = {"fragments": [{
-        "fragment_index": 0,
-        "fragment": [0, 1, 2, 3, 4],
-    }]}
-    selected = {atom: atom for atom in range(5)}
-
-    complete = complete_chosen_automorphism_groups(
-        hierarchy, selected, graph, graph, 1.0,
-        exact_target_generators=[],
-        exact_branch_mappings=[
-            selected,
-            {0: 0, 1: 2, 2: 1, 3: 3, 4: 4},
-            {0: 0, 1: 1, 2: 2, 3: 4, 4: 3},
-        ])
-
-    cross_branch = {
-        (block["center_R"], tuple(block["r_atoms"]))
-        for block in complete["blocks"]
-        if block["source"] == "AAM_cross_branch_assignment"
-    }
-    assert cross_branch == {(0, (1, 2)), (0, (3, 4))}
-
-
-def test_completed_candidate_groups_are_cached_after_branch_reduction(
-        monkeypatch):
-    from mappa.matcher.canonical import (
-        _CandidateAutomorphismCanonicalizer,
-    )
-
-    wbo = np.zeros((2, 2))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    graph = build_graph(["H", "H"], wbo, bond_cut=0.2)
-    state = {
-        "witness": {0: 0, 1: 1},
-        "blocks": [{
-            "r_atoms": [0, 1],
-            "p_atoms": [0, 1],
-            "source": "exact_automorph_group",
-        }],
-        "automorph_blocks": [{
-            "r_atoms": [0, 1],
-            "p_atoms": [0, 1],
-        }],
-        "multiplicity": 2,
-    }
-    branch = {"hierarchy": {"fragments": [{
-        "fragment_index": 0,
-        "fragment": [0, 1],
-        "symmetry": state,
-    }]}}
-    calls = 0
-    original = _CandidateAutomorphismCanonicalizer.atom_generators
-
-    def measured(self, candidate):
-        nonlocal calls
-        calls += 1
-        return original(self, candidate)
-
-    monkeypatch.setattr(
-        _CandidateAutomorphismCanonicalizer, "atom_generators", measured)
-    completed, metrics = attach_completed_candidate_groups(
-        [branch, branch], graph, wbo_tol=1.0, return_metrics=True)
-
-    assert calls == 1
-    assert metrics == {
-        "completed_candidate_group_requests": 2,
-        "completed_candidate_group_calculations": 1,
-        "completed_candidate_group_cache_hits": 1,
-    }
-    for item in completed:
-        symmetry = item["hierarchy"]["fragments"][0]["symmetry"]
-        assert symmetry["automorph_generators"] == [[1, 0]]
-        assert symmetry["automorph_group_source"] == (
-            "completed_candidate_after_branch_family_reduction")
-
-
-def test_nauty_orbits_drop_into_single_step_extension():
-    pytest.importorskip("pynauty")
-    wbo_r = np.zeros((3, 3))
-    wbo_r[0, 1] = wbo_r[1, 0] = 1.0
-    wbo_r[0, 2] = wbo_r[2, 0] = 1.1
-    g_r = build_graph(["C", "H", "H"], wbo_r, bond_cut=0.2)
-
-    wbo_p = np.zeros((3, 3))
-    wbo_p[0, 1] = wbo_p[1, 0] = 1.0
-    wbo_p[0, 2] = wbo_p[2, 0] = 1.1
-    g_p = build_graph(["C", "H", "H"], wbo_p, bond_cut=0.2)
-    r_orbits = _nauty_orbits(g_r, wbo_tol=0.2)
-    p_orbits = _nauty_orbits(g_p, wbo_tol=0.2)
-
-    hydrogen = _extend_sym_cands(
-        [_SymCand({0: 0})], {0}, 1,
-        g_r, g_p, {}, 0.2, None,
-        p_orbits=p_orbits, r_orbits=r_orbits,
-        anchor_u=0, anchor_wbo=1.0,
-    )
-
-    assert len(hydrogen) == 1
-    assert hydrogen[0].blocks[0].r_atoms == (1,)
-    assert hydrogen[0].blocks[0].p_atoms == (1, 2)
+def test_tolerance_compatible_unequal_bonds_remain_separate_placements():
+    weights = np.array([[0., 1., 1.1], [1., 0., 0.], [1.1, 0., 0.]])
+    source = build_graph(['C', 'H', 'H'], weights, bond_cut=.2)
+    target = build_graph(['C', 'H', 'H'], weights, bond_cut=.2)
+    result = complete(source, target, {0, 1}, [(0, 1)], .2)
+    # Discovery accepts both bonds; exact whole-target symmetry cannot swap them.
+    assert len(result.matches) == 2
+    assert represented(result) == {((0, 0), (1, p)) for p in (1, 2)}
 
 
 def test_planar_metal_tetramethyl_child_h_keeps_parent_degeneracy():
-    elements, wbo = _tetramethyl_metal_graph()
-    g_r = build_graph(elements, wbo, bond_cut=0.2)
-    g_p = build_graph(elements, wbo, bond_cut=0.2)
-    r_orbits = _nauty_orbits(g_r, wbo_tol=0.2)
-    p_orbits = _nauty_orbits(g_p, wbo_tol=0.2)
-
-    carbon = _extend_sym_cands(
-        [_SymCand({0: 0})], {0}, 1,
-        g_r, g_p, {}, 0.5, None,
-        p_orbits=p_orbits, r_orbits=r_orbits,
-        anchor_u=0, anchor_wbo=0.8,
-    )
-    hydrogen = _extend_sym_cands(
-        carbon, {0, 1}, 2,
-        g_r, g_p, {}, 0.5, None,
-        p_orbits=p_orbits, r_orbits=r_orbits,
-        anchor_u=1, anchor_wbo=1.0,
-    )
-
-    assert len(hydrogen) == 4
-    assert {cand.mapping[1] for cand in hydrogen} == {1, 5, 9, 13}
-    assert all(len(cand.blocks[0].p_atoms) == 3 for cand in hydrogen)
-    assert sum(_represented_count(cand) for cand in hydrogen) == 12
+    elements, weights = _tetramethyl_metal_graph()
+    source = build_graph(elements, weights, bond_cut=.2)
+    target = build_graph(elements, weights, bond_cut=.2)
+    result = complete(source, target, {0, 1, 2}, [(0, 1), (1, 2)], .5)
+    # Methyl-arm exchanges and within-arm H exchanges share one continuation.
+    assert len(result.matches) == 1
+    expected = {((0, 0), (1, c), (2, h))
+                for c in (1, 5, 9, 13) for h in (c + 1, c + 2, c + 3)}
+    assert len(expected) == 12 and represented(result) == expected
 
 
 def test_planar_metal_tetramethyl_two_metal_carbon_edges_are_correlated():
-    elements, wbo = _tetramethyl_metal_graph()
-    g_r = build_graph(elements, wbo, bond_cut=0.2)
-    g_p = build_graph(elements, wbo, bond_cut=0.2)
-    r_orbits = _nauty_orbits(g_r, wbo_tol=0.2)
-    p_orbits = _nauty_orbits(g_p, wbo_tol=0.2)
-
-    first = _extend_sym_cands(
-        [_SymCand({0: 0})], {0}, 1,
-        g_r, g_p, {}, 0.5, None,
-        p_orbits=p_orbits, r_orbits=r_orbits,
-        anchor_u=0, anchor_wbo=0.8,
-    )
-    second = _extend_sym_cands(
-        first, {0, 1}, 5,
-        g_r, g_p, {}, 0.5, None,
-        p_orbits=p_orbits, r_orbits=r_orbits,
-        anchor_u=0, anchor_wbo=0.8,
-    )
-
-    assert len(second) == 1
-    assert _represented_count(second[0]) == 12
-    assert second[0].blocks[0].r_atoms == (1, 5)
-    assert second[0].blocks[0].p_atoms == (1, 5, 9, 13)
+    elements, weights = _tetramethyl_metal_graph()
+    source = build_graph(elements, weights, bond_cut=.2)
+    target = build_graph(elements, weights, bond_cut=.2)
+    result = complete(source, target, {0, 1, 5}, [(0, 1), (0, 5)], .5)
+    # The six pairs of methyl arms form one target-set orbit, while the
+    # fragment relation retains both assignments within each selected pair.
+    assert len(result.matches) == 1
+    expected = {((0, 0), (1, a), (5, b))
+                for a in (1, 5, 9, 13) for b in (1, 5, 9, 13) if a != b}
+    assert len(expected) == 12 and represented(result) == expected
 
 
-def test_nonautomorphic_witnesses_are_not_compressed_before_later_frontier():
-    wbo_r = np.zeros((3, 3))
-    wbo_r[0, 2] = wbo_r[2, 0] = 1.0
-    g_r = build_graph(["C", "C", "O"], wbo_r, bond_cut=0.2)
-
-    wbo_p = np.zeros((3, 3))
-    wbo_p[1, 2] = wbo_p[2, 1] = 1.0
-    g_p = build_graph(["C", "C", "O"], wbo_p, bond_cut=0.2)
-
-    cands = _dedup_sym_cands(
-        [_SymCand({0: 0, 1: 1}), _SymCand({0: 1, 1: 0})],
-        g_r, g_p,
-    )
-    assert len(cands) == 2
-
-    out = _extend_sym_cands(
-        cands, {0, 1}, 2,
-        g_r, g_p, {}, 0.5, None,
-        anchor_u=0, anchor_wbo=1.0,
-    )
-
-    assert len(out) == 1
-    assert _cand_map(out[0]) == {0: 1, 1: 0, 2: 2}
+def test_completion_uses_later_constraints_to_select_the_valid_assignment():
+    weights = np.zeros((3, 3))
+    weights[0, 2] = weights[2, 0] = 1.
+    source = build_graph(['C', 'C', 'O'], weights, bond_cut=.2)
+    weights = np.zeros((3, 3))
+    weights[1, 2] = weights[2, 1] = 1.
+    target = build_graph(['C', 'C', 'O'], weights, bond_cut=.2)
+    unconstrained = complete(source, target, {0, 1}, [], .5)
+    assert len(unconstrained.matches) == 1
+    assert represented(unconstrained) == {
+        ((0, 0), (1, 1)), ((0, 1), (1, 0))}
+    result = complete(source, target, {0, 1, 2}, [(0, 2)], .5)
+    assert len(result.matches) == 1 and dict(result.matches[0].witness) == {0: 1, 1: 0, 2: 2}
 
 
-def test_exact_certificate_preserves_coupled_group_action_not_just_orbits():
-    wbo = np.zeros((4, 4))
+def test_completion_preserves_pair_relations_within_one_vertex_orbit():
+    source = build_graph(['C', 'C'], np.array([[0., 1.], [1., 0.]]), bond_cut=.2)
+    weights = np.zeros((4, 4))
     for a, b in [(0, 1), (1, 2), (2, 3), (3, 0)]:
-        wbo[a, b] = wbo[b, a] = 1.0
-    graph = build_graph(["C"] * 4, wbo, bond_cut=0.2)
-    orbits = _nauty_orbits(graph, wbo_tol=0.2)
-
-    # Every P atom belongs to one orbit, but a square automorphism cannot map
-    # an adjacent ordered pair onto an opposite pair.  Independent orbit-pool
-    # shuffling would merge these states incorrectly.
-    adjacent = _SymCand({10: 0, 11: 1})
-    rotated = _SymCand({10: 1, 11: 2})
-    opposite = _SymCand({10: 0, 11: 2})
-    deduped = _dedup_sym_cands(
-        [adjacent, rotated, opposite], graph, graph,
-        r_orbits=orbits, p_orbits=orbits,
-    )
-
-    # Different occupied atom sets remain separate during growth.
-    assert len(deduped) == 3
-    assert all(cand.multiplicity == 1 for cand in deduped)
+        weights[a, b] = weights[b, a] = 1.
+    target = build_graph(['C'] * 4, weights, bond_cut=.2)
+    adjacent = {((0, a), (1, b)) for a, b in target.edges} | {
+        ((0, b), (1, a)) for a, b in target.edges}
+    opposite = {((0, a), (1, (a + 2) % 4)) for a in target}
+    assert adjacent.isdisjoint(opposite)
+    result = complete(source, target, {0, 1}, [(0, 1)], .2)
+    # Ring edges form one placement orbit; opposite pairs remain forbidden.
+    assert len(result.matches) == 1 and represented(result) == adjacent
 
 
-def test_successful_primary_extension_preserves_exact_group_evidence():
-    elements = ["X", "C", "C", "H", "H"]
-    wbo = np.zeros((5, 5))
-    for carbon in [1, 2]:
-        wbo[0, carbon] = wbo[carbon, 0] = 1.0
-    wbo[1, 3] = wbo[3, 1] = 1.0
-    wbo[2, 4] = wbo[4, 2] = 1.0
-    g = build_graph(elements, wbo, bond_cut=0.2)
-    r_orbits = _nauty_orbits(g, wbo_tol=0.2)
-    p_orbits = _nauty_orbits(g, wbo_tol=0.2)
-
-    cands = [_SymCand({0: 0})]
-    for fragment, atom, anchor in [
-        ({0}, 1, 0),
-        ({0, 1}, 2, 0),
-        ({0, 1, 2}, 3, 1),
-        ({0, 1, 2, 3}, 4, 2),
-    ]:
-        cands = _extend_sym_cands(
-            cands, fragment, atom, g, g, {}, 0.5, None,
-            p_orbits=p_orbits, r_orbits=r_orbits,
-            anchor_u=anchor, anchor_wbo=1.0)
-
-    assert len(cands) == 1
-    assert cands[0].multiplicity == 2
-    assert [(b.r_atoms, b.p_atoms) for b in cands[0].automorph_blocks] == [
-        ((1, 2, 3, 4), (1, 2, 3, 4)),
-    ]
-    state = _symmetry_state(cands[0], r_orbits=r_orbits, p_orbits=p_orbits)
-    assert state["automorph_blocks"][0]["source"] == "exact_automorph_group"
+def test_completion_preserves_correlated_carbon_and_hydrogen_motion():
+    elements = ['X', 'C', 'C', 'H', 'H']
+    weights = np.zeros((5, 5))
+    bonds = [(0, 1), (0, 2), (1, 3), (2, 4)]
+    for a, b in bonds:
+        weights[a, b] = weights[b, a] = 1.
+    graph = build_graph(elements, weights, bond_cut=.2)
+    result = complete(graph, graph, set(graph), bonds, .5)
+    assert len(result.matches) == 1
+    assert represented(result) == {
+        ((0, 0), (1, 1), (2, 2), (3, 3), (4, 4)),
+        ((0, 0), (1, 2), (2, 1), (3, 4), (4, 3))}
 
 
-def test_block_join_refines_bucket_mismatch_before_later_frontier():
-    wbo_r = np.zeros((4, 4))
-    wbo_r[0, 1] = wbo_r[1, 0] = 1.907
-    wbo_r[0, 2] = wbo_r[2, 0] = 1.869
-    wbo_r[0, 3] = wbo_r[3, 0] = 1.138
-    g_r = build_graph(["W", "O", "O", "O"], wbo_r, bond_cut=0.2)
-
-    wbo_p = np.zeros((4, 4))
-    wbo_p[0, 1] = wbo_p[1, 0] = 1.910
-    wbo_p[0, 2] = wbo_p[2, 0] = 1.875
-    wbo_p[0, 3] = wbo_p[3, 0] = 1.127
-    g_p = build_graph(["W", "O", "O", "O"], wbo_p, bond_cut=0.2)
-
-    r_orbits = {0: 0, 1: 1, 2: 1, 3: 2}
-    p_orbits = {0: 0, 1: 1, 2: 1, 3: 2}
-    cand = _SymCand(
-        {0: 0, 1: 1},
-        (_SymBlock((1,), (1, 2), extendable=True),),
-    )
-
-    strong = _extend_sym_cands(
-        [cand], {0, 1}, 2,
-        g_r, g_p, {}, 1.0, None,
-        p_orbits=p_orbits, r_orbits=r_orbits,
-        anchor_u=0, anchor_wbo=1.869,
-    )
-    later = _extend_sym_cands(
-        strong, {0, 1, 2}, 3,
-        g_r, g_p, {}, 1.0, None,
-        p_orbits=p_orbits, r_orbits=r_orbits,
-        anchor_u=0, anchor_wbo=1.138,
-    )
-
-    assert any(
-        _cand_map(c).get(2) in {1, 2} and _cand_map(c).get(3) == 3
-        for c in later
-    )
+def test_completed_weighted_constraints_preserve_every_tolerated_assignment():
+    source_weights = np.zeros((4, 4))
+    target_weights = np.zeros((4, 4))
+    for atom, weight in enumerate((1.907, 1.869, 1.138), start=1):
+        source_weights[0, atom] = source_weights[atom, 0] = weight
+    for atom, weight in enumerate((1.910, 1.875, 1.127), start=1):
+        target_weights[0, atom] = target_weights[atom, 0] = weight
+    source = build_graph(['W', 'O', 'O', 'O'], source_weights, bond_cut=.2)
+    target = build_graph(['W', 'O', 'O', 'O'], target_weights, bond_cut=.2)
+    bonds = [(0, 1), (0, 2), (0, 3)]
+    result = complete(source, target, set(source), bonds, 1.)
+    expected = explicit(source, target, set(source), 1., bonds)
+    assert len(expected) == 6 and represented(result) == expected
 
 
-def test_weighted_tolerance_prevents_free_terminal_match_at_default_iso_tol():
-    wbo_r = np.zeros((2, 2))
-    wbo_r[0, 1] = wbo_r[1, 0] = 1.0
-    g_r = build_graph(["C", "H"], wbo_r, bond_cut=0.2)
-
-    wbo_p = np.zeros((4, 4))
-    wbo_p[0, 1] = wbo_p[1, 0] = 1.0
-    wbo_p[2, 3] = wbo_p[3, 2] = 1.0
-    g_p = build_graph(["C", "H", "C", "H"], wbo_p, bond_cut=0.2)
-
-    out = _extend_sym_cands(
-        [_SymCand({0: 0})], {0}, 1,
-        g_r, g_p, {}, 0.5, None,
-        anchor_u=0, anchor_wbo=1.0,
-    )
-
-    assert len(out) == 1
-    assert _cand_possible_p_atoms(out[0]) == {0, 1}
+def test_locked_anchor_restricts_its_terminal_atom_to_the_same_component():
+    source = build_graph(['C', 'H'], np.array([[0., 1.], [1., 0.]]), bond_cut=.2)
+    weights = np.zeros((4, 4))
+    weights[0, 1] = weights[1, 0] = weights[2, 3] = weights[3, 2] = 1.
+    target = build_graph(['C', 'H', 'C', 'H'], weights, bond_cut=.2)
+    result = complete(source, target, {0, 1}, [(0, 1)], .5, locked={0: 0})
+    assert len(result.matches) == 1 and dict(result.matches[0].witness) == {0: 0, 1: 1}
+    assert result.matches[0].target_atoms == (0, 1)
 
 
-def test_active_r_edge_requires_active_target_edge_even_with_loose_iso_tol():
-    wbo_r = np.zeros((2, 2))
-    wbo_r[0, 1] = wbo_r[1, 0] = 0.964
-    g_r = build_graph(["C", "H"], wbo_r, bond_cut=0.2)
-
-    wbo_p = np.zeros((3, 3))
-    wbo_p[0, 1] = wbo_p[1, 0] = 0.963
-    g_p = build_graph(["C", "H", "H"], wbo_p, bond_cut=0.2)
-
-    out = _extend_sym_cands(
-        [_SymCand({0: 0})], {0}, 1,
-        g_r, g_p, {}, 1.0, None,
-        anchor_u=0, anchor_wbo=0.964,
-    )
-
-    assert len(out) == 1
-    assert all(2 not in _cand_possible_p_atoms(c) for c in out)
+def test_active_source_edge_requires_active_target_edge_even_with_loose_tolerance():
+    source = build_graph(['C', 'H'], np.array([[0., .964], [.964, 0.]]), bond_cut=.2)
+    weights = np.zeros((3, 3))
+    weights[0, 1] = weights[1, 0] = .963
+    target = build_graph(['C', 'H', 'H'], weights, bond_cut=.2)
+    result = complete(source, target, {0, 1}, [(0, 1)], 1.)
+    assert len(result.matches) == 1
+    assert represented(result) == {((0, 0), (1, 1))}
 
 
-def test_deferred_boundary_prevents_false_orbit_dedup():
-    wbo_r = np.zeros((3, 3))
-    wbo_r[0, 1] = wbo_r[1, 0] = 1.0
-    wbo_r[0, 2] = wbo_r[2, 0] = 0.4
-    g_r = build_graph(["C", "C", "O"], wbo_r, bond_cut=0.5)
-
-    wbo_p = np.zeros((3, 3))
-    wbo_p[0, 1] = wbo_p[1, 0] = 1.0
-    wbo_p[0, 2] = wbo_p[2, 0] = 0.4
-    g_p = build_graph(["C", "C", "O"], wbo_p, bond_cut=0.5)
-
-    cands = [_SymCand({0: 0, 1: 1}), _SymCand({0: 1, 1: 0})]
-    no_boundary = _dedup_sym_cands(
-        cands, g_r, g_p,
-        r_orbits={0: 0, 1: 0, 2: 1},
-        p_orbits={0: 0, 1: 0, 2: 1},
-        fragment={0, 1},
-    )
-    with_boundary = _dedup_sym_cands(
-        cands, g_r, g_p,
-        r_orbits={0: 0, 1: 0, 2: 1},
-        p_orbits={0: 0, 1: 0, 2: 1},
-        fragment={0, 1},
-        deferred_edges={(0, 2)},
-    )
-
-    # Sub-floor WBO distinctions are retained even before a deferred edge.
-    assert len(no_boundary) == 2
-    assert len(with_boundary) == 2
-
-
-def test_symmetry_repair_rejects_non_automorphic_orbit_swap():
-    elements = ["C", "O", "C", "O"]
-    wbo = np.zeros((4, 4))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    wbo[2, 3] = wbo[3, 2] = 1.0
-    g_r = build_graph(elements, wbo, bond_cut=0.2)
-    g_p = build_graph(elements, wbo, bond_cut=0.2)
-
-    bad = {0: 0, 1: 3, 2: 2, 3: 1}
-    before = classify_bonds(bad, wbo, wbo)
-    repaired, stats = symmetry_repair_mapping(
-        bad, wbo, wbo, g_r, g_p,
-        p_orbits={0: 0, 1: 1, 2: 2, 3: 1},
-        min_changes=1,
-        return_stats=True,
-    )
-    after = classify_bonds(repaired, wbo, wbo)
-
-    assert (len(before[0]), len(before[1])) == (2, 2)
-    assert (len(after[0]), len(after[1])) == (2, 2)
-    assert repaired == bad
-    assert stats["repaired"] is False
-
-
-def test_symmetry_repair_accepts_strict_local_automorphism():
-    elements = ["C", "H", "H"]
-    wbo = np.zeros((3, 3))
-    wbo[0, 1] = wbo[1, 0] = 0.3
-    wbo[0, 2] = wbo[2, 0] = 1.0
-    g_r = build_graph(elements, wbo, bond_cut=0.2)
-    g_p = build_graph(elements, wbo, bond_cut=0.2)
-    p_orbits = _nauty_orbits(g_p, wbo_tol=1.0)
-
-    bad = {0: 0, 1: 2, 2: 1}
-    repaired, stats = symmetry_repair_mapping(
-        bad, wbo, wbo, g_r, g_p, p_orbits,
-        min_changes=1, return_stats=True)
-    after = classify_bonds(repaired, wbo, wbo)
-
-    assert repaired == {0: 0, 1: 1, 2: 2}
-    assert (len(after[0]), len(after[1])) == (0, 0)
-    assert stats["repaired"] is True
+def test_external_subfloor_bonds_do_not_restrict_local_self_relationship():
+    weights = np.zeros((3, 3))
+    weights[0, 1] = weights[1, 0] = 1.
+    weights[0, 2] = weights[2, 0] = .4
+    source = build_graph(['C', 'C', 'O'], weights, bond_cut=.5)
+    target = build_graph(['C', 'C', 'O'], weights, bond_cut=.5)
+    result = complete(source, target, {0, 1}, [(0, 1)], .5)
+    relations = [represented([candidate]) for candidate in result.matches]
+    assert set.union(*relations) == {((0, 0), (1, 1)), ((0, 1), (1, 0))}
+    assert sum(map(len, relations)) == 2
 
 
 def test_classify_bonds_uses_lower_metal_event_threshold():
@@ -1083,130 +410,31 @@ def test_mechanism_certificate_distinguishes_pair_orbits_not_vertex_orbits():
     # these two one-bond events.
     n = 5
     elements = ["C"] * n
-    wbo_r = np.full((n, n), 0.5)
+    wbo_r = np.full((n, n), 0.75)
     np.fill_diagonal(wbo_r, 0.0)
     for atom in range(n):
         neighbor = (atom + 1) % n
-        wbo_r[atom, neighbor] = wbo_r[neighbor, atom] = 1.0
+        wbo_r[atom, neighbor] = wbo_r[neighbor, atom] = 1.5
     wbo_cycle = wbo_r.copy()
     wbo_cycle[0, 1] = wbo_cycle[1, 0] = 0.0
     wbo_diagonal = wbo_r.copy()
     wbo_diagonal[0, 2] = wbo_diagonal[2, 0] = 0.0
-    graph_r = build_graph(elements, wbo_r, bond_cut=0.2)
-    r_orbits = _nauty_orbits(graph_r, wbo_tol=0.2)
-    assert len(set(r_orbits.values())) == 1
-    assert _orbit_bond_key([(0, 1)], r_orbits, "R") == (
-        _orbit_bond_key([(0, 2)], r_orbits, "R"))
     mapping = {atom: atom for atom in range(n)}
 
+    from mappa.mappa_core.domain import AAMProblem, MolecularEndpoint
+    from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
+
     def signature(product_wbo):
-        graph_p = build_graph(elements, product_wbo, bond_cut=0.2)
-        return _mechanism_signature(
-            mapping, wbo_r, product_wbo, r_orbits,
-            _nauty_orbits(graph_p, wbo_tol=0.2),
-            elements_R=elements, elements_P=elements,
-            g_R_full=graph_r, symmetry_wbo_tol=0.2)
+        coordinates = np.zeros((n, 3))
+        problem = AAMProblem(MolecularEndpoint(tuple(elements), coordinates, wbo_r),
+                             MolecularEndpoint(tuple(elements), coordinates, product_wbo))
+        index = SignedEventIndex(problem)
+        return index.describe(index.vector(mapping))
 
     cycle_signature = signature(wbo_cycle)
     diagonal_signature = signature(wbo_diagonal)
-    assert len(cycle_signature[0]) == len(diagonal_signature[0]) == 1
-    assert cycle_signature != diagonal_signature
-
-
-def test_cut_sweep_pool_prefers_no_cut_representative():
-    pool = {}
-    sig = (("broken",), ("formed",))
-
-    _pool_add(pool, sig, {0: 1}, ((0, 1),))
-    _pool_add(pool, sig, {0: 0}, ())
-
-    assert pool[sig]["mapping"] == {0: 0}
-    assert pool[sig]["has_no_cut"] is True
-    assert pool[sig]["cuts"] == frozenset({(0, 1)})
-    assert pool[sig]["dedup_count"] == 2
-    assert pool[sig]["branch_symmetry"]["analytical_branch_count"] == 2
-    assert {
-        tuple(sorted(branch["mapping"].items()))
-        for branch in pool[sig]["branches"]
-    } == {((0, 1),), ((0, 0),)}
-
-
-def test_pool_keeps_distinct_completed_branches_under_one_mechanism():
-    pool = {}
-    sig = ((), ())
-
-    _pool_add(pool, sig, {0: 0, 1: 1}, ())
-    _pool_add(pool, sig, {0: 1, 1: 0}, ())
-
-    assert pool[sig]["branch_symmetry"]["analytical_branch_count"] == 2
-    assert len(pool[sig]["branches"]) == 2
-    assert "matching_generators" not in pool[sig]["branch_symmetry"]
-    assert "dedup_witnesses" not in pool[sig]
-
-
-def test_display_symmetry_uses_only_selected_final_candidate_blocks():
-    pool = {}
-    sig = ((), ())
-    selected_local = {
-        "blocks": [
-            {"r_atoms": [0, 1], "p_atoms": [10, 11]},
-            {
-                "r_atoms": [2, 3],
-                "p_atoms": [12, 13],
-                "source": "island_automorph",
-            },
-        ],
-        "fragments": [],
-    }
-    other_local = {
-        "blocks": [{"r_atoms": [4, 5], "p_atoms": [14, 15]}],
-        "fragments": [],
-    }
-
-    _pool_add(pool, sig, {0: 10, 1: 11}, (), selected_local)
-    _pool_add(pool, sig, {0: 11, 1: 10}, (), other_local)
-
-    symmetry = pool[sig]["branch_symmetry"]
-    assert symmetry["selected_branch_index"] == 0
-    assert symmetry["analytical_branch_count"] == 2
-    assert symmetry["color_groups"] == [{
-        "r_atoms": [0, 1],
-        "p_atoms": [10, 11],
-        "sources": ["sym_block"],
-    }]
-
-
-def test_color_groups_do_not_transitively_merge_overlapping_blocks():
-    groups = _color_groups_from_blocks([
-        {
-            "r_atoms": [1, 2],
-            "p_atoms": [10, 11],
-            "source": "sym_block",
-        },
-        {
-            "r_atoms": [2, 3],
-            "p_atoms": [11, 12],
-            "source": "island_automorph",
-        },
-        {
-            "r_atoms": [1, 2],
-            "p_atoms": [10, 11],
-            "source": "exact_automorph_group",
-        },
-    ])
-
-    assert groups == [
-        {
-            "r_atoms": [1, 2],
-            "p_atoms": [10, 11],
-            "sources": ["exact_automorph_group", "sym_block"],
-        },
-        {
-            "r_atoms": [2, 3],
-            "p_atoms": [11, 12],
-            "sources": ["island_automorph"],
-        },
-    ]
+    assert cycle_signature['total'] == diagonal_signature['total'] == 1
+    assert cycle_signature['id'] != diagonal_signature['id']
 
 
 def test_generate_seed_orders_honors_trial_cap():
@@ -1248,154 +476,23 @@ def test_core_atoms_do_not_reorder_seed_sequence(monkeypatch):
 
     def fake_grow_island(_g_R, _g_P, seed, *_args, **_kwargs):
         seen.append(seed)
-        return []
+        return FragmentMatchResult((), False, 0, 100, 0.)
 
-    import mappa.fragment as fragment_mod
+    import mappa.mappa_core.core.matching.api as fragment_mod
     monkeypatch.setattr(fragment_mod, "grow_island", fake_grow_island)
 
     branch_mod.find_islands(
         g, g, [0, 1, 2],
         core_R=[2],
         stop_when_core_mapped=True,
-        p_orbits={0: 0, 1: 1, 2: 2},
-        r_orbits={0: 0, 1: 1, 2: 2},
+
     )
 
     assert seen == [0, 1, 2]
 
 
-def test_match_wbo_graphs_uses_three_seed_contract():
-    elements = ["C", "C", "H"]
-    wbo = np.zeros((3, 3))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    wbo[1, 2] = wbo[2, 1] = 1.0
-
-    result = match_wbo_graphs(
-        elements, wbo, elements, wbo,
-        n_seeds=3, graph_floor=0.2, iso_tol=0.5,
-        repair_symmetry=False,
-    )
-
-    assert result.n_seeds == 3
-    assert result.best is not None
-    assert result.best.score == (0, 0)
-    assert (len(result.best.broken), len(result.best.formed)) == (0, 0)
-
-
-def test_find_islands_reuses_precomputed_orbits(monkeypatch):
-    wbo = np.zeros((2, 2))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    g_r = build_graph(["C", "H"], wbo, bond_cut=0.2)
-    g_p = build_graph(["C", "H"], wbo, bond_cut=0.2)
-
-    def fail_if_called(*args, **kwargs):
-        raise AssertionError("orbits should be supplied by caller")
-
-    monkeypatch.setattr(branch_mod, "_nauty_orbits", fail_if_called)
-    branches = branch_mod.find_islands(
-        g_r, g_p, [0, 1],
-        p_orbits={0: 0, 1: 1},
-        r_orbits={0: 0, 1: 1},
-    )
-
-    assert branches
-    assert next(branches.paths()).mapping == {0: 0, 1: 1}
-
-
-def test_removed_overlap_scorers_are_not_public():
-    import mappa
-    import mappa.modes
-    assert not hasattr(mappa, 'bond_overlap_per_mode')
-    assert not hasattr(mappa.modes, 'bond_overlap_per_mode')
-    assert not hasattr(mappa, 'rxn_overlap_per_mode')
-
-
-def test_cut_sweep_is_core_mechanism_discovery_api():
-    elements = ["C", "C", "H"]
-    wbo = np.zeros((3, 3))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    wbo[1, 2] = wbo[2, 1] = 1.0
-
-    pool = cut_sweep(
-        elements, wbo, elements, wbo,
-        n_workers=0, n_seeds=1, max_branches=100,
-        cut_floor=0.2, symmetry_repair=False,
-    )
-    minimal = select_min_mechanisms(pool)
-
-    assert minimal
-    assert all(len(sig[0]) + len(sig[1]) == 0 for sig in minimal)
-
-
-def test_cut_sweep_respects_hard_anchor_map():
-    elements = ["O", "C", "O"]
-    wbo = np.zeros((3, 3))
-    wbo[0, 1] = wbo[1, 0] = 1.0
-    wbo[1, 2] = wbo[2, 1] = 1.0
-
-    pool = cut_sweep(
-        elements, wbo, elements, wbo,
-        n_workers=0, n_seeds=1, max_branches=100,
-        cut_floor=0.2, symmetry_repair=True,
-        anchor_map={0: 2},
-    )
-    minimal = select_min_mechanisms(pool)
-
-    assert minimal
-    assert all(info["mapping"][0] == 2 for info in minimal.values())
-    assert all(info["mapping"][2] == 0 for info in minimal.values())
-
-    incompatible = cut_sweep(
-        elements, wbo, elements, wbo,
-        n_workers=0, n_seeds=1, max_branches=100,
-        cut_floor=0.2, symmetry_repair=True,
-        anchor_map={0: 1},
-    )
-
-    assert incompatible == {}
-
-
-def test_cut_sweep_preserves_branch_exact_automorph_group():
-    elements = ["H", "H"]
-    wbo = np.zeros((2, 2))
-    wbo[0, 1] = wbo[1, 0] = 0.9
-
-    pool = cut_sweep(
-        elements, wbo, elements, wbo,
-        n_workers=0, n_seeds=1, max_branches=100,
-        cut_floor=0.2, symmetry_repair=False,
-    )
-    info = next(iter(pool.values()))
-    branch_symmetry = info["branch_symmetry"]
-
-    assert branch_symmetry["rule"] == "selected_analytical_branch"
-    assert branch_symmetry["analytical_branch_count"] == 2
-    assert any(
-        block == {
-            "fragment_index": 0,
-            "block_index": 0,
-            "island_idx": 1,
-            "r_atoms": [0, 1],
-            "p_atoms": [0, 1],
-            "extendable": False,
-            "open": False,
-            "assignments": "exact_group",
-            "source": "exact_automorph_group",
-        }
-        for block in branch_symmetry["blocks"]
-    )
-    assert branch_symmetry["color_groups"] == [{
-        "r_atoms": [0, 1],
-            "p_atoms": [0, 1],
-            "sources": ["exact_automorph_group"],
-    }]
-    fragment_symmetry = branch_symmetry["fragments"][0]["symmetry"]
-    assert fragment_symmetry["automorph_blocks"][0]["source"] == (
-        "exact_automorph_group")
-    assert "automorph_generators" not in fragment_symmetry
-
-
-def test_anchored_noop_seed_does_not_keep_pass_loop_alive():
+def test_anchored_noop_seed_does_not_keep_pass_loop_alive(monkeypatch):
+    monkeypatch.setenv('MAPPA_NATIVE', '0')
     elements = ["C", "C", "C"]
     wbo_r = np.zeros((3, 3))
     wbo_r[0, 1] = wbo_r[1, 0] = 1.0

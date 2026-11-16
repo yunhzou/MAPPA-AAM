@@ -22,7 +22,6 @@
   "search_watchdog_seconds": 300,
   "verification_watchdog_seconds": 300,
   "worker_rss_mib": 6144,
-  "partition": "cpu_short",
   "max_array_concurrency": 100,
   "cpus_per_array_task": 1,
   "expected_allocated_cpus_per_task": 2,
@@ -368,5 +367,9 @@
     "pilot.py": "a617c0c94590c486985741279010157a30a9981f1de4b6fe60f410d774c70748",
     "build.sbatch": "89d6ff8b84f2c0c57693819132a0842352d3a8419271a89348705a9a29d88e0b",
     "array.sbatch": "c79182a88e3220d104a50eae53442ddbda18f7486fd76a7ee2adc917744433ea"
+  },
+  "privacy_projection": {
+    "original_sha256": "b93a881cb616721f37380eae0f7f8bc5cfd2c637e7cace3025b48a7500725fbc",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

@@ -1,6 +1,6 @@
 {
-  "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seed_diversity_20260907/random",
-  "baseline_source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907",
+  "source": "private-reference-3e9b0a8ff3b71818b0c2",
+  "baseline_source": "private-reference-0329d2694d516a3fc298",
   "indices": [
     0,
     7,
@@ -321,5 +321,9 @@
     "src/rxn_core/retrosynthesis/enumeration.py": "10545133d700937e3b83478dcd9303569d1ff14dbab7f051cf10dea998057d17",
     "src/rxn_core/retrosynthesis/ranking.py": "8462b01e0e900f6c3b4a85cd64603e60282d61951fb7f1ada85e37c8d3592537",
     "src/rxn_core/retrosynthesis/decision_graph.py": "f38061babdf6f436ee8e1d181b9d3510288b2ed05ad0a2320a52ab004f8f0aa9"
+  },
+  "privacy_projection": {
+    "original_sha256": "9327ea11d075566ebe762669279d08e2288b55ccd9bccabbcb38a519bdf417b8",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

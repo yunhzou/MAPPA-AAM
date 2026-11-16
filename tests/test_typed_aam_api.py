@@ -2,18 +2,11 @@ import numpy as np
 import pytest
 import mappa
 
-from mappa.aam import search_aam
-from mappa.analytical import compile_mechanism_families
-from mappa.mechanisms import group_mechanisms
-from mappa.alignment.post_aam import AtomBijection
-from mappa.ts import analyze_transition_state
-from mappa.domain import (
-    AAMProblem,
-    AAMSearchConfig,
-    MolecularEndpoint,
-    TransitionStateTarget,
-    VibrationalModes, ReactionContext, ResolvedMechanism,
-)
+from mappa.mappa_core.core.search.api import search_aam
+from mappa.mappa_core.domain import AtomBijection
+from mappa.mappa_workflow.ts_analytics.api import analyze_transition_state
+from mappa.mappa_core.domain import AAMProblem, AAMSearchConfig, MolecularEndpoint, VibrationalModes, ReactionContext, ResolvedMechanism
+from mappa.mappa_workflow.ts_analytics.records import TransitionStateTarget
 
 
 def _endpoint(label, coordinates=None):
@@ -58,9 +51,10 @@ def test_aam_problem_accepts_composition_mismatch():
     assert max(len(result.graph.states[t].mapping) for t in result.graph.terminals) == 1
 
 
+@pytest.mark.smoke
 def test_partial_aam_keeps_unmatched_atoms_and_roundtrips(tmp_path):
     import json
-    from mappa.artifacts import aam_record, aam_from_record
+    from mappa.mappa_core.utils.io.records import aam_record, aam_from_record
     source = MolecularEndpoint(('C','Cl'), np.zeros((2,3)), [[0,1],[1,0]])
     target = MolecularEndpoint(('C',), np.zeros((1,3)), [[0]])
     result = search_aam(AAMProblem(source,target), AAMSearchConfig(seed_count=1),intermediate_dir=tmp_path)
@@ -79,7 +73,7 @@ def test_partial_aam_keeps_unmatched_atoms_and_roundtrips(tmp_path):
 
 def test_resume_reuses_completed_cuts_and_rejects_different_config(tmp_path, monkeypatch):
     import importlib,json
-    module=importlib.import_module('mappa.aam')
+    module=importlib.import_module('mappa.mappa_core.core.scheduler.search')
     problem=AAMProblem(_endpoint('R'),_endpoint('P'))
     config=AAMSearchConfig(seed_count=1)
     original=search_aam(problem,config,intermediate_dir=tmp_path)
@@ -92,7 +86,9 @@ def test_resume_reuses_completed_cuts_and_rejects_different_config(tmp_path, mon
     resumed=search_aam(problem,config,intermediate_dir=tmp_path,resume=True)
     assert not calls
     assert json.dumps(resumed.graph.to_record(),sort_keys=True)==expected
-    (tmp_path/'cut_00000.json').unlink()
+    import sqlite3
+    with sqlite3.connect(tmp_path/'archive.sqlite') as index:
+        index.execute("DELETE FROM cuts WHERE number=0")
     resumed=search_aam(problem,config,intermediate_dir=tmp_path,resume=True)
     assert len(calls)==1
     assert json.dumps(resumed.graph.to_record(),sort_keys=True)==expected
@@ -101,7 +97,7 @@ def test_resume_reuses_completed_cuts_and_rejects_different_config(tmp_path, mon
 
 
 @pytest.mark.parametrize('molecule', ['hydrogen', 'ethane'])
-def test_parallel_finalization_preserves_graph_and_reuses_checkpoints(tmp_path,molecule):
+def test_parallel_search_publishes_each_cut_once_and_resumes_without_workers(tmp_path,molecule,monkeypatch):
     import json
     if molecule=='hydrogen':
         problem=AAMProblem(_endpoint('R'),_endpoint('P'))
@@ -116,44 +112,58 @@ def test_parallel_finalization_preserves_graph_and_reuses_checkpoints(tmp_path,m
                               wbo[np.ix_(order,order)]))
     config=AAMSearchConfig(seed_count=3)
     serial=search_aam(problem,config)
+    from mappa.mappa_core.core.scheduler import search as scheduler
+    from types import SimpleNamespace
+    context = scheduler.mp.get_context('fork')
+    pool_starts = []
+    def pool(*args, **kwargs):
+        pool_starts.append((args, kwargs))
+        return context.Pool(*args, **kwargs)
+    monkeypatch.setattr(scheduler.mp, 'get_context', lambda method: SimpleNamespace(Pool=pool))
     parallel=search_aam(problem,config,workers=2,intermediate_dir=tmp_path)
+    assert len(pool_starts) == 1
     normalize=lambda result:json.dumps(result.graph.to_record(),sort_keys=True)
     assert normalize(parallel)==normalize(serial)
-    checkpoints=list(tmp_path.glob('*.finalized.pkl.gz'))
-    assert len(checkpoints)==len(list(tmp_path.glob('cut_*.json')))
+    import sqlite3
+    with sqlite3.connect(tmp_path/'archive.sqlite') as index:
+        assert index.execute("SELECT count(*) FROM cuts").fetchone()[0] == len(parallel.graph.contexts)//config.seed_count
+    checkpoints=list(tmp_path.glob('*.bundle'))
     stamps={p:p.stat().st_mtime_ns for p in checkpoints}
     resumed=search_aam(problem,config,workers=2,intermediate_dir=tmp_path,resume=True)
     assert normalize(resumed)==normalize(serial)
     assert stamps=={p:p.stat().st_mtime_ns for p in checkpoints}
+    assert len(pool_starts) == 1
+    assert resumed.metrics.worker_search_seconds == 0
+    assert resumed.metrics.checkpoint_seconds == 0
 
 
 def test_compressed_checkpoint_preserves_typed_graph_and_json_content(tmp_path):
     import json
-    from mappa.artifacts import aam_record,read_aam_checkpoint
+    from mappa.mappa_core.utils.io.records import aam_record
+    from mappa.mappa_core.utils.io.checkpoints import read_aam_checkpoint
     result=search_aam(AAMProblem(_endpoint('R'),_endpoint('P')),AAMSearchConfig(seed_count=1),
         intermediate_dir=tmp_path,archive_format='checkpoint')
     restored=read_aam_checkpoint(tmp_path/'aam.pkl.gz')
     assert json.dumps(aam_record(restored),sort_keys=True)==json.dumps(aam_record(result),sort_keys=True)
-    assert restored.graph.fragment_placement(0)==result.graph.fragment_placement(0)
+    assert restored.graph.transitions[0].match == result.graph.transitions[0].match
     assert not list(tmp_path.glob('*.tmp'))
-    assert list(tmp_path.glob('cut_*.raw.pkl.gz'))
+    assert list(tmp_path.glob('*.bundle'))
+    assert (tmp_path/'archive.sqlite').exists()
     assert not list(tmp_path.glob('cut_*.json'))
 
 
-def test_checkpoint_resume_accepts_explicit_mixed_cut_formats(tmp_path,monkeypatch):
-    from mappa import aam
-    from mappa.artifacts import raw_cut_paths,read_raw_cut,write_raw_cut
-    problem=AAMProblem(_endpoint('R'),_endpoint('P'))
-    config=AAMSearchConfig(seed_count=1)
-    original=search_aam(problem,config,intermediate_dir=tmp_path)
-    raw=raw_cut_paths(tmp_path)[0]
-    write_raw_cut(read_raw_cut(raw),raw.with_name(raw.stem+'.raw.pkl.gz'))
-    raw.unlink()
-    def forbidden(cut):raise AssertionError('Completed cut was searched again')
-    monkeypatch.setattr(aam,'_search_cut',forbidden)
-    resumed=search_aam(problem,config,intermediate_dir=tmp_path,resume=True,
-                       workers=2,archive_format='checkpoint')
-    assert resumed.graph.to_record()==original.graph.to_record()
+def test_checkpoint_resume_can_change_final_export_without_repeating_search(tmp_path, monkeypatch):
+    from mappa.mappa_core.core.scheduler import search as aam
+    problem = AAMProblem(_endpoint('R'), _endpoint('P'))
+    config = AAMSearchConfig(seed_count=1)
+    original = search_aam(problem, config, intermediate_dir=tmp_path)
+    def forbidden(cut):
+        raise AssertionError('Completed cut was searched again')
+    monkeypatch.setattr(aam, '_search_cut', forbidden)
+    resumed = search_aam(problem, config, intermediate_dir=tmp_path, resume=True,
+                         workers=2, archive_format='checkpoint')
+    assert resumed.graph.to_record() == original.graph.to_record()
+    assert not list(tmp_path.glob('cut_*'))
 
 
 def test_search_aam_returns_complete_typed_hierarchy():
@@ -161,35 +171,23 @@ def test_search_aam_returns_complete_typed_hierarchy():
     result = search_aam(
         problem,
         AAMSearchConfig(
-            seed_count=1, branch_limit=100, symmetry_repair=False),
+            seed_count=1, branch_limit=100),
         workers=1)
 
     assert result.problem is problem
     assert result.graph.transitions
     assert result.branches
-    grouped = group_mechanisms(result)
-    assert grouped.minimum_event_mechanisms()
-    mechanism = grouped.minimum_event_mechanisms()[0]
-    assert mechanism.representative.degree == 2
-    assert mechanism.branches
-    assert mechanism.encounter_count >= 1
-    assert all(branch.hierarchy.fragments for branch in mechanism.branches)
-    fragment = mechanism.branches[0].hierarchy.fragments[0]
-    assert fragment.representative_assignments
-    assert fragment.multiplicity >= 1
-    assert mechanism.branches[0].hierarchy.has_complete_exact_target_groups
-    assert result.metrics.completed_group_requests >= 1
-    assert result.metrics.completed_group_calculations >= 1
+    branch = result.branches[0]
+    assert branch.hierarchy.fragments
+    fragment = branch.hierarchy.fragments[0]
+    from growth_cases import represented
+    assert fragment.witness
+    assert fragment.source_atoms == fragment.target_atoms == (0, 1)
+    assert represented((fragment,)) == {((0,0),(1,1)), ((0,1),(1,0))}
     assert result.metrics.retained_branch_count == len(result.graph.terminals)
 
-    analytical = compile_mechanism_families(
-        grouped, workers=1, minimum_events_only=True)
-    assert analytical.mechanisms
-    family = analytical.mechanisms[0].branches[0]
-    assert family.family.contains(family.representative.as_dict())
-    assert family.aam_branch.hierarchy.has_complete_exact_target_groups
 
-
+@pytest.mark.smoke
 def test_nonempty_ts_processing_uses_exact_endpoint_consensus():
     elements = ("C", "N", "O", "H")
     coordinates = np.array([
@@ -214,7 +212,7 @@ def test_nonempty_ts_processing_uses_exact_endpoint_consensus():
         bonds(((0, 1, 0.5), (2, 3, 0.5),
                (0, 2, 0.5), (1, 3, 0.5))), label="TS")
     config = AAMSearchConfig(
-        seed_count=1, branch_limit=100, symmetry_repair=False)
+        seed_count=1, branch_limit=100)
     rp = ReactionContext(AAMProblem(reactant, product), config, (
         ResolvedMechanism(AtomBijection((0, 1, 2, 3)),
                           ((0, 1), (2, 3)), ((0, 2), (1, 3)), (0, 1, 2, 3)),
@@ -239,7 +237,7 @@ def test_nonempty_ts_processing_uses_exact_endpoint_consensus():
 def test_no_event_mechanism_has_explicit_unscorable_ts_status():
     problem = AAMProblem(_endpoint("R"), _endpoint("P"), name="no_event")
     config = AAMSearchConfig(
-        seed_count=1, branch_limit=100, symmetry_repair=False)
+        seed_count=1, branch_limit=100)
     rp = ReactionContext(problem, config, (
         ResolvedMechanism(AtomBijection((0, 1)), (), (), ()),
     ))

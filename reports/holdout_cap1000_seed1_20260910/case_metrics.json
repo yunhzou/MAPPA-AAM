@@ -44,9 +44,7 @@
     "previous_slap": 0,
     "environment": {
       "index": 0,
-      "host": "bosque1",
       "started": 1789086409.069941,
-      "job": null,
       "affinity": [
         0,
         1,
@@ -135,9 +133,7 @@
     "previous_slap": 6,
     "environment": {
       "index": 1,
-      "host": "bosque50",
       "started": 1789086449.5094476,
-      "job": "467656",
       "affinity": [
         0,
         1,
@@ -226,9 +222,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 2,
-      "host": "bosque50",
       "started": 1789086449.8792138,
-      "job": "467657",
       "affinity": [
         4,
         5,
@@ -317,9 +311,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 3,
-      "host": "bosque50",
       "started": 1789086450.8683648,
-      "job": "467658",
       "affinity": [
         8,
         9,
@@ -408,9 +400,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 4,
-      "host": "bosque50",
       "started": 1789086450.6721447,
-      "job": "467659",
       "affinity": [
         12,
         13,
@@ -499,9 +489,7 @@
     "previous_slap": 1,
     "environment": {
       "index": 5,
-      "host": "bosque50",
       "started": 1789086449.4754822,
-      "job": "467660",
       "affinity": [
         16,
         17,
@@ -590,9 +578,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 6,
-      "host": "bosque70",
       "started": 1789086449.3370125,
-      "job": "467661",
       "affinity": [
         0,
         1,
@@ -681,9 +667,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 7,
-      "host": "bosque70",
       "started": 1789086449.3368793,
-      "job": "467662",
       "affinity": [
         4,
         5,
@@ -772,9 +756,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 8,
-      "host": "bosque70",
       "started": 1789086449.51154,
-      "job": "467663",
       "affinity": [
         8,
         9,
@@ -863,9 +845,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 9,
-      "host": "bosque70",
       "started": 1789086450.7337394,
-      "job": "467664",
       "affinity": [
         12,
         13,
@@ -954,9 +934,7 @@
     "previous_slap": 1,
     "environment": {
       "index": 10,
-      "host": "bosque70",
       "started": 1789086449.3367603,
-      "job": "467665",
       "affinity": [
         16,
         17,
@@ -1045,9 +1023,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 11,
-      "host": "bosque59",
       "started": 1789086449.6089478,
-      "job": "467666",
       "affinity": [
         0,
         1,
@@ -1136,9 +1112,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 12,
-      "host": "bosque59",
       "started": 1789086450.2305064,
-      "job": "467667",
       "affinity": [
         4,
         5,
@@ -1227,9 +1201,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 13,
-      "host": "bosque59",
       "started": 1789086449.3414433,
-      "job": "467668",
       "affinity": [
         8,
         9,
@@ -1318,9 +1290,7 @@
     "previous_slap": 1,
     "environment": {
       "index": 14,
-      "host": "bosque59",
       "started": 1789086449.3409946,
-      "job": "467669",
       "affinity": [
         12,
         13,
@@ -1409,9 +1379,7 @@
     "previous_slap": 1,
     "environment": {
       "index": 15,
-      "host": "bosque59",
       "started": 1789086449.364273,
-      "job": "467670",
       "affinity": [
         16,
         17,
@@ -1500,9 +1468,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 16,
-      "host": "bosque60",
       "started": 1789086449.7974992,
-      "job": "467671",
       "affinity": [
         0,
         1,
@@ -1591,9 +1557,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 17,
-      "host": "bosque50",
       "started": 1789086499.36701,
-      "job": "467672",
       "affinity": [
         0,
         1,
@@ -1682,9 +1646,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 18,
-      "host": "bosque50",
       "started": 1789086499.5168643,
-      "job": "467673",
       "affinity": [
         4,
         5,
@@ -1773,9 +1735,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 19,
-      "host": "bosque50",
       "started": 1789086499.5775657,
-      "job": "467674",
       "affinity": [
         8,
         9,
@@ -1864,9 +1824,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 20,
-      "host": "bosque50",
       "started": 1789086499.6174808,
-      "job": "467675",
       "affinity": [
         12,
         13,
@@ -1955,9 +1913,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 21,
-      "host": "bosque50",
       "started": 1789086499.8248215,
-      "job": "467676",
       "affinity": [
         16,
         17,
@@ -2046,9 +2002,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 22,
-      "host": "bosque70",
       "started": 1789086499.8087163,
-      "job": "467677",
       "affinity": [
         0,
         1,
@@ -2137,9 +2091,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 23,
-      "host": "bosque70",
       "started": 1789086499.4393945,
-      "job": "467678",
       "affinity": [
         4,
         5,
@@ -2228,9 +2180,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 24,
-      "host": "bosque70",
       "started": 1789086499.8198497,
-      "job": "467679",
       "affinity": [
         8,
         9,
@@ -2319,9 +2269,7 @@
     "previous_slap": 5,
     "environment": {
       "index": 25,
-      "host": "bosque70",
       "started": 1789086499.8357465,
-      "job": "467680",
       "affinity": [
         12,
         13,
@@ -2410,9 +2358,7 @@
     "previous_slap": 6,
     "environment": {
       "index": 26,
-      "host": "bosque70",
       "started": 1789086499.5315075,
-      "job": "467681",
       "affinity": [
         16,
         17,
@@ -2501,9 +2447,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 27,
-      "host": "bosque59",
       "started": 1789086499.5626426,
-      "job": "467682",
       "affinity": [
         0,
         1,
@@ -2592,9 +2536,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 28,
-      "host": "bosque59",
       "started": 1789086499.448384,
-      "job": "467683",
       "affinity": [
         4,
         5,
@@ -2683,9 +2625,7 @@
     "previous_slap": 5,
     "environment": {
       "index": 29,
-      "host": "bosque59",
       "started": 1789086499.6864383,
-      "job": "467684",
       "affinity": [
         8,
         9,
@@ -2774,9 +2714,7 @@
     "previous_slap": 5,
     "environment": {
       "index": 30,
-      "host": "bosque59",
       "started": 1789086499.5436695,
-      "job": "467685",
       "affinity": [
         12,
         13,
@@ -2865,9 +2803,7 @@
     "previous_slap": 9,
     "environment": {
       "index": 31,
-      "host": "bosque59",
       "started": 1789086499.9273741,
-      "job": "467686",
       "affinity": [
         16,
         17,
@@ -2956,9 +2892,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 32,
-      "host": "bosque60",
       "started": 1789086499.8481257,
-      "job": "467687",
       "affinity": [
         0,
         1,
@@ -3047,9 +2981,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 33,
-      "host": "bosque50",
       "started": 1789086510.8152525,
-      "job": "467688",
       "affinity": [
         0,
         1,
@@ -3138,9 +3070,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 34,
-      "host": "bosque50",
       "started": 1789086510.8094482,
-      "job": "467689",
       "affinity": [
         12,
         13,
@@ -3229,9 +3159,7 @@
     "previous_slap": 1,
     "environment": {
       "index": 35,
-      "host": "bosque50",
       "started": 1789086510.843325,
-      "job": "467690",
       "affinity": [
         16,
         17,
@@ -3320,9 +3248,7 @@
     "previous_slap": 1,
     "environment": {
       "index": 36,
-      "host": "bosque70",
       "started": 1789086510.9233346,
-      "job": "467691",
       "affinity": [
         0,
         1,
@@ -3411,9 +3337,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 37,
-      "host": "bosque70",
       "started": 1789086510.9865966,
-      "job": "467692",
       "affinity": [
         4,
         5,
@@ -3502,9 +3426,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 38,
-      "host": "bosque70",
       "started": 1789086510.9236295,
-      "job": "467693",
       "affinity": [
         8,
         9,
@@ -3593,9 +3515,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 39,
-      "host": "bosque70",
       "started": 1789086529.1957126,
-      "job": "467694",
       "affinity": [
         0,
         1,
@@ -3684,9 +3604,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 40,
-      "host": "bosque70",
       "started": 1789086530.0615892,
-      "job": "467695",
       "affinity": [
         4,
         5,
@@ -3775,9 +3693,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 41,
-      "host": "bosque70",
       "started": 1789086529.7489061,
-      "job": "467696",
       "affinity": [
         8,
         9,
@@ -3866,9 +3782,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 42,
-      "host": "bosque50",
       "started": 1789086529.4813035,
-      "job": "467697",
       "affinity": [
         0,
         1,
@@ -3957,9 +3871,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 43,
-      "host": "bosque50",
       "started": 1789086529.7437181,
-      "job": "467698",
       "affinity": [
         4,
         5,
@@ -4048,9 +3960,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 44,
-      "host": "bosque50",
       "started": 1789086529.474251,
-      "job": "467699",
       "affinity": [
         8,
         9,
@@ -4139,9 +4049,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 45,
-      "host": "bosque50",
       "started": 1789086529.5820255,
-      "job": "467700",
       "affinity": [
         12,
         13,
@@ -4230,9 +4138,7 @@
     "previous_slap": 1,
     "environment": {
       "index": 46,
-      "host": "bosque50",
       "started": 1789086529.883274,
-      "job": "467701",
       "affinity": [
         16,
         17,
@@ -4321,9 +4227,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 47,
-      "host": "bosque59",
       "started": 1789086529.5185132,
-      "job": "467702",
       "affinity": [
         0,
         1,
@@ -4412,9 +4316,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 48,
-      "host": "bosque59",
       "started": 1789086529.4101326,
-      "job": "467703",
       "affinity": [
         8,
         9,
@@ -4503,9 +4405,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 49,
-      "host": "bosque59",
       "started": 1789086529.828679,
-      "job": "467704",
       "affinity": [
         12,
         13,
@@ -4594,9 +4494,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 50,
-      "host": "bosque59",
       "started": 1789086529.4319384,
-      "job": "467705",
       "affinity": [
         16,
         17,
@@ -4685,9 +4583,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 51,
-      "host": "bosque60",
       "started": 1789086531.2696462,
-      "job": "467706",
       "affinity": [
         0,
         1,
@@ -4776,9 +4672,7 @@
     "previous_slap": 1,
     "environment": {
       "index": 52,
-      "host": "bosque70",
       "started": 1789086559.4800863,
-      "job": "467707",
       "affinity": [
         0,
         1,
@@ -4867,9 +4761,7 @@
     "previous_slap": 1,
     "environment": {
       "index": 53,
-      "host": "bosque70",
       "started": 1789086559.5925004,
-      "job": "467708",
       "affinity": [
         4,
         5,
@@ -4958,9 +4850,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 54,
-      "host": "bosque70",
       "started": 1789086559.4324043,
-      "job": "467709",
       "affinity": [
         8,
         9,
@@ -5049,9 +4939,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 55,
-      "host": "bosque70",
       "started": 1789086559.3839893,
-      "job": "467710",
       "affinity": [
         16,
         17,
@@ -5140,9 +5028,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 56,
-      "host": "bosque50",
       "started": 1789086559.5208743,
-      "job": "467711",
       "affinity": [
         0,
         1,
@@ -5231,9 +5117,7 @@
     "previous_slap": 1,
     "environment": {
       "index": 57,
-      "host": "bosque50",
       "started": 1789086560.7644193,
-      "job": "467712",
       "affinity": [
         4,
         5,
@@ -5322,9 +5206,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 58,
-      "host": "bosque50",
       "started": 1789086559.626902,
-      "job": "467713",
       "affinity": [
         8,
         9,
@@ -5413,9 +5295,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 59,
-      "host": "bosque50",
       "started": 1789086559.3814495,
-      "job": "467714",
       "affinity": [
         12,
         13,
@@ -5504,9 +5384,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 60,
-      "host": "bosque50",
       "started": 1789086559.5238736,
-      "job": "467715",
       "affinity": [
         16,
         17,
@@ -5595,9 +5473,7 @@
     "previous_slap": 0,
     "environment": {
       "index": 61,
-      "host": "bosque59",
       "started": 1789086559.6499717,
-      "job": "467716",
       "affinity": [
         0,
         1,
@@ -5686,9 +5562,7 @@
     "previous_slap": 1,
     "environment": {
       "index": 62,
-      "host": "bosque59",
       "started": 1789086559.721478,
-      "job": "467717",
       "affinity": [
         4,
         5,
@@ -5777,9 +5651,7 @@
     "previous_slap": 0,
     "environment": {
       "index": 63,
-      "host": "bosque59",
       "started": 1789086559.624195,
-      "job": "467718",
       "affinity": [
         12,
         13,
@@ -5868,9 +5740,7 @@
     "previous_slap": 9,
     "environment": {
       "index": 64,
-      "host": "bosque59",
       "started": 1789086559.718917,
-      "job": "467719",
       "affinity": [
         16,
         17,
@@ -5959,9 +5829,7 @@
     "previous_slap": 5,
     "environment": {
       "index": 65,
-      "host": "bosque60",
       "started": 1789086559.6952693,
-      "job": "467720",
       "affinity": [
         0,
         1,
@@ -6050,9 +5918,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 66,
-      "host": "bosque70",
       "started": 1789086572.3404045,
-      "job": "467721",
       "affinity": [
         0,
         1,
@@ -6141,9 +6007,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 67,
-      "host": "bosque50",
       "started": 1789086572.6380804,
-      "job": "467722",
       "affinity": [
         12,
         13,
@@ -6232,9 +6096,7 @@
     "previous_slap": 6,
     "environment": {
       "index": 68,
-      "host": "bosque50",
       "started": 1789086572.8906171,
-      "job": "467723",
       "affinity": [
         16,
         17,
@@ -6323,9 +6185,7 @@
     "previous_slap": 6,
     "environment": {
       "index": 69,
-      "host": "bosque59",
       "started": 1789086571.995898,
-      "job": "467724",
       "affinity": [
         0,
         1,
@@ -6414,9 +6274,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 70,
-      "host": "bosque59",
       "started": 1789086571.9973404,
-      "job": "467725",
       "affinity": [
         4,
         5,
@@ -6505,9 +6363,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 71,
-      "host": "bosque59",
       "started": 1789086571.996071,
-      "job": "467726",
       "affinity": [
         8,
         9,
@@ -6596,9 +6452,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 72,
-      "host": "bosque59",
       "started": 1789086572.186194,
-      "job": "467727",
       "affinity": [
         12,
         13,
@@ -6687,9 +6541,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 73,
-      "host": "bosque59",
       "started": 1789086572.0064464,
-      "job": "467728",
       "affinity": [
         16,
         17,
@@ -6778,9 +6630,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 74,
-      "host": "bosque60",
       "started": 1789086572.4441364,
-      "job": "467729",
       "affinity": [
         0,
         1,
@@ -6869,9 +6719,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 75,
-      "host": "bosque50",
       "started": 1789086588.9929204,
-      "job": "467730",
       "affinity": [
         0,
         1,
@@ -6960,9 +6808,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 76,
-      "host": "bosque50",
       "started": 1789086589.3306072,
-      "job": "467731",
       "affinity": [
         4,
         5,
@@ -7051,9 +6897,7 @@
     "previous_slap": 8,
     "environment": {
       "index": 77,
-      "host": "bosque50",
       "started": 1789086589.346074,
-      "job": "467732",
       "affinity": [
         8,
         9,
@@ -7142,9 +6986,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 78,
-      "host": "bosque50",
       "started": 1789086589.2844205,
-      "job": "467733",
       "affinity": [
         12,
         13,
@@ -7233,9 +7075,7 @@
     "previous_slap": 0,
     "environment": {
       "index": 79,
-      "host": "bosque70",
       "started": 1789086589.1916745,
-      "job": "467734",
       "affinity": [
         0,
         1,
@@ -7324,9 +7164,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 80,
-      "host": "bosque70",
       "started": 1789086589.2088842,
-      "job": "467735",
       "affinity": [
         4,
         5,
@@ -7415,9 +7253,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 81,
-      "host": "bosque70",
       "started": 1789086589.2687886,
-      "job": "467736",
       "affinity": [
         8,
         9,
@@ -7506,9 +7342,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 82,
-      "host": "bosque70",
       "started": 1789086589.1469166,
-      "job": "467737",
       "affinity": [
         16,
         17,
@@ -7597,9 +7431,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 83,
-      "host": "bosque59",
       "started": 1789086589.2253942,
-      "job": "467738",
       "affinity": [
         12,
         13,
@@ -7688,9 +7520,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 84,
-      "host": "bosque59",
       "started": 1789086589.066079,
-      "job": "467739",
       "affinity": [
         16,
         17,
@@ -7779,9 +7609,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 85,
-      "host": "bosque60",
       "started": 1789086589.1074731,
-      "job": "467740",
       "affinity": [
         0,
         1,
@@ -7870,9 +7698,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 86,
-      "host": "bosque50",
       "started": 1789086619.4777002,
-      "job": "467741",
       "affinity": [
         0,
         1,
@@ -7961,9 +7787,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 87,
-      "host": "bosque50",
       "started": 1789086619.7187827,
-      "job": "467742",
       "affinity": [
         12,
         13,
@@ -8052,9 +7876,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 88,
-      "host": "bosque50",
       "started": 1789086619.5532928,
-      "job": "467743",
       "affinity": [
         16,
         17,
@@ -8143,9 +7965,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 89,
-      "host": "bosque70",
       "started": 1789086619.5584152,
-      "job": "467744",
       "affinity": [
         0,
         1,
@@ -8234,9 +8054,7 @@
     "previous_slap": 5,
     "environment": {
       "index": 90,
-      "host": "bosque70",
       "started": 1789086619.410594,
-      "job": "467745",
       "affinity": [
         4,
         5,
@@ -8325,9 +8143,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 91,
-      "host": "bosque70",
       "started": 1789086619.4053319,
-      "job": "467746",
       "affinity": [
         8,
         9,
@@ -8416,9 +8232,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 92,
-      "host": "bosque70",
       "started": 1789086619.8322313,
-      "job": "467747",
       "affinity": [
         16,
         17,
@@ -8507,9 +8321,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 93,
-      "host": "bosque59",
       "started": 1789086619.6155665,
-      "job": "467748",
       "affinity": [
         0,
         1,
@@ -8598,9 +8410,7 @@
     "previous_slap": 1,
     "environment": {
       "index": 94,
-      "host": "bosque59",
       "started": 1789086619.4482067,
-      "job": "467749",
       "affinity": [
         4,
         5,
@@ -8689,9 +8499,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 95,
-      "host": "bosque59",
       "started": 1789086619.6559212,
-      "job": "467750",
       "affinity": [
         8,
         9,
@@ -8780,9 +8588,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 96,
-      "host": "bosque59",
       "started": 1789086619.5682874,
-      "job": "467751",
       "affinity": [
         12,
         13,
@@ -8871,9 +8677,7 @@
     "previous_slap": 7,
     "environment": {
       "index": 97,
-      "host": "bosque59",
       "started": 1789086620.4238472,
-      "job": "467752",
       "affinity": [
         16,
         17,
@@ -8962,9 +8766,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 98,
-      "host": "bosque60",
       "started": 1789086619.728366,
-      "job": "467753",
       "affinity": [
         0,
         1,
@@ -9053,9 +8855,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 99,
-      "host": "bosque59",
       "started": 1789086632.395329,
-      "job": "467754",
       "affinity": [
         0,
         1,
@@ -9144,9 +8944,7 @@
     "previous_slap": 5,
     "environment": {
       "index": 100,
-      "host": "bosque59",
       "started": 1789086633.303586,
-      "job": "467755",
       "affinity": [
         4,
         5,
@@ -9235,9 +9033,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 101,
-      "host": "bosque59",
       "started": 1789086632.0133584,
-      "job": "467756",
       "affinity": [
         8,
         9,
@@ -9326,9 +9122,7 @@
     "previous_slap": 6,
     "environment": {
       "index": 102,
-      "host": "bosque59",
       "started": 1789086631.7660162,
-      "job": "467757",
       "affinity": [
         12,
         13,
@@ -9417,9 +9211,7 @@
     "previous_slap": 6,
     "environment": {
       "index": 103,
-      "host": "bosque60",
       "started": 1789086633.6402187,
-      "job": "467758",
       "affinity": [
         0,
         1,
@@ -9508,9 +9300,7 @@
     "previous_slap": 7,
     "environment": {
       "index": 104,
-      "host": "bosque60",
       "started": 1789086632.1199467,
-      "job": "467759",
       "affinity": [
         4,
         5,
@@ -9599,9 +9389,7 @@
     "previous_slap": 7,
     "environment": {
       "index": 105,
-      "host": "bosque50",
       "started": 1789086648.9370506,
-      "job": "467760",
       "affinity": [
         0,
         1,
@@ -9690,9 +9478,7 @@
     "previous_slap": 7,
     "environment": {
       "index": 106,
-      "host": "bosque50",
       "started": 1789086649.0061066,
-      "job": "467761",
       "affinity": [
         12,
         13,
@@ -9781,9 +9567,7 @@
     "previous_slap": 6,
     "environment": {
       "index": 107,
-      "host": "bosque50",
       "started": 1789086649.38325,
-      "job": "467762",
       "affinity": [
         16,
         17,
@@ -9872,9 +9656,7 @@
     "previous_slap": 6,
     "environment": {
       "index": 108,
-      "host": "bosque70",
       "started": 1789086649.185204,
-      "job": "467763",
       "affinity": [
         0,
         1,
@@ -9963,9 +9745,7 @@
     "previous_slap": 7,
     "environment": {
       "index": 109,
-      "host": "bosque70",
       "started": 1789086649.3186355,
-      "job": "467764",
       "affinity": [
         4,
         5,
@@ -10054,9 +9834,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 110,
-      "host": "bosque70",
       "started": 1789086649.0017977,
-      "job": "467765",
       "affinity": [
         8,
         9,
@@ -10145,9 +9923,7 @@
     "previous_slap": 5,
     "environment": {
       "index": 111,
-      "host": "bosque70",
       "started": 1789086649.366028,
-      "job": "467766",
       "affinity": [
         12,
         13,
@@ -10236,9 +10012,7 @@
     "previous_slap": 6,
     "environment": {
       "index": 112,
-      "host": "bosque70",
       "started": 1789086649.3992374,
-      "job": "467767",
       "affinity": [
         16,
         17,
@@ -10327,9 +10101,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 113,
-      "host": "bosque59",
       "started": 1789086650.8297217,
-      "job": "467768",
       "affinity": [
         0,
         1,
@@ -10418,9 +10190,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 114,
-      "host": "bosque59",
       "started": 1789086649.2554007,
-      "job": "467769",
       "affinity": [
         4,
         5,
@@ -10509,9 +10279,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 115,
-      "host": "bosque59",
       "started": 1789086649.404644,
-      "job": "467770",
       "affinity": [
         8,
         9,
@@ -10600,9 +10368,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 116,
-      "host": "bosque59",
       "started": 1789086649.3348527,
-      "job": "467771",
       "affinity": [
         12,
         13,
@@ -10691,9 +10457,7 @@
     "previous_slap": 1,
     "environment": {
       "index": 117,
-      "host": "bosque59",
       "started": 1789086649.2304144,
-      "job": "467772",
       "affinity": [
         16,
         17,
@@ -10782,9 +10546,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 118,
-      "host": "bosque60",
       "started": 1789086649.0778582,
-      "job": "467773",
       "affinity": [
         0,
         1,
@@ -10873,9 +10635,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 119,
-      "host": "bosque50",
       "started": 1789086679.2210097,
-      "job": "467774",
       "affinity": [
         0,
         1,
@@ -10964,9 +10724,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 120,
-      "host": "bosque50",
       "started": 1789086679.606068,
-      "job": "467775",
       "affinity": [
         8,
         9,
@@ -11055,9 +10813,7 @@
     "previous_slap": 6,
     "environment": {
       "index": 121,
-      "host": "bosque50",
       "started": 1789086679.095829,
-      "job": "467776",
       "affinity": [
         12,
         13,
@@ -11146,9 +10902,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 122,
-      "host": "bosque50",
       "started": 1789086679.3872893,
-      "job": "467777",
       "affinity": [
         16,
         17,
@@ -11237,9 +10991,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 123,
-      "host": "bosque70",
       "started": 1789086679.4840007,
-      "job": "467778",
       "affinity": [
         0,
         1,
@@ -11328,9 +11080,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 124,
-      "host": "bosque70",
       "started": 1789086679.477208,
-      "job": "467779",
       "affinity": [
         4,
         5,
@@ -11419,9 +11169,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 125,
-      "host": "bosque70",
       "started": 1789086679.4936442,
-      "job": "467780",
       "affinity": [
         8,
         9,
@@ -11510,9 +11258,7 @@
     "previous_slap": 3,
     "environment": {
       "index": 126,
-      "host": "bosque70",
       "started": 1789086679.3145583,
-      "job": "467781",
       "affinity": [
         12,
         13,
@@ -11601,9 +11347,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 127,
-      "host": "bosque70",
       "started": 1789086679.4045084,
-      "job": "467782",
       "affinity": [
         16,
         17,
@@ -11692,9 +11436,7 @@
     "previous_slap": 5,
     "environment": {
       "index": 128,
-      "host": "bosque59",
       "started": 1789086679.411053,
-      "job": "467783",
       "affinity": [
         0,
         1,
@@ -11783,9 +11525,7 @@
     "previous_slap": 8,
     "environment": {
       "index": 129,
-      "host": "bosque59",
       "started": 1789086679.3449643,
-      "job": "467784",
       "affinity": [
         4,
         5,
@@ -11874,9 +11614,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 130,
-      "host": "bosque59",
       "started": 1789086679.509103,
-      "job": "467785",
       "affinity": [
         8,
         9,
@@ -11965,9 +11703,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 131,
-      "host": "bosque59",
       "started": 1789086679.4507642,
-      "job": "467786",
       "affinity": [
         12,
         13,
@@ -12056,9 +11792,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 132,
-      "host": "bosque59",
       "started": 1789086679.4629736,
-      "job": "467787",
       "affinity": [
         16,
         17,
@@ -12147,9 +11881,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 133,
-      "host": "bosque60",
       "started": 1789086679.3178887,
-      "job": "467788",
       "affinity": [
         0,
         1,
@@ -12238,9 +11970,7 @@
     "previous_slap": 6,
     "environment": {
       "index": 134,
-      "host": "bosque50",
       "started": 1789086692.8267815,
-      "job": "467789",
       "affinity": [
         0,
         1,
@@ -12329,9 +12059,7 @@
     "previous_slap": 5,
     "environment": {
       "index": 135,
-      "host": "bosque50",
       "started": 1789086692.2554724,
-      "job": "467790",
       "affinity": [
         8,
         9,
@@ -12420,9 +12148,7 @@
     "previous_slap": 5,
     "environment": {
       "index": 136,
-      "host": "bosque70",
       "started": 1789086692.8233116,
-      "job": "467791",
       "affinity": [
         12,
         13,
@@ -12511,9 +12237,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 137,
-      "host": "bosque70",
       "started": 1789086692.071959,
-      "job": "467792",
       "affinity": [
         16,
         17,
@@ -12602,9 +12326,7 @@
     "previous_slap": 4,
     "environment": {
       "index": 138,
-      "host": "bosque59",
       "started": 1789086692.825001,
-      "job": "467793",
       "affinity": [
         0,
         1,
@@ -12693,9 +12415,7 @@
     "previous_slap": 2,
     "environment": {
       "index": 139,
-      "host": "bosque59",
       "started": 1789086692.8248837,
-      "job": "467655",
       "affinity": [
         4,
         5,

@@ -1,20 +1,7 @@
 {
-  "job": "469650",
-  "command": [
-    "sbatch",
-    "--parsable",
-    "--partition=cpunodes_nia",
-    "--nodelist=bosque83,bosque84",
-    "--nodes=1",
-    "--cpus-per-task=1",
-    "--mem=16G",
-    "--time=00:05:00",
-    "--no-requeue",
-    "--array=68,101%2",
-    "--job-name=metal_score_profile",
-    "--output=/project/yunhengzou/coordinate_alignment/aam_benchmarks/metal_binary_20260911/analysis_profile/profile_%A_%a.out",
-    "--wrap",
-    "env PYTHONPATH=/project/yunhengzou/coordinate_alignment/aam_benchmarks/metal_binary_20260911/original/src:/project/yunhengzou/coordinate_alignment/aam_benchmarks/metal_binary_20260911/engine/bench PYTHONDONTWRITEBYTECODE=1 RXN_CORE_NATIVE=1 PYTHONHASHSEED=0 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 timeout --kill-after=5s 180 /project/yunhengzou/coordinate_alignment/.venv/bin/python /project/yunhengzou/coordinate_alignment/aam_benchmarks/metal_binary_20260911/analysis_profile/profile.py \"$SLURM_ARRAY_TASK_ID\""
-  ],
-  "driver_sha256": "0bfca319224766072b3fa01a5cfddad31ca0714d00a07418e48e97d3dfb175e4"
+  "driver_sha256": "0bfca319224766072b3fa01a5cfddad31ca0714d00a07418e48e97d3dfb175e4",
+  "privacy_projection": {
+    "original_sha256": "6a56456d2364b99d9072d3939a5ebdd813865f9116caf6d17448dadd8f1faca8",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

@@ -1,7 +1,11 @@
 {
-  "full_run": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_three_seeds_bidirectional_20260910",
-  "native_engine": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_three_seeds_bidirectional_20260910/original",
-  "full_archives": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_three_seeds_bidirectional_20260910/results",
-  "frozen_driver": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_three_seeds_bidirectional_20260910/aam_seed_ablation.py",
-  "baseline": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/adaptive_full_20260910"
+  "full_run": "private-reference-ec9dc8092fd9e6360199",
+  "native_engine": "private-reference-ae356c63f8afa8719016",
+  "full_archives": "private-reference-a574004dfff9bc7d7bcc",
+  "frozen_driver": "private-reference-14a77aa9dfc6c613add1",
+  "baseline": "private-reference-e121f80a822de0f727ea",
+  "privacy_projection": {
+    "original_sha256": "f84bfbe550d5bc08ab6c6fabbcaa5a74f5bba1a701fd4d1b2e643756f3649d18",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

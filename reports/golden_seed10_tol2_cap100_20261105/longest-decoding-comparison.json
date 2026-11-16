@@ -1,0 +1,311 @@
+{
+  "schema": "mappa.longest_seed10_decode_comparison/v1",
+  "case": "01606/reverse",
+  "selection": {
+    "scope_directions": 3702,
+    "completed_decodes": 3690,
+    "incomplete_decodes": 12,
+    "method": "Largest recorded decoding compute CPU among completed directions; wall-time ranking selects the same case.",
+    "direction_records_sha256": "0042c822a569b3448c548cfe39aae0d350133bfee49a465498a4556ab386b7ed",
+    "historical_stage": {
+      "status": "complete",
+      "consumed_seconds": 521.9440865516663,
+      "tasks": 1,
+      "attempts": 1,
+      "cpu_seconds": 521.8521229799999,
+      "compute_seconds": 521.941693682922,
+      "publish_seconds": 2.9540720970835537,
+      "publish_cpu_seconds": 2.9413408610000715,
+      "total_cpu_seconds": 524.794569185,
+      "failed_sampled_cpu_seconds": 0.0,
+      "memory_samples": 2614,
+      "peak_tree_rss_bytes": 2134523904,
+      "unmeasured_compute_attempts": 0,
+      "unsampled_memory_attempts": 0,
+      "result_bytes": 5652998
+    }
+  },
+  "revisions": {
+    "baseline": {
+      "revision": "b51661d766fc4549aece850a3e5f62e7c1ae230d",
+      "source_identity": "5caf51affb69e1f7683a232ba254e2f8d7a06d5d5db5b0b9756665af6d7c0dc0"
+    },
+    "candidate": {
+      "revision": "df1c3b52fba4dca135b232f72ebf2074b716ba78",
+      "source_identity": "388303f0e0852a8cbe16773061fec7b7a1abbd1631b109aeacac76d5531b30eb"
+    }
+  },
+  "hardware": {
+    "cpu_model": "Apple M4 Pro",
+    "machine": "arm64",
+    "python": "3.12.14",
+    "packages": {
+      "numpy": "2.3.5",
+      "scipy": "1.16.3",
+      "sympy": "1.14.0",
+      "pynauty": "2.8.8.1",
+      "z3-solver": "5.1.0.0"
+    }
+  },
+  "config": {
+    "cut_floor": 0.2,
+    "graph_floor": 0.2,
+    "iso_tolerance": 2.0,
+    "event_threshold": 0.5,
+    "metal_event_threshold": 0.3,
+    "seed_count": 10,
+    "branch_limit": 100,
+    "task_chunksize": 1,
+    "anchors": [],
+    "seed_selection": "random",
+    "random_seed": 42,
+    "sweep_cuts": true
+  },
+  "decode_config": {
+    "threshold": 0.5,
+    "metal_threshold": 0.3,
+    "event_slack": 5,
+    "fragment_seconds": 5.0
+  },
+  "reversed": true,
+  "input": {
+    "original_matching_sha256": "b8c0e04e8ee02b1ec2796d2a48a6845bf1a70fdc2de825163713b88cc216dfee",
+    "local_matching_sha256": "2246e9747f3351e54608435de201402a2998a0d3e3e4372cc0b93708224ba95f",
+    "reference_sha256": "a2a2e03714e7e7fd76d964ef3230ebc2839e1cb431d68123f575a7c34adbdae8",
+    "cuts_sha256": [
+      "c8011861207642fb23e524022fc712e3b8c7c2447111975f95a1e7c9e23b9e6d",
+      "99e25c803d8fdd1602d8f6975240d35e5b005b571482501981d326638285b87b",
+      "622427f77a1bdcc4feec2338edc00605cadbf30c340e400a006144de1d76cb1d",
+      "6112765780b6f7e7b826c430b461b0fee96a7c33cc8ff0761c6e3671ec4d04b6",
+      "8c7da0758404aecbca52df5b8672590036e6edc27ac902516fb086a64be3b5e8",
+      "63e68934764db554c36dda94ccebec1cf5ed4a0d8cd67ac3753f054d85d4de92",
+      "42c30c65401dfc1a7e5d83c4b2a3745652f14254de98842633aa05465f82b64a",
+      "1aaab8576c8592e2fa9f251b865c33a5c39e88cab81b85bcd63d06b250002538",
+      "7392557b40c744447a96bd94baaab42e75d69140e9958ef696e1d158f947f8e4",
+      "5a8015edb58227311012f02d416b9de26db0610e46f9cad06dbb485b11cf6f16",
+      "ea8909b59826e8376e6c39520f6f22fc476c560524a033d4af6c4601d18aa580",
+      "ef153756c353125520fdfca0e786885519823dcd26a4dd38fcd295fa9b983c7d",
+      "d11024b2c011ccd6fe00c422ab451b97aee97c9ac7894a7c6977fca90ebdadf8",
+      "b977d92097cdbde7fb25728f69c2a147064f9f388f632f54a5cae9145af9ed53",
+      "8f860299f09597f32a7f911b5b21be4b17473aa1cd9d10d332bccf5a88d9804c",
+      "aefb447e6ea1eb456ab17f3121c34fe6eb1dc52a73240bf377913ffe6f22387a",
+      "618458185fc232be1e909f9234e151b07d570c6879a434c4fe1a42f30fc5f80b",
+      "7c26c231ffb5773f1e1a63d11e21806a17e9b74fcfde79a3cd704991b0f5b05f",
+      "093326c9a7abfea95cfd8bfceb3769af8c2ac9b48e368fda99389d0f20bd5be3",
+      "4a746751b600060dd79ef156aa629b47709bea910d6c993f684dc01ff5c66e7a",
+      "d8de31aa9090b117aed5ea30e30b0ffc895851b13f0aab9a0b90a07beb5f19b8",
+      "00f6cf65aacb3d9cece53fddd4188345a8a9adfab48f7c493eb96ee2271825ce",
+      "bc5e1e88d5f40ee5aadef1850914833a891177a1490aa9a6bbb3f841ab04a976",
+      "c26c03bb398a60c72bb684004518097f457e10e57cc3028beb580aa7f782ce43",
+      "18b9d3ee0fb56b2494b3ff4b48d16d056dcc31972fd43c11931c1d1a2abfcb82",
+      "7dbac1ba5c0d110960b802a3042438ad3d36e3d7e00bf8c79a19d8eb5ee152fa",
+      "383a1321521878b4e48f471af0f81774c209c8b12fe2404b70324e6d1709883f",
+      "e58b058d9c8cb657012ec902540690909d50ff0cb0ab84460258b8e7df3ae2a2",
+      "65b73eb2c8358de77499595004af186cc889f9ad878bbc53653a2cd96b9b3f33",
+      "0d8641f521633922a340a33372fe7f887e967a368ffc3c10c2a00bba0443d927",
+      "78bcf04da066858e2af3fd1a8660565e3efd12ddb0886f145202c84ed2338322",
+      "bb0f35956e7b598023f8647bbb403437d4b22814f3aef14982bb62fec21064b5",
+      "fed295168f29ed496160b3630cf8becbe5068b44c2db3d4670ab6094069014f0",
+      "d3fc4f8529279863d4b10e8ffafc7a6b8000582af1db23028cf6f4b935bc3868",
+      "214dba9d44a0507f4153b55d5d16d88e6904669387bb6878a024c75972da8db9",
+      "327f6d9c958c9948cb68ec1eb3c3565eab03f9bb26ff8835a4f1cbacdffed06c",
+      "26169eaf67f9839015495cdc77a16a9dce706877ca9a1cc163e0aaae5909b90f",
+      "8ff8f0cde9c0b3d861bcf2035e974fd9c358239b8d562ea5f55c7c0b7380261e",
+      "f991fe242520d6837e0092304c79a95ba58dcd178e83e01e4101899b7cab7988",
+      "d822061b82029e7eb583369347521712e529d22c0a84ad584988f3000698aa8d",
+      "3a218f47d4b16f3101e1e9f2c8c7da683248f344af80155a01077fa2a8be6f68",
+      "db833ed648a20d0e924e794e33059a47d7c9ffaeec07062c315c11d27eea56df",
+      "275f6ca2ff4cb15e9c3cf90f07744fb56cd64ff64c4a390742ff4e82824e3dbc",
+      "83e18b73555677c344dfd2c0062af3655ccd93146ae69e789527b976d42e2d47",
+      "946d30a8aee44b00c931db47ebf1e6c463c2c005e45cce4050bc4973885d505b",
+      "832457f67b8b8a0eafe2737f1628df58c27f79d7523751ec9143303ccc09b762",
+      "0f8a7fc1ad68e0d490245b1d0a92a673e542515336c5e453de8b359e23bf022b",
+      "c927f0d791c0eda6fdd62fa669713b165a48cae5c28f2a8d3c07d49854150542",
+      "4029cc704f3e512270cbf4720e29ee2a0e11f3dab9c7da95f0a84ff19dd7a64f",
+      "510cc9fbb892fddf1cae26e3c6f5028850018ce38f0173ea9a56a0c9545ff6c8",
+      "4ab8086aa2d487b98305743f0414a958b3e75fd5126218346e8daff5d53de6bd",
+      "9b95c0b4c1380bc45a8381380e3f4118ff37f7ff3126143db2add7a2b175158e",
+      "181c9f63c1a9dd968abdf1423e526ef82db78d4606870feaf014e62bcab387e8",
+      "a422777c29df8948375074a006e1554437b39a82228256a1b706de8406c41606",
+      "ca07a1ab110b1a5c94d8bb6bf0bbca1daadd5f8e597daf04e76f041e045b7dae",
+      "34d95a93e9ced61af2a8ad7b47934a3f5aec43c359fa2a6d372ca4dbf6b9b142",
+      "bd4b0ae625687067272365c849d19f268f209c2e38dfdba2129f0fa9c18155fd",
+      "5d14cac29d18c7104529e9b10c4283a7d8ab65d2609eaefc5c7307b7db679ff0",
+      "7884228185bf9cf3a10ddba13c97074abe939e12a1e9f1947bdac0889988548c",
+      "f711b9ba6c0635176559498c3f3d04ee9c5e9c07da2ca7c913cabc51f3f536bb",
+      "0f9356acfe5830f62fae988a1f20060d1af1db5d117b427766abfbc3b28fe96d",
+      "7f1b486efdbacdea8b1508a0f5730b5ec9579ebaab3745e3ddcfa186ea8600c9",
+      "2f9e6488592f19c3b63f6431881982b62dc195282c974886b5afa397da63828e",
+      "2b82bd785b5a40c090a5375ade4c1c90d7bed592f981d8fb65d8bcf0335759a5",
+      "4143d418420574bcfff28720a4daa1f0d0cd285f1f1278d9e23e71f22924359e",
+      "4b8ab88609938df5d7cb1fe5d827045cf392eed36aa3bde7d559ec0685f53829",
+      "8e90b112ee6101311168eb4b6d0ed14c94ef467fe7e21eeed5f29e93ad6dbe92",
+      "c46ccab757d083c0bf29f3c5215c473aadff294b6811d55b69767d7659177a6f",
+      "aa737e518f97abdd04ce3c3eeb88e4f8054e3ed19f660eeab9ba070ed02a92d3",
+      "b262177c427a385ce7e248e67a55870887938ab1b6570dabd73e8df10b5f0bd4",
+      "f936df20a225c574176a0fc7f38282d5a4a3892ecf9bf02f6d4323ed330c4044",
+      "b3d67efd87c199083876b1cf3f6b1d78a99f582b9ed09a652b6ce11eb126bac4",
+      "fd0aa76875d8557490d0b9597536851785dfaf59b2692b39a0670b69a92d212e",
+      "32cf5b8155539ff208e30331f09cc1a39e7e3f7c586aa362b2c5434c37a58c83",
+      "4264ed36a3009e665894354925e973f7ae5b3093ad4cbd31e069a19ba3055348",
+      "dbc41e288f4f98e0cfb43a492d39a3c7f271360a107a906c01f3d0bc1ae2ea17",
+      "b66d13f36c2e912af49e5a88b658e5fe936a8a2393d99ddf86a7090815de17a1",
+      "acbb386a902e8af38467f5d761d1cca7cc2ba53442c11e05f10da9ae452667da",
+      "e0f376310866d3ec319291fa3cc4f1a258259c0cf7f72375e874b7ed5b0eb700",
+      "9f70db332919f8a69e3eaf1bacd4bcdcef2b74f52aad4a7f1ceb672b35117159",
+      "d96ea628cc31439c01f02b4ef063b491ed99205b67d086a542ccfeee466e04cc",
+      "6078b798b074462ce4bbf9f62c27ca627d8d905ebf8031bd4743287706efdcfb",
+      "4d0dfe36cd70f7e40652e2c865b2b2a84b2cbc7c156e7f0895ef0509de6978e2",
+      "af7fb6a60b87dd3a45cbe567f684179e7db7162d12bc62923baf25d6c3d7c946",
+      "e442489b33a937bfb65056e61b14967549674644af65cde2c8c9b2bc4ec02692",
+      "1441c656baff4c2fdd734a02be8da5787d6a31fceb25522b9a4823418d5516f1"
+    ],
+    "cuts": 86,
+    "seed_searches": 860,
+    "transferred_bytes": 7814556,
+    "verified_ranges": 89,
+    "raw_cut_bytes_unchanged": true,
+    "matching_repeated": false
+  },
+  "methodology": {
+    "repetitions": 1,
+    "execution": "Sequential, isolated single-process runs on the same Mac; numerical thread count one.",
+    "baseline_built_from_git": true,
+    "matching_engine_reused": "Matching native sources are identical between the revisions; historical group operations were rebuilt.",
+    "time_limit_seconds": 600,
+    "runner_sha256": "26e6138e96e717a4f1b3e923067a9349283c5deccd2356c1b9b1532a96732952",
+    "phase_scope": "Decoding forces event-window construction. Raw graph loading, reduction, external reference queries, record export, serialization and restoration are timed separately.",
+    "historical_scope": "The original cluster stage includes loading its catalogue and preparing its saved output. Its 521.9 s is context, not a same-hardware pure-decoder baseline.",
+    "scientific_comparison": "Branch-composition hashes, raw path scope, model minimum and catalogue reference membership are checked. Full catalogue equality is not expected across the approved atom-set fragment identity change; every possible mapping and decoded query is not exhaustively compared."
+  },
+  "observations": {
+    "baseline": {
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 2.0819790000000014,
+          "wall_seconds": 2.0832298696041107
+        },
+        "reduction": {
+          "cpu_seconds": 10.263747999999998,
+          "wall_seconds": 10.269472715677693
+        },
+        "verification": {
+          "cpu_seconds": 1.5300139999999995,
+          "wall_seconds": 1.534399416996166
+        },
+        "decoding": {
+          "cpu_seconds": 116.746325,
+          "wall_seconds": 116.80611920822412
+        },
+        "decoded_reference": {
+          "cpu_seconds": 10.057755000000014,
+          "wall_seconds": 10.06478741695173
+        },
+        "export": {
+          "cpu_seconds": 18.491737999999998,
+          "wall_seconds": 18.50277499994263
+        },
+        "serialization": {
+          "cpu_seconds": 0.9205249999999978,
+          "wall_seconds": 0.9212292921729386
+        },
+        "restoration": {
+          "cpu_seconds": 0.7657080000000178,
+          "wall_seconds": 0.7667744578793645
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 86,
+      "seed_searches": 860,
+      "branches": 24523,
+      "families": 64667,
+      "fragments": 2882,
+      "paths": 71199,
+      "branch_composition_sha256": "7fe132edca7e55e174562188f237771422fa9300fc19ef88fe3a9cd6f597bceb",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "unknown",
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "catalogue_content_sha256": null,
+      "minimum_events": 7,
+      "minimum_proven": true,
+      "serialized_bytes": 115634412,
+      "process_lifetime_peak_rss_bytes": 3471884288
+    },
+    "candidate": {
+      "kind": "result",
+      "phases": {
+        "loading": {
+          "cpu_seconds": 2.136259999999999,
+          "wall_seconds": 2.1377075407654047
+        },
+        "reduction": {
+          "cpu_seconds": 1.4207919999999992,
+          "wall_seconds": 1.4216872102115303
+        },
+        "verification": {
+          "cpu_seconds": 0.06295099999999998,
+          "wall_seconds": 0.06295862491242588
+        },
+        "decoding": {
+          "cpu_seconds": 54.00191099999999,
+          "wall_seconds": 54.06911991722882
+        },
+        "decoded_reference": {
+          "cpu_seconds": 9.923655999999994,
+          "wall_seconds": 10.002703791949898
+        },
+        "export": {
+          "cpu_seconds": 18.492326000000006,
+          "wall_seconds": 18.50651075015776
+        },
+        "serialization": {
+          "cpu_seconds": 0.7225069999999931,
+          "wall_seconds": 0.723792958073318
+        },
+        "restoration": {
+          "cpu_seconds": 0.4802140000000037,
+          "wall_seconds": 0.48048812500201166
+        }
+      },
+      "matching_repeated": false,
+      "cuts": 86,
+      "seed_searches": 860,
+      "branches": 24523,
+      "families": 26419,
+      "fragments": 2339,
+      "paths": 71199,
+      "branch_composition_sha256": "7fe132edca7e55e174562188f237771422fa9300fc19ef88fe3a9cd6f597bceb",
+      "catalogue_reference": "recovered",
+      "decoded_reference": {
+        "status": "unknown",
+        "policy": "exact annotated indices in selected decoded window"
+      },
+      "catalogue_content_sha256": null,
+      "minimum_events": 7,
+      "minimum_proven": true,
+      "serialized_bytes": 87086346,
+      "process_lifetime_peak_rss_bytes": 2768453632
+    }
+  },
+  "resources": {
+    "external_memory_guard_bytes": 8589934592,
+    "guard_stops": [],
+    "sampled_peak_rss_bytes": {
+      "baseline": 3471851520,
+      "candidate": 2768453632
+    },
+    "note": "External sampling began during the historical replay and covered the current run; worker lifetime peak RSS includes all phases. These local runs do not establish operation under the original 2 GiB guard."
+  },
+  "comparison": {
+    "decoding_cpu_speedup": 2.1618924745089116,
+    "reduction_cpu_speedup": 7.223962409698256,
+    "catalogue_reference": "recovered in both",
+    "decoded_window_reference": "unknown in both after the 10-second query allowance",
+    "branch_compositions_equal": true,
+    "minimum_events": 7,
+    "minimum_proven": true
+  }
+}

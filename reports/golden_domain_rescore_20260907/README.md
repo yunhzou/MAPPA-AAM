@@ -39,18 +39,8 @@ Top-1 ranking was not optimized over domain alternatives. The correction is to r
 
 ## Artifacts
 
-Final rescoring and all full witnesses:
+Original search archives and full rescoring witnesses are retained privately.
 
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_domain_rescore_v2_20260907`
+Case 775 was rescheduled because it never started. Each task used one worker, a five-minute process watchdog and a six-minute overall limit. No completed calculation was restarted.
 
-Initial full-domain pass:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_domain_rescore_20260907`
-
-Original immutable AAM archives:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907`
-
-Final Slurm array: 440443; case 775 was rescheduled as 440478 because its job never left CONFIGURING. One CPU worker and 24 GiB per job; five-minute process watchdog, six-minute Slurm limit. No original or completed AAM calculation was restarted.
-
-`cases.csv`, `witnesses.json`, `manifest.json` and `slurm_accounting.psv` retain case-level results, full action proofs, the executed source hashes and resource accounting. The implementation has **143 passing regression tests**, including domain alternatives, correlated fragments, locked slots, metadata-only automorphism domains, injectivity and explicit-H feasibility.
+`cases.csv`, `witnesses.json`, `manifest.json` and the private accounting records retain case-level results, full action proofs, the executed source hashes and resource accounting. The implementation has **143 passing regression tests**, including domain alternatives, correlated fragments, locked slots, metadata-only automorphism domains, injectivity and explicit-H feasibility.

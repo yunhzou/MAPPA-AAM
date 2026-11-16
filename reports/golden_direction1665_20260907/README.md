@@ -32,9 +32,7 @@ This establishes a directional difference for this case, not a general guarantee
 ## Evidence and reproducibility
 
 Full data and immutable search source snapshot:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907`
-
+Full artifacts and raw operational records are retained privately.
 `comparison.json` records the scope of each result. `early_recovery.json` preserves the original-orientation certificate-verified witness; `partial_reference_check.json` records the checked reverse cut witnesses. All completed cut files remain on the cluster. No search was rerun to construct the viewers.
 
 Launcher/preparation: `bench/golden_direction_probe.py init`. Scoring/viewers: `bench/golden_direction_probe.py compare --reverse-cut .../cut_00000.json`. The explicit cut argument marks a partial result; no synthetic completed AAM archive is constructed.

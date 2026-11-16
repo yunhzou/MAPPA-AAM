@@ -1,0 +1,316 @@
+"""The same supervised worker consumes an in-process or remote task queue."""
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
+import importlib
+import multiprocessing as mp
+from multiprocessing.managers import BaseManager, Server
+import os
+import resource
+import sys
+from pathlib import Path
+import signal
+import tempfile
+import threading
+import time
+import traceback
+import uuid
+
+from mappa.mappa_core.core.scheduler.resources import tree_rss
+from mappa.mappa_core.core.scheduler.storage import BundleStore
+from mappa.mappa_core.core.scheduler.cache import WorkerCache
+
+
+class Workspace:
+    """One prepared case per worker, plus bounded native caches inside that case."""
+    def __init__(self, scratch, bundles=None, *, store=None):
+        self.scratch = scratch
+        self.writer = store if store is not None else BundleStore(bundles, scratch=scratch)
+        self.prepared_key, self.prepared_value = None, None
+        self.resources = {}
+        self.dependencies = {}
+        self.measurements = {}
+        self.cache = WorkerCache()
+        self.cache.begin(None)
+
+    def prepared(self, key, factory):
+        if key != self.prepared_key:
+            self.release_prepared()
+            self.prepared_value = factory()
+            self.prepared_key = key
+        return self.prepared_value
+
+    def release_prepared(self):
+        """End ownership of case preparation at an explicit stage boundary."""
+        self.prepared_value = None
+        self.prepared_key = None
+        self.resources.clear()
+        self.cache.clear()
+
+    def resource(self, name, key, factory):
+        """Keep one derived resource per stage within the current case."""
+        if name not in self.resources or self.resources[name][0] != key:
+            self.resources[name] = key, factory()
+        return self.resources[name][1]
+
+    def load(self, blob):
+        return self.writer.load(blob)
+
+    def dependency(self, key):
+        return self.load(self.dependencies[key]['blob'])
+
+
+def _compute(connection, scratch, bundles, store=None):
+    os.setsid()
+    workspace = Workspace(scratch, bundles, store=store)
+    connection.send(('ready', None))
+    while True:
+        work = connection.recv()
+        if work is None:
+            break
+        task, dependencies, cache = work
+        workspace.dependencies = dependencies
+        workspace.measurements = {}
+        workspace.cache.begin(cache)
+        cpu, wall = time.process_time(), time.perf_counter()
+        try:
+            module, name = task.operation.split(':', 1)
+            operation = getattr(importlib.import_module(module), name)
+            output = operation(task.payload, workspace)
+            metrics = dict(cpu_seconds=time.process_time()-cpu, compute_seconds=time.perf_counter()-wall,
+                           compute_pid=os.getpid())
+            if workspace.measurements:
+                metrics['measurements'] = workspace.measurements
+            # Stop the work deadline at the compute boundary; allow evidence to publish.
+            connection.send(('publishing', dict(metrics, cache_update=workspace.cache.proposal())))
+            cache_plan = connection.recv()
+            start, publish_cpu = time.perf_counter(), time.process_time()
+            blob = workspace.writer.put(output)
+            del output
+            if workspace.cache.used:
+                try:
+                    metrics['cache_publication'] = workspace.cache.save(cache_plan)
+                except (OSError, ValueError, KeyError) as error:
+                    workspace.cache.metrics['errors'].append(f'save: {error}')
+                metrics['cache'] = workspace.cache.metrics
+            metrics['publish_seconds'] = time.perf_counter()-start
+            metrics['publish_cpu_seconds'] = time.process_time()-publish_cpu
+            metrics['total_cpu_seconds'] = time.process_time()-cpu
+            metrics['process_lifetime_peak_rss_bytes'] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * (1 if sys.platform == 'darwin' else 1024)
+            connection.send(('complete', dict(blob=blob, **metrics)))
+        except Exception:
+            connection.send(('error', dict(error=traceback.format_exc(),
+                cpu_seconds=time.process_time()-cpu, compute_seconds=time.perf_counter()-wall)))
+        finally:
+            workspace.dependencies = {}
+    connection.close()
+
+
+def _stop(process):
+    if process.is_alive():
+        # Child operations may not start pools. Kill their process group if a
+        # library nevertheless spawned children, preserving the stated guard.
+        try:
+            os.killpg(process.pid, signal.SIGTERM) if os.getpgid(process.pid) == process.pid else process.terminate()
+        except ProcessLookupError:
+            pass
+        process.join(2)
+        if process.is_alive():
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass  # The child may exit between is_alive() and killpg().
+    process.join()
+
+
+def worker(queue, *, identity, scratch, bundles=None, memory_bytes, poll_seconds=.2, publish_seconds=120., claim_until=None, store=None):
+    """One compute CPU, no nested pool; limits produce explicit incomplete states.
+
+    psutil is required by the execution extra. The task's memory request is an
+    admission estimate; memory_bytes is this worker's actual process-tree guard.
+    """
+    import psutil
+    worker_id = f'{os.uname().nodename}:{os.getpid()}:{uuid.uuid4().hex}'
+    with tempfile.TemporaryDirectory(prefix='mappa-worker-', dir=scratch) as temporary:
+        parent, child = mp.get_context('spawn').Pipe()
+        process = mp.get_context('spawn').Process(target=_compute, args=(child, temporary, bundles, store))
+        process.start()
+        child.close()
+        try:
+            if not parent.poll(60) or parent.recv()[0] != 'ready':
+                raise RuntimeError('Compute worker failed to initialize')
+            process_stats = psutil.Process(process.pid)
+            queue.worker_ready(worker_id, process.pid)
+            next_sample = 0.
+            while True:
+                if claim_until is not None and time.time() >= claim_until:
+                    return 'retired'
+                claim = queue.claim(worker_id, memory_bytes, identity)
+                if claim['state'] in ('finished', 'insufficient_memory'):
+                    return claim['state']
+                if claim['state'] == 'waiting':
+                    queue.wait_for_work(claim['generation'], max(.5, poll_seconds))
+                    continue
+                task, token = claim['task'], claim['token']
+                parent.send((task, claim['dependencies'], claim.get('cache')))
+                peak, publishing, publication_deadline, monitoring = 0, False, None, 0.
+                phase_peaks = dict(compute=0, publication=0)
+                initial_cpu = None
+                sampled_cpu, samples = 0., 0
+                start, heartbeat = time.perf_counter(), time.monotonic()
+                result = {}
+                while True:
+                    try:
+                        stamp = time.perf_counter()
+                        # Sampling follows the worker clock, not task/message frequency.
+                        if stamp >= next_sample:
+                            resident = tree_rss(process.pid)
+                            peak = max(peak, resident)
+                            phase = 'publication' if publishing else 'compute'
+                            phase_peaks[phase] = max(phase_peaks[phase], resident)
+                            current_cpu = process_stats.cpu_times()
+                            current_cpu = current_cpu.user + current_cpu.system
+                            if initial_cpu is None:
+                                initial_cpu = current_cpu
+                            sampled_cpu = current_cpu - initial_cpu
+                            samples += 1
+                            monitoring += time.perf_counter()-stamp
+                            next_sample = time.perf_counter()+poll_seconds
+                    except psutil.NoSuchProcess:
+                        state = 'error'
+                        result.update(error='Compute process disappeared', exit_code=process.exitcode)
+                        break
+                    if peak > memory_bytes:
+                        state = 'memory_limit'
+                        break
+                    if parent.poll(max(0., next_sample-time.perf_counter())):
+                        state, result = parent.recv()
+                        if state == 'publishing':
+                            if time.time() > claim['deadline']:
+                                state = 'timeout'
+                                break
+                            permission = queue.computed(task.key, token, result.pop('cache_update', None))
+                            if not permission:
+                                return
+                            publishing = True
+                            publication_deadline = time.monotonic()+publish_seconds
+                            parent.send(permission if isinstance(permission, dict) else None)
+                            continue
+                        break
+                    if not process.is_alive():
+                        state, result = 'error', dict(exit_code=process.exitcode)
+                        break
+                    if not publishing and time.time() >= claim['deadline']:
+                        state = 'timeout'
+                        break
+                    if publishing and time.monotonic() >= publication_deadline:
+                        state, result = 'error', dict(error='Evidence publication deadline exceeded')
+                        break
+                    if time.monotonic()-heartbeat >= 5:
+                        if not queue.heartbeat(task.key, token):
+                            return  # lease lost; never accept stale work
+                        heartbeat = time.monotonic()
+                result.update(peak_tree_rss_bytes=peak, phase_peak_tree_rss_bytes=phase_peaks,
+                              memory_guard_bytes=memory_bytes,
+                              memory_sample_interval_seconds=poll_seconds, sampled_cpu_seconds=sampled_cpu,
+                              memory_samples=samples,
+                              phase_at_exit='publication' if publishing else 'compute',
+                              worker=worker_id, monitoring_seconds=monitoring,
+                              elapsed_seconds=time.perf_counter()-start)
+                if state != 'complete':
+                    _stop(process)
+                queue.finish(task.key, token, state, result)
+                if state != 'complete':
+                    print(f'{task.key}: {state}: {result}', flush=True)
+                    # Reset only the worker after a failed computation, never
+                    # resubmit the task or substitute a different algorithm.
+                    return 'failed'
+        except (EOFError, BrokenPipeError):
+            if 'task' in locals():
+                queue.finish(task.key, token, 'error', dict(error='Compute process exited', exit_code=process.exitcode))
+                return 'failed'
+            raise
+        finally:
+            _stop(process)
+            parent.close()
+
+
+def _supervise(queue, options):
+    while worker(queue, **options) == 'failed':
+        pass
+
+
+def run(queue, *, workers=1, identity, scratch, bundles=None, memory_bytes, claim_until=None, store=None):
+    """Use the common worker with one CPU or several local compute processes.
+
+    memory_bytes is a per-worker reservation: workers * memory_bytes must fit
+    the allocation. Slurm workers use this same entry point against connect().
+    """
+    if workers < 1 or memory_bytes < 1:
+        raise ValueError('Positive worker count and per-worker memory are required')
+    for name in ('OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS', 'NUMEXPR_NUM_THREADS'):
+        os.environ[name] = '1'
+    options = dict(identity=identity, scratch=scratch, bundles=bundles, memory_bytes=memory_bytes, claim_until=claim_until, store=store)
+    if workers == 1:
+        _supervise(queue, options)
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as supervisors:
+            futures = [supervisors.submit(_supervise, queue, options) for _ in range(workers)]
+            for future in futures:
+                future.result()
+    return queue.snapshot()
+
+
+class _QueueServer(Server):
+    """Manager transport with a bounded, joinable accept loop."""
+    def serve_forever(self):
+        mp.current_process()._manager_server = self
+        self.listener._listener._socket.settimeout(.2)
+        while not self.stop_event.is_set():
+            try:
+                connection = self.listener.accept()
+            except OSError:
+                continue
+            threading.Thread(target=self.handle_request, args=(connection,), daemon=True).start()
+
+
+@contextmanager
+def coordinator(queue, address, authkey, *, store=None):
+    """Authenticated trusted-cluster transport; metadata stays with its owner.
+
+    Use a private network or SSH tunnel. Never expose Python manager/pickle
+    endpoints to untrusted clients. Credentials belong outside source control.
+    """
+    class Manager(BaseManager):
+        pass
+    Manager.register('queue', callable=lambda: queue,
+                     exposed=('claim', 'heartbeat', 'computed', 'finish', 'snapshot', 'results', 'wait_for_work', 'worker_ready'))
+    if store is not None:
+        Manager.register('store', callable=lambda: store, exposed=('put', 'load'))
+    server = _QueueServer(Manager._registry, address, authkey, 'pickle')
+    server.stop_event = threading.Event()
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield server.address
+    finally:
+        server.stop_event.set()
+        server.listener.close()
+        thread.join(2)
+
+
+def connect(address, authkey):
+    class Manager(BaseManager):
+        pass
+    Manager.register('queue')
+    manager = Manager(address=address, authkey=authkey)
+    manager.connect()
+    return manager.queue()
+
+
+def connect_store(address, authkey):
+    class Manager(BaseManager):
+        pass
+    Manager.register('store')
+    manager = Manager(address=address, authkey=authkey)
+    manager.connect()
+    return manager.store()

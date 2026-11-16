@@ -1,0 +1,4834 @@
+{
+  "schema": "mappa.golden_tolerance_recovery/v1",
+  "observed_utc": "2026-11-03T17:54:29.911861+00:00",
+  "scientific_revision": "dd0efeba6e1c61c15d35f67f174120cef2c54b17",
+  "source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+  "baseline_revision": "1710f690f5c49b34d11de69782aa54b1f4d79304",
+  "cohort": "All 20 reactions without a confirmed recovery in the frozen one-seed, cap-2000, tolerance-1 Golden benchmark: 19 completed misses and one verification timeout.",
+  "config": {
+    "cut_floor": 0.2,
+    "graph_floor": 0.2,
+    "iso_tolerance": 2.0,
+    "event_threshold": 0.5,
+    "metal_event_threshold": 0.3,
+    "seed_count": 1,
+    "branch_limit": 2000,
+    "task_chunksize": 1,
+    "anchors": [],
+    "seed_selection": "random",
+    "random_seed": 42,
+    "sweep_cuts": true,
+    "self_tolerance": 1.0
+  },
+  "scientific_change": {
+    "iso_tolerance": [
+      1.0,
+      2.0
+    ]
+  },
+  "input_index_sha256": "a2ecd54babc13aa16583e8d9ef199e3b1c7345b0c2ad7b14494c9f742889ff6d",
+  "verifier_sha256": "ff3aeb201b44e56b5b8c58cf17948c4c37b0f4a280825af90722f7e1a5f03e9a",
+  "runner_sha256": "c4607ae9f8eadec8d1a9fa2f822d83fc6ecf65bcccae68828318f62313729f9b",
+  "platform": "Apple M4 Pro",
+  "workers": 6,
+  "memory_guard_bytes": 4294967296,
+  "stage_budget_seconds": 3600,
+  "fresh_matching_results_and_caches": true,
+  "event_decoding_performed": false,
+  "reaction_outcomes_complete": true,
+  "all_direction_checks_terminal": true,
+  "direction_check_counts": {
+    "not_recovered": 33,
+    "recovered": 6,
+    "timeout": 1
+  },
+  "reaction_counts": {
+    "not_recovered": 16,
+    "recovered": 4
+  },
+  "newly_recovered_cases": [
+    1553,
+    1739,
+    1740,
+    1799
+  ],
+  "combined_recovery": {
+    "baseline_recovered": 1831,
+    "additional_recovered": 4,
+    "recovered": 1835,
+    "total": 1851,
+    "percent": 99.13560237709346,
+    "definition": "Union of the frozen tolerance-1 full benchmark and this selected tolerance-2 follow-up; not a full benchmark run at tolerance 2."
+  },
+  "matching_directions": 40,
+  "reduced_directions": 40,
+  "matching_cuts": 2033,
+  "matching_reduction_resources": {
+    "matching": {
+      "metrics": {
+        "records": 2033,
+        "states": {
+          "complete": 2033
+        },
+        "compute_cpu_seconds": 112.61457900000006,
+        "total_worker_cpu_seconds": 123.79205500000006,
+        "observed_worker_cpu_seconds": 123.79205500000006,
+        "observed_worker_cpu_sources": {
+          "total_cpu_seconds": 2033
+        },
+        "failed_attempt_sampled_cpu_seconds": 0.0,
+        "total_cpu_sources": {
+          "total_cpu_seconds": 2033
+        },
+        "compute_seconds": 112.91138374689035,
+        "publish_cpu_seconds": 11.08597,
+        "publish_seconds": 17.098009746987373,
+        "monitoring_seconds": 8.03327369876206,
+        "memory_samples": 662,
+        "measurement_coverage": {
+          "cpu_seconds": 2033,
+          "compute_seconds": 2033,
+          "publish_cpu_seconds": 2033,
+          "publish_seconds": 2033,
+          "total_cpu_seconds": 2033,
+          "monitoring_seconds": 2033,
+          "memory_samples": 2033,
+          "sampled_cpu_seconds": 2033,
+          "records_with_memory_samples": 410,
+          "peak_tree_rss_bytes": 2033,
+          "process_lifetime_peak_rss_bytes": 2033,
+          "compute_phase_rss": 2033,
+          "publication_phase_rss": 2033
+        },
+        "peaks": {
+          "peak_tree_rss_bytes": 911032320,
+          "process_lifetime_peak_rss_bytes": 911032320,
+          "compute_sampled_rss_bytes": 911032320,
+          "publication_sampled_rss_bytes": 911032320
+        },
+        "memory_guards_bytes": {
+          "4294967296": 2033
+        },
+        "cache": {
+          "records": 2033,
+          "enabled_records": 2033,
+          "published_records": 72,
+          "load_seconds": 3.5386455834377557,
+          "save_seconds": 2.6356122468132526,
+          "loaded_bytes": 172185504,
+          "saved_bytes": 86110132,
+          "baseline_loads": 0,
+          "fragment_calls": 31670550,
+          "fragment_hits": 30977541,
+          "dependency_checks": 32111441,
+          "max_retained_bytes": 67108857,
+          "max_entries": 19459,
+          "hit_fraction": 0.9781181886642323,
+          "errors": {}
+        }
+      },
+      "timing": {
+        "first_attempt_utc": "2026-11-03T08:34:47.076156+00:00",
+        "last_attempt_utc": "2026-11-03T08:35:10.773668+00:00",
+        "first_attempt_epoch": 1793694887.076156,
+        "last_attempt_epoch": 1793694910.773668,
+        "task_span_seconds": 23.69751214981079,
+        "unique_actual_workers": 6,
+        "peak_overlapping_attempts": 6,
+        "timed_attempts": 2033,
+        "incomplete_attempt_intervals": 0,
+        "mean_total_worker_cpus": 5.223841820078504,
+        "mean_compute_cpus": 4.752168847433177,
+        "mean_observed_worker_cpus": 5.223841820078504,
+        "mean_active_task_attempts": 5.9370259260641705
+      }
+    },
+    "deduplication": {
+      "metrics": {
+        "records": 40,
+        "states": {
+          "complete": 40
+        },
+        "compute_cpu_seconds": 137.203553,
+        "total_worker_cpu_seconds": 150.94379200000003,
+        "observed_worker_cpu_seconds": 150.94379200000003,
+        "observed_worker_cpu_sources": {
+          "total_cpu_seconds": 40
+        },
+        "failed_attempt_sampled_cpu_seconds": 0.0,
+        "total_cpu_sources": {
+          "total_cpu_seconds": 40
+        },
+        "compute_seconds": 137.3502332919743,
+        "publish_cpu_seconds": 13.737902999999985,
+        "publish_seconds": 14.056088953278959,
+        "monitoring_seconds": 8.600408920552582,
+        "memory_samples": 714,
+        "measurement_coverage": {
+          "cpu_seconds": 40,
+          "compute_seconds": 40,
+          "publish_cpu_seconds": 40,
+          "publish_seconds": 40,
+          "total_cpu_seconds": 40,
+          "monitoring_seconds": 40,
+          "memory_samples": 40,
+          "sampled_cpu_seconds": 40,
+          "records_with_memory_samples": 32,
+          "peak_tree_rss_bytes": 40,
+          "process_lifetime_peak_rss_bytes": 40,
+          "compute_phase_rss": 40,
+          "publication_phase_rss": 40
+        },
+        "peaks": {
+          "peak_tree_rss_bytes": 3254632448,
+          "process_lifetime_peak_rss_bytes": 3254648832,
+          "compute_sampled_rss_bytes": 2281766912,
+          "publication_sampled_rss_bytes": 3254632448
+        },
+        "memory_guards_bytes": {
+          "4294967296": 40
+        },
+        "cache": {
+          "hit_fraction": null,
+          "errors": {}
+        }
+      },
+      "timing": {
+        "first_attempt_utc": "2026-11-03T08:35:10.912396+00:00",
+        "last_attempt_utc": "2026-11-03T08:36:16.632123+00:00",
+        "first_attempt_epoch": 1793694910.912396,
+        "last_attempt_epoch": 1793694976.632123,
+        "task_span_seconds": 65.71972703933716,
+        "unique_actual_workers": 6,
+        "peak_overlapping_attempts": 6,
+        "timed_attempts": 40,
+        "incomplete_attempt_intervals": 0,
+        "mean_total_worker_cpus": 2.29678056802718,
+        "mean_compute_cpus": 2.087707286396298,
+        "mean_observed_worker_cpus": 2.29678056802718,
+        "mean_active_task_attempts": 2.308485033226045
+      }
+    }
+  },
+  "reactions": [
+    {
+      "case": 7,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "4618d36d452bb3048c284c6f82849a8cf137a79efc3ab13d118e987b2ce9f1e9"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "4618d36d452bb3048c284c6f82849a8cf137a79efc3ab13d118e987b2ce9f1e9"
+        }
+      }
+    },
+    {
+      "case": 19,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "d4ee18de7090b18b64ff19d26b0f94a3d9e972befb52d995cfe1f5526ac77482"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "d4ee18de7090b18b64ff19d26b0f94a3d9e972befb52d995cfe1f5526ac77482"
+        }
+      }
+    },
+    {
+      "case": 20,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "c1863727e0db6ac814cda4069e812e815a943b8d26b13fd3c3cbaccfe215c228"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "c1863727e0db6ac814cda4069e812e815a943b8d26b13fd3c3cbaccfe215c228"
+        }
+      }
+    },
+    {
+      "case": 44,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "d4ee18de7090b18b64ff19d26b0f94a3d9e972befb52d995cfe1f5526ac77482"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "d4ee18de7090b18b64ff19d26b0f94a3d9e972befb52d995cfe1f5526ac77482"
+        }
+      }
+    },
+    {
+      "case": 590,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "ebf2419c9c82e90fa3f2e3eb1deee94152c12838b5df63a94615c3ee5140a691"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "ebf2419c9c82e90fa3f2e3eb1deee94152c12838b5df63a94615c3ee5140a691"
+        }
+      }
+    },
+    {
+      "case": 867,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "c1863727e0db6ac814cda4069e812e815a943b8d26b13fd3c3cbaccfe215c228"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "c1863727e0db6ac814cda4069e812e815a943b8d26b13fd3c3cbaccfe215c228"
+        }
+      }
+    },
+    {
+      "case": 964,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "375f44eb72f73e41a2af4a6f64446acf3b3bddc7b902c2b15c2f3915caceb7f2"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "375f44eb72f73e41a2af4a6f64446acf3b3bddc7b902c2b15c2f3915caceb7f2"
+        }
+      }
+    },
+    {
+      "case": 986,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "375f44eb72f73e41a2af4a6f64446acf3b3bddc7b902c2b15c2f3915caceb7f2"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "375f44eb72f73e41a2af4a6f64446acf3b3bddc7b902c2b15c2f3915caceb7f2"
+        }
+      }
+    },
+    {
+      "case": 1034,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "4d6b3964e968b1aebc632424717ff924df7579284a9819a24b3168bdee11c8d1"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "4d6b3964e968b1aebc632424717ff924df7579284a9819a24b3168bdee11c8d1"
+        }
+      }
+    },
+    {
+      "case": 1228,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "a40af8800eb45bccf6c3f5f3fc9c39990d68f0cd60f2fd2c17b57a685a3ab329"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "a40af8800eb45bccf6c3f5f3fc9c39990d68f0cd60f2fd2c17b57a685a3ab329"
+        }
+      }
+    },
+    {
+      "case": 1285,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "7e12162f6d5ba44fc319f5ce78d0e28c22e003c83ee80ec4dafdb2f32eefce7c"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "7e12162f6d5ba44fc319f5ce78d0e28c22e003c83ee80ec4dafdb2f32eefce7c"
+        }
+      }
+    },
+    {
+      "case": 1314,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "53411f4b4f9a4663a2468252a15dae6fbe6d40097b2e807ae8054c98ebb5acb0"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "53411f4b4f9a4663a2468252a15dae6fbe6d40097b2e807ae8054c98ebb5acb0"
+        }
+      }
+    },
+    {
+      "case": 1358,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "0fe5475210921aa736a2df89c651c5de28f9535d2adba9ee314afbcbfef04edd"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "0fe5475210921aa736a2df89c651c5de28f9535d2adba9ee314afbcbfef04edd"
+        }
+      }
+    },
+    {
+      "case": 1377,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "f2093d5b8aa3b1dd62480ba5734b393af1c3b5dde3af63c13d2fc06be69e1d58"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "f2093d5b8aa3b1dd62480ba5734b393af1c3b5dde3af63c13d2fc06be69e1d58"
+        }
+      }
+    },
+    {
+      "case": 1475,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "c1863727e0db6ac814cda4069e812e815a943b8d26b13fd3c3cbaccfe215c228"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "c1863727e0db6ac814cda4069e812e815a943b8d26b13fd3c3cbaccfe215c228"
+        }
+      }
+    },
+    {
+      "case": 1553,
+      "baseline": "not_recovered",
+      "outcome": "recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "1ba3eb772275a1ce174a41cf04f8e72eb8df3b80c2a46546e2f81682accccfb4"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "recovered",
+          "result_sha256": "a7e871785be4d36d0815a780e498626f214ef7a132bada30dc1f0f301c7f6e09"
+        }
+      }
+    },
+    {
+      "case": 1568,
+      "baseline": "not_recovered",
+      "outcome": "not_recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "d4ee18de7090b18b64ff19d26b0f94a3d9e972befb52d995cfe1f5526ac77482"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "not_recovered",
+          "result_sha256": "d4ee18de7090b18b64ff19d26b0f94a3d9e972befb52d995cfe1f5526ac77482"
+        }
+      }
+    },
+    {
+      "case": 1739,
+      "baseline": "not_recovered",
+      "outcome": "recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "recovered",
+          "result_sha256": "89e6587df07fadc7f6e63113e223107d62f3f94a2648197256a52a657cf55070"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "recovered",
+          "result_sha256": "1f15068eaf0c63723a42dea8b645d41390a7579361ee93d293387bcbc52819c2"
+        }
+      }
+    },
+    {
+      "case": 1740,
+      "baseline": "not_recovered",
+      "outcome": "recovered",
+      "checks": {
+        "forward": {
+          "state": "complete",
+          "status": "recovered",
+          "result_sha256": "62ae97a45648b51c8b9581070c2f4a133c1a6d3bda88b9fdabd5ef93c46dc181"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "recovered",
+          "result_sha256": "9ae56d6ed6a0dd1fea8a5454440878c469e87f55ead917747e86ff4f7f5ed521"
+        }
+      }
+    },
+    {
+      "case": 1799,
+      "baseline": "unresolved",
+      "outcome": "recovered",
+      "checks": {
+        "forward": {
+          "state": "error",
+          "status": "timeout",
+          "audit_sha256": "6dd7b9c9da01106a7bde843399ff5d91da8e0fcf8c5787c1434044d3f4ddaf91"
+        },
+        "reverse": {
+          "state": "complete",
+          "status": "recovered",
+          "result_sha256": "d36859e5bdbe079171d8e90f6dc628c895b9e0809eae67489a70588ccc6c9f3f"
+        }
+      }
+    }
+  ],
+  "catalogue_size_diagnostic": {
+    "method": "Read each saved catalogue in one separate diagnostic process; count families and paired atom-set compositions without querying or enumerating mappings. Load time includes restoring the saved record. This diagnostic overlapped the verification pass.",
+    "cases": [
+      {
+        "case": 1799,
+        "reversed": true,
+        "families": 10559,
+        "fragment_compositions": 10548,
+        "load_seconds": 2.318
+      },
+      {
+        "case": 590,
+        "reversed": true,
+        "families": 108072,
+        "fragment_compositions": 107416,
+        "load_seconds": 4.75
+      },
+      {
+        "case": 590,
+        "reversed": false,
+        "families": 112242,
+        "fragment_compositions": 112242,
+        "load_seconds": 5.099
+      },
+      {
+        "case": 1799,
+        "reversed": false,
+        "families": 211116,
+        "fragment_compositions": 211102,
+        "load_seconds": 22.896
+      }
+    ]
+  },
+  "configuration_audit": {
+    "case": 7,
+    "families": 5523,
+    "unique_saved_fragments": 685,
+    "all_discovery_edge_tolerances": 2.0,
+    "all_source_and_target_self_tolerances": 1.0,
+    "identity_witnesses_valid": 685,
+    "archived_native_task_and_cache_identity_checked": true
+  },
+  "limitations": [
+    "One seed; the historical 13/21 recovery used ten seeds and adaptive tolerances under the older algorithm.",
+    "Capped nonrecovery does not establish mapping absence.",
+    "The other Golden reactions were not rerun at tolerance 2; no claim of uniform-tolerance coverage or absence of regressions.",
+    "Case 1799 was unresolved at baseline; its recovery is not established to be caused solely by the tolerance change.",
+    "All direction records are terminal. Case 1799 forward timed out at its original budget; its reverse check establishes reaction recovery. No verification retry was performed."
+  ],
+  "ten_seed_followup": {
+    "observed_utc": "2026-11-03T17:48:05.250659+00:00",
+    "cohort": "The 16 reactions with two negative checks in the one-seed tolerance-2 follow-up; prior four recoveries excluded.",
+    "config": {
+      "cut_floor": 0.2,
+      "graph_floor": 0.2,
+      "iso_tolerance": 2.0,
+      "event_threshold": 0.5,
+      "metal_event_threshold": 0.3,
+      "seed_count": 10,
+      "branch_limit": 2000,
+      "task_chunksize": 1,
+      "anchors": [],
+      "seed_selection": "random",
+      "random_seed": 42,
+      "sweep_cuts": true,
+      "self_tolerance": 1.0
+    },
+    "scientific_change": {
+      "seed_count": [
+        1,
+        10
+      ]
+    },
+    "source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+    "input_index_sha256": "de768201723fa54ab862bd9bb4d0943a86b489ec5f04c99581a92b7ce9146b65",
+    "matching_runner_sha256": "c4607ae9f8eadec8d1a9fa2f822d83fc6ecf65bcccae68828318f62313729f9b",
+    "verification_runner_commit": "596b16a09afb802fc5e9d76aba82954176ece8de",
+    "verification_runner_sha256": "454a8c94a5d5a7d319ae56919f432318f792838f20c4ede156f01baf7f5369f9",
+    "verifier_sha256": "ff3aeb201b44e56b5b8c58cf17948c4c37b0f4a280825af90722f7e1a5f03e9a",
+    "workers": 6,
+    "initial_memory_guard_bytes": 4294967296,
+    "fresh_results_and_caches": true,
+    "event_decoding_performed": false,
+    "matching_cuts": 1495,
+    "seed_search_tasks": 14950,
+    "cut_combination_tasks": 1495,
+    "matching_resources": {
+      "metrics": {
+        "records": 16445,
+        "states": {
+          "complete": 16445
+        },
+        "compute_cpu_seconds": 580.7423079999984,
+        "total_worker_cpu_seconds": 787.7640619999961,
+        "observed_worker_cpu_seconds": 787.7640619999961,
+        "failed_attempt_sampled_cpu_seconds": 0.0,
+        "compute_seconds": 583.0919570680708,
+        "publish_cpu_seconds": 206.1914699999996,
+        "publish_seconds": 267.5157098323107,
+        "monitoring_seconds": 57.08037573937327,
+        "memory_samples": 4393,
+        "measurement_coverage": {
+          "cpu_seconds": 16445,
+          "compute_seconds": 16445,
+          "publish_cpu_seconds": 16445,
+          "publish_seconds": 16445,
+          "total_cpu_seconds": 16445,
+          "monitoring_seconds": 16445,
+          "memory_samples": 16445,
+          "sampled_cpu_seconds": 16445,
+          "peak_tree_rss_bytes": 16445,
+          "process_lifetime_peak_rss_bytes": 16445,
+          "records_with_memory_samples": 3521
+        },
+        "observed_worker_cpu_sources": {
+          "total_cpu_seconds": 16445
+        },
+        "peaks": {
+          "peak_tree_rss_bytes": 854261760,
+          "process_lifetime_peak_rss_bytes": 854261760,
+          "compute_sampled_rss_bytes": 854261760,
+          "publication_sampled_rss_bytes": 765362176
+        },
+        "memory_guards_bytes": {
+          "4294967296": 16445
+        },
+        "cache": {
+          "records": 14950,
+          "enabled_records": 14950,
+          "published_records": 459,
+          "load_seconds": 4.587649835506454,
+          "save_seconds": 34.307352212490514,
+          "loaded_bytes": 115278379,
+          "saved_bytes": 1375972488,
+          "baseline_loads": 0,
+          "fragment_calls": 50647079,
+          "fragment_hits": 47619130,
+          "dependency_checks": 59189523,
+          "max_retained_bytes": 67108864,
+          "max_entries": 23450,
+          "errors": {},
+          "hit_fraction": 0.9402147357797278,
+          "load_records": 75
+        }
+      },
+      "timing": {
+        "first_attempt_utc": "2026-11-03T09:12:28.952178+00:00",
+        "last_attempt_utc": "2026-11-03T09:15:06.971248+00:00",
+        "first_attempt_epoch": 1793697148.952178,
+        "last_attempt_epoch": 1793697306.9712481,
+        "task_span_seconds": 158.01907014846802,
+        "unique_actual_workers": 6,
+        "peak_overlapping_attempts": 6,
+        "timed_attempts": 16445,
+        "incomplete_attempt_intervals": 0,
+        "mean_total_worker_cpus": 4.985246788630299,
+        "mean_compute_cpus": 3.6751406488745793,
+        "mean_observed_worker_cpus": 4.985246788630299,
+        "mean_active_task_attempts": 5.9471517787972905
+      }
+    },
+    "initial_reduction_resources": {
+      "metrics": {
+        "records": 32,
+        "states": {
+          "complete": 30,
+          "memory_limit": 2
+        },
+        "compute_cpu_seconds": 593.5232630000002,
+        "total_worker_cpu_seconds": 658.9047959999999,
+        "observed_worker_cpu_seconds": 1030.743864032,
+        "failed_attempt_sampled_cpu_seconds": 371.839068032,
+        "compute_seconds": 596.1391140837222,
+        "publish_cpu_seconds": 65.37866500000004,
+        "publish_seconds": 66.76001162477769,
+        "monitoring_seconds": 63.76092975074425,
+        "memory_samples": 4839,
+        "measurement_coverage": {
+          "cpu_seconds": 30,
+          "compute_seconds": 30,
+          "publish_cpu_seconds": 30,
+          "publish_seconds": 30,
+          "total_cpu_seconds": 30,
+          "monitoring_seconds": 32,
+          "memory_samples": 32,
+          "sampled_cpu_seconds": 32,
+          "peak_tree_rss_bytes": 32,
+          "process_lifetime_peak_rss_bytes": 30,
+          "records_with_memory_samples": 32
+        },
+        "observed_worker_cpu_sources": {
+          "total_cpu_seconds": 30,
+          "sampled_cpu_seconds": 2
+        },
+        "peaks": {
+          "peak_tree_rss_bytes": 4335730688,
+          "process_lifetime_peak_rss_bytes": 2838003712,
+          "compute_sampled_rss_bytes": 4335730688,
+          "publication_sampled_rss_bytes": 2838003712
+        },
+        "memory_guards_bytes": {
+          "4294967296": 32
+        },
+        "cache": {
+          "records": 0,
+          "enabled_records": 0,
+          "published_records": 0,
+          "load_seconds": 0.0,
+          "save_seconds": 0.0,
+          "loaded_bytes": 0,
+          "saved_bytes": 0,
+          "baseline_loads": 0,
+          "fragment_calls": 0,
+          "fragment_hits": 0,
+          "dependency_checks": 0,
+          "max_retained_bytes": 0,
+          "max_entries": 0,
+          "errors": {},
+          "hit_fraction": null
+        }
+      },
+      "timing": {
+        "first_attempt_utc": "2026-11-03T09:15:07.148299+00:00",
+        "last_attempt_utc": "2026-11-03T09:18:31.515622+00:00",
+        "first_attempt_epoch": 1793697307.148299,
+        "last_attempt_epoch": 1793697511.515622,
+        "task_span_seconds": 204.36732292175293,
+        "unique_actual_workers": 6,
+        "peak_overlapping_attempts": 6,
+        "timed_attempts": 32,
+        "incomplete_attempt_intervals": 0,
+        "mean_total_worker_cpus": 3.224120111669114,
+        "mean_compute_cpus": 2.9041984526422806,
+        "mean_observed_worker_cpus": 5.04358450899044,
+        "mean_active_task_attempts": 5.074856463998848
+      }
+    },
+    "same_direction_comparison": {
+      "matching": {
+        "completed_directions": 32,
+        "scope_complete": true,
+        "seed1_compute_cpu_seconds": 39.43443599999999,
+        "seed10_compute_cpu_seconds": 580.7423079999998,
+        "compute_cpu_ratio": 14.7267811310906
+      },
+      "deduplication": {
+        "completed_directions": 30,
+        "scope_complete": false,
+        "seed1_compute_cpu_seconds": 46.238444,
+        "seed10_compute_cpu_seconds": 593.523263,
+        "compute_cpu_ratio": 12.836142647879761
+      },
+      "search_without_combination": {
+        "seed1_compute_cpu_seconds": 39.43443599999999,
+        "seed10_compute_cpu_seconds": 401.1322180000019,
+        "compute_cpu_ratio": 10.17213021634193
+      },
+      "all_reduction_attempts": {
+        "directions": 32,
+        "seed1_complete_directions": 32,
+        "seed10_complete_directions": 30,
+        "seed10_failed_directions": 2,
+        "seed1_complete_compute_cpu_seconds": 81.836559,
+        "seed10_successful_compute_cpu_seconds": 593.5232630000002,
+        "seed10_failed_attempt_sampled_cpu_seconds": 371.839068032,
+        "complete_comparison": false,
+        "note": "Failed attempts have sampled CPU only and did not produce catalogues. Do not treat their cost as a completed-stage speed ratio."
+      }
+    },
+    "cache_snapshot_storage": {
+      "reactions": 16,
+      "baseline_files": 16,
+      "latest_files": 16,
+      "total_bytes": 52869956,
+      "published_snapshots": 459,
+      "snapshot_loads": 75,
+      "errors": 0
+    },
+    "outcomes": {
+      "expected_reactions": 16,
+      "expected_directions": 32,
+      "successful_checks": 21,
+      "direction_outcomes": {
+        "not_recovered": 8,
+        "execution_unresolved": 9,
+        "recovered": 13,
+        "resource_unresolved": 2
+      },
+      "reaction_outcomes": {
+        "not_recovered": 3,
+        "execution_unresolved": 5,
+        "recovered": 7,
+        "resource_unresolved": 1
+      },
+      "recovered_reactions": [
+        20,
+        44,
+        867,
+        964,
+        1034,
+        1228,
+        1314
+      ],
+      "both_direction_negative_reactions": [
+        7,
+        986,
+        1285
+      ],
+      "pending_reactions": [],
+      "resource_unresolved_reactions": [
+        590
+      ],
+      "execution_unresolved_reactions": [
+        19,
+        1358,
+        1377,
+        1475,
+        1568
+      ],
+      "reactions": [
+        {
+          "case": 7,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 19,
+          "status": "execution_unresolved",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "execution_unresolved"
+          }
+        },
+        {
+          "case": 20,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 44,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 590,
+          "status": "resource_unresolved",
+          "directions": {
+            "forward": "resource_unresolved",
+            "reverse": "resource_unresolved"
+          }
+        },
+        {
+          "case": 867,
+          "status": "recovered",
+          "directions": {
+            "forward": "execution_unresolved",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 964,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 986,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 1034,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 1228,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 1285,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 1314,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 1358,
+          "status": "execution_unresolved",
+          "directions": {
+            "forward": "execution_unresolved",
+            "reverse": "execution_unresolved"
+          }
+        },
+        {
+          "case": 1377,
+          "status": "execution_unresolved",
+          "directions": {
+            "forward": "execution_unresolved",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 1475,
+          "status": "execution_unresolved",
+          "directions": {
+            "forward": "execution_unresolved",
+            "reverse": "execution_unresolved"
+          }
+        },
+        {
+          "case": 1568,
+          "status": "execution_unresolved",
+          "directions": {
+            "forward": "execution_unresolved",
+            "reverse": "execution_unresolved"
+          }
+        }
+      ],
+      "all_attempts_terminal": true,
+      "no_event_decoding": true
+    },
+    "combined_recovery": {
+      "recovered": 1842,
+      "total": 1851,
+      "percent": 99.51377633711508,
+      "definition": "Union of the frozen full tolerance-1 benchmark and selected one-seed and ten-seed tolerance-2 follow-ups. Six reactions remain unresolved in the ten-seed study; this is not a complete uniform-setting benchmark."
+    },
+    "reduction_retry": {
+      "case": 590,
+      "workers": 1,
+      "guard_bytes": 8589934592,
+      "matching_reused": true,
+      "fresh_reduction_budget_seconds": 0,
+      "original_failure_records_preserved": true,
+      "outcome": "Both catalogue computations finished, then exceeded the guard during publication. No reference check was attempted.",
+      "forward_compute_peak_rss_bytes": 5837127680,
+      "forward_publication_peak_rss_bytes": 10002808832,
+      "reverse_compute_peak_rss_bytes": 5444812800,
+      "reverse_publication_peak_rss_bytes": 9418997760,
+      "all_attempts_terminal": true,
+      "additional_attempt_metrics": {
+        "stage_records": 4,
+        "states": {
+          "error": 4
+        },
+        "attempted_records": 2,
+        "attempts": 2,
+        "actual_guard_bytes": {
+          "8589934592": 2
+        },
+        "missing_actual_guard_records": 0,
+        "missing_attempt_metrics": 0,
+        "attempt_states": {
+          "memory_limit": 2
+        },
+        "compute_cpu_seconds": 386.31857,
+        "compute_cpu_records": 2,
+        "publication_cpu_seconds": 0,
+        "publication_cpu_records": 0,
+        "total_worker_cpu_seconds": 0,
+        "total_worker_cpu_records": 0,
+        "sampled_cpu_seconds": 403.07984946,
+        "observed_worker_cpu_seconds": 403.07984946,
+        "measurement_scope": "Archived terminal attempts only; active attempts are not included until completion. Missing metric coverage is not zero cost.",
+        "peak_rss_bytes": 10002808832,
+        "phase_peaks_bytes": {
+          "compute": 5837127680,
+          "publication": 10002808832
+        },
+        "first_attempt_epoch": 1793697830.8638878,
+        "last_attempt_epoch": 1793698237.42786,
+        "peak_overlapping_attempts": 1,
+        "unique_workers": 2
+      },
+      "directions": [
+        {
+          "case": "00590/forward",
+          "outcome": "memory_limit",
+          "budget_seconds": 3600.0,
+          "original_spent_seconds": 180.16749620437622,
+          "spent_seconds": 380.13330340385437,
+          "remaining_seconds": 3219.8666965961456,
+          "original_attempts_retained_identically": true,
+          "metrics": {
+            "cpu_seconds": 198.92369200000002,
+            "compute_seconds": 199.96452670893632,
+            "sampled_cpu_seconds": 206.021122652,
+            "elapsed_seconds": 207.41401587496512,
+            "peak_tree_rss_bytes": 10002808832,
+            "phase_peak_tree_rss_bytes": {
+              "compute": 5837127680,
+              "publication": 10002808832
+            },
+            "memory_guard_bytes": 8589934592,
+            "memory_samples": 967,
+            "memory_sample_interval_seconds": 0.2,
+            "phase_at_exit": "publication",
+            "monitoring_seconds": 13.167160084936768
+          }
+        },
+        {
+          "case": "00590/reverse",
+          "outcome": "memory_limit",
+          "budget_seconds": 3600.0,
+          "original_spent_seconds": 193.84330296516418,
+          "spent_seconds": 382.19200325012207,
+          "remaining_seconds": 3217.807996749878,
+          "original_attempts_retained_identically": true,
+          "metrics": {
+            "cpu_seconds": 187.39487799999998,
+            "compute_seconds": 188.34801024990156,
+            "sampled_cpu_seconds": 197.058726808,
+            "elapsed_seconds": 198.41760158305988,
+            "peak_tree_rss_bytes": 9418997760,
+            "phase_peak_tree_rss_bytes": {
+              "compute": 5444812800,
+              "publication": 9418997760
+            },
+            "memory_guard_bytes": 8589934592,
+            "memory_samples": 925,
+            "memory_sample_interval_seconds": 0.2,
+            "phase_at_exit": "publication",
+            "monitoring_seconds": 12.537019051145762
+          }
+        }
+      ]
+    },
+    "limitations": [
+      "The prior one-seed verification tail overlapped this run.",
+      "The two higher-memory reduction retries overlapped reference checks.",
+      "A negative result describes retained capped search coverage, not mapping impossibility.",
+      "No cache-disabled timing control was run.",
+      "Original reduction failures and retry failures remain explicit.",
+      "Nine verification attempts ended with lost leases around host sleep/wake interruptions. Their CPU/RSS metrics are unavailable, so terminal-record completeness is not successful verification completeness.",
+      "No further verification or memory retries were performed.",
+      "Successful verification CPU totals exclude unmeasured work in lost attempts."
+    ],
+    "verification_resources": {
+      "stage_records": 32,
+      "states": {
+        "error": 11,
+        "complete": 21
+      },
+      "attempted_records": 30,
+      "attempts": 30,
+      "actual_guard_bytes": {
+        "4294967296": 21
+      },
+      "missing_actual_guard_records": 9,
+      "missing_attempt_metrics": 9,
+      "attempt_states": {
+        "complete": 21,
+        "lost": 9
+      },
+      "compute_cpu_seconds": 2403.48103,
+      "compute_cpu_records": 21,
+      "publication_cpu_seconds": 0.015002999999815358,
+      "publication_cpu_records": 21,
+      "total_worker_cpu_seconds": 2403.497671,
+      "total_worker_cpu_records": 21,
+      "sampled_cpu_seconds": 2399.901185808,
+      "observed_worker_cpu_seconds": 2403.497671,
+      "measurement_scope": "Archived terminal attempts only; active attempts are not included until completion. Missing metric coverage is not zero cost.",
+      "peak_rss_bytes": 2971926528,
+      "phase_peaks_bytes": {
+        "compute": 2971926528,
+        "publication": 669827072
+      },
+      "first_attempt_epoch": 1793697801.640996,
+      "last_attempt_epoch": 1793705754.5213282,
+      "peak_overlapping_attempts": 6,
+      "unique_workers": 9
+    },
+    "verification_errors": [
+      {
+        "case": "00019/reverse",
+        "classification": "lost",
+        "remaining_seconds": 1767.8815360069275
+      },
+      {
+        "case": "00867/forward",
+        "classification": "lost",
+        "remaining_seconds": 1845.868686914444
+      },
+      {
+        "case": "01358/forward",
+        "classification": "lost",
+        "remaining_seconds": 2172.945817232132
+      },
+      {
+        "case": "01358/reverse",
+        "classification": "lost",
+        "remaining_seconds": 2177.7782990932465
+      },
+      {
+        "case": "01377/forward",
+        "classification": "lost",
+        "remaining_seconds": 2206.425544977188
+      },
+      {
+        "case": "01475/forward",
+        "classification": "lost",
+        "remaining_seconds": 3115.296753883362
+      },
+      {
+        "case": "01475/reverse",
+        "classification": "lost",
+        "remaining_seconds": 3437.8273112773895
+      },
+      {
+        "case": "01568/forward",
+        "classification": "lost",
+        "remaining_seconds": 3437.997559785843
+      },
+      {
+        "case": "01568/reverse",
+        "classification": "lost",
+        "remaining_seconds": 3438.847172021866
+      }
+    ],
+    "verification_retries": 0,
+    "original_matching_reduction_rows_unchanged": true,
+    "matching_reduction_barrier_preserved": true,
+    "verification_proofs": [
+      {
+        "case": "00007/forward",
+        "status": "not_recovered",
+        "heavy_atoms": 29,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "4618d36d452bb3048c284c6f82849a8cf137a79efc3ab13d118e987b2ce9f1e9"
+      },
+      {
+        "case": "00007/reverse",
+        "status": "not_recovered",
+        "heavy_atoms": 29,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "4618d36d452bb3048c284c6f82849a8cf137a79efc3ab13d118e987b2ce9f1e9"
+      },
+      {
+        "case": "00019/forward",
+        "status": "not_recovered",
+        "heavy_atoms": 23,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "d4ee18de7090b18b64ff19d26b0f94a3d9e972befb52d995cfe1f5526ac77482"
+      },
+      {
+        "case": "00020/forward",
+        "status": "recovered",
+        "family": 18446,
+        "heavy_atoms": 18,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "3c2a6d6e3e8284e32b25e68061876bfa562513d47414c6ca62e2cbe37c1a7126"
+      },
+      {
+        "case": "00020/reverse",
+        "status": "recovered",
+        "family": 15509,
+        "heavy_atoms": 18,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "543b3ac8f65c1a6acaed4575735c0b708d24397891b1c82a3bc586e2d19668b1"
+      },
+      {
+        "case": "00044/forward",
+        "status": "recovered",
+        "family": 10025,
+        "heavy_atoms": 23,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "530fbee19290a93407e47fbba1beadb740f407e22e4b60f94a432d6f56500ce4"
+      },
+      {
+        "case": "00044/reverse",
+        "status": "recovered",
+        "family": 4085,
+        "heavy_atoms": 23,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "727b060bb0b47c3ad307a88143afe9b398ab10a36641c4c0ac062c3c8985599b"
+      },
+      {
+        "case": "00867/reverse",
+        "status": "recovered",
+        "family": 2576,
+        "heavy_atoms": 18,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "4dbfdcaae31f66d056c9897b5aa8bc0c3a89030697ca64dabf77e1fcdd92ab1b"
+      },
+      {
+        "case": "00964/forward",
+        "status": "recovered",
+        "family": 25508,
+        "heavy_atoms": 16,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "17e21799abc8b55a81e695114a2a8601060955064ddef7d3256ce8ea2ab5a47c"
+      },
+      {
+        "case": "00964/reverse",
+        "status": "recovered",
+        "family": 35475,
+        "heavy_atoms": 16,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "8507e143d076b23d5fd66c6b1d351b7077e02936e389101e7151174e85667c64"
+      },
+      {
+        "case": "00986/forward",
+        "status": "not_recovered",
+        "heavy_atoms": 16,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "375f44eb72f73e41a2af4a6f64446acf3b3bddc7b902c2b15c2f3915caceb7f2"
+      },
+      {
+        "case": "00986/reverse",
+        "status": "not_recovered",
+        "heavy_atoms": 16,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "375f44eb72f73e41a2af4a6f64446acf3b3bddc7b902c2b15c2f3915caceb7f2"
+      },
+      {
+        "case": "01034/forward",
+        "status": "recovered",
+        "family": 23478,
+        "heavy_atoms": 19,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "40b90d248db5d256adf0fd609d5d0e70a9d4b082f757bcfaf134b0b61c52bc5b"
+      },
+      {
+        "case": "01034/reverse",
+        "status": "recovered",
+        "family": 19182,
+        "heavy_atoms": 19,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "f698fdcfab41269dae28acbeab8158e3a7d2af20491f4065104108b6d1143267"
+      },
+      {
+        "case": "01228/forward",
+        "status": "recovered",
+        "family": 11598,
+        "heavy_atoms": 12,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "4bd988300df1de38e11862edeff42bf9084c3a873fe29c397331a91c1469f6c4"
+      },
+      {
+        "case": "01228/reverse",
+        "status": "recovered",
+        "family": 107293,
+        "heavy_atoms": 12,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "e8b2409aca7f899a344ecc92b8d7fbea855c8e69192eda6893ad69f4476c33f0"
+      },
+      {
+        "case": "01285/forward",
+        "status": "not_recovered",
+        "heavy_atoms": 14,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "7e12162f6d5ba44fc319f5ce78d0e28c22e003c83ee80ec4dafdb2f32eefce7c"
+      },
+      {
+        "case": "01285/reverse",
+        "status": "not_recovered",
+        "heavy_atoms": 14,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "7e12162f6d5ba44fc319f5ce78d0e28c22e003c83ee80ec4dafdb2f32eefce7c"
+      },
+      {
+        "case": "01314/forward",
+        "status": "recovered",
+        "family": 13974,
+        "heavy_atoms": 28,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "4c538961bb2c7f7274e403369a2d348bda1797118623e59273a96ffc476f1712"
+      },
+      {
+        "case": "01314/reverse",
+        "status": "recovered",
+        "family": 27340,
+        "heavy_atoms": 28,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "bed8bb4c0c19eb70ae95519429856e67285d663c0926ee8e32f3165ca4b87659"
+      },
+      {
+        "case": "01377/reverse",
+        "status": "not_recovered",
+        "heavy_atoms": 22,
+        "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry",
+        "result_sha256": "f2093d5b8aa3b1dd62480ba5734b393af1c3b5dde3af63c13d2fc06be69e1d58"
+      }
+    ],
+    "sleep_interruption": {
+      "evidence": "Read-only local power-log inspection; wake times coincide with lost task records.",
+      "intervals": [
+        {
+          "sleep_utc": "2026-11-03T09:51:53Z",
+          "wake_utc": "2026-11-03T11:19:59Z",
+          "duration_seconds": 5286
+        },
+        {
+          "sleep_utc": "2026-11-03T11:20:44Z",
+          "wake_utc": "2026-11-03T11:35:54Z",
+          "duration_seconds": 910
+        }
+      ],
+      "interpretation": "Lost leases are interruption failures, not compute timeouts or negative scientific verdicts. Lost attempts have no returned CPU/RSS metrics; no retry was performed."
+    },
+    "verification_utilization_sample": {
+      "observed_utc_approx": "2026-11-03T09:36:00Z",
+      "interval_seconds": 10.00504575,
+      "active_workers": 6,
+      "aggregate_cpu_cores": 5.99011986,
+      "individual_cpu_fraction_range": [
+        0.998,
+        0.999
+      ],
+      "worker_rss_bytes": [
+        908378112,
+        909017088,
+        727973888,
+        741195776,
+        2902982656,
+        2777628672
+      ],
+      "note": "Sample of actual running verification processes, separate from configured capacity and terminal-attempt totals."
+    },
+    "verification_catalogue_diagnostic": {
+      "observed_unix": 1793728201.569846,
+      "scope": "Selected saved catalogues loaded sequentially in a separate diagnostic process after the benchmark terminated; no rematching or re-verification.",
+      "records": [
+        {
+          "case": "00007/forward",
+          "load_seconds": 1.896326624788344,
+          "load_cpu_seconds": 1.891798,
+          "families": 19218,
+          "verification": "not_recovered",
+          "winning_family": null
+        },
+        {
+          "case": "00007/reverse",
+          "load_seconds": 0.9372800840064883,
+          "load_cpu_seconds": 0.9340710000000003,
+          "families": 7220,
+          "verification": "not_recovered",
+          "winning_family": null
+        },
+        {
+          "case": "00019/forward",
+          "load_seconds": 3.3281743752304465,
+          "load_cpu_seconds": 3.3249510000000004,
+          "families": 64428,
+          "verification": "not_recovered",
+          "winning_family": null
+        },
+        {
+          "case": "01228/forward",
+          "load_seconds": 0.7966741670388728,
+          "load_cpu_seconds": 0.7930909999999995,
+          "families": 28025,
+          "verification": "recovered",
+          "winning_family": 11598
+        },
+        {
+          "case": "01228/reverse",
+          "load_seconds": 11.27157162502408,
+          "load_cpu_seconds": 11.267692999999998,
+          "families": 322957,
+          "verification": "recovered",
+          "winning_family": 107293
+        },
+        {
+          "case": "01314/forward",
+          "load_seconds": 2.163406833074987,
+          "load_cpu_seconds": 2.161195000000003,
+          "families": 38826,
+          "verification": "recovered",
+          "winning_family": 13974
+        },
+        {
+          "case": "01314/reverse",
+          "load_seconds": 6.205138042103499,
+          "load_cpu_seconds": 6.198022999999999,
+          "families": 130351,
+          "verification": "recovered",
+          "winning_family": 27340
+        },
+        {
+          "case": "01377/reverse",
+          "load_seconds": 20.03145991708152,
+          "load_cpu_seconds": 20.025847,
+          "families": 470474,
+          "verification": "not_recovered",
+          "winning_family": null
+        }
+      ]
+    },
+    "historical_verification_diagnostic": {
+      "historical_revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+      "current_scientific_revision": "dd0efeba6e1c61c15d35f67f174120cef2c54b17",
+      "settings": {
+        "seed_count": 10,
+        "branch_limit": 2000,
+        "iso_tolerance": 2.0
+      },
+      "scope": "Same selected inputs and search settings across different scientific implementations. Historical query CPU excludes catalogue load; current task CPU includes it. Separate current load timings are warm, not a subtraction control. Execution layouts and retained mapping relations differ.",
+      "records": [
+        {
+          "case": 1228,
+          "direction": "forward",
+          "historical_families": 33865,
+          "current_families": 28025,
+          "historical_query_cpu_seconds": 3.488685,
+          "current_task_cpu_seconds": 27.051795,
+          "separate_current_warm_load_cpu_seconds": 0.793091
+        },
+        {
+          "case": 1228,
+          "direction": "reverse",
+          "historical_families": 293377,
+          "current_families": 322957,
+          "historical_query_cpu_seconds": 18.642396,
+          "current_task_cpu_seconds": 16.517999,
+          "separate_current_warm_load_cpu_seconds": 11.267693
+        },
+        {
+          "case": 1314,
+          "direction": "forward",
+          "historical_families": 51525,
+          "current_families": 38826,
+          "historical_query_cpu_seconds": 5.910221,
+          "current_task_cpu_seconds": 89.327891,
+          "separate_current_warm_load_cpu_seconds": 2.161195
+        },
+        {
+          "case": 1314,
+          "direction": "reverse",
+          "historical_families": 167376,
+          "current_families": 130351,
+          "historical_query_cpu_seconds": 10.361042,
+          "current_task_cpu_seconds": 41.348543,
+          "separate_current_warm_load_cpu_seconds": 6.198023
+        }
+      ],
+      "source_findings": [
+        {
+          "finding": "verify_catalogue and query_path wrappers are AST-identical; per-family rebuilding existed historically.",
+          "sources": [
+            "bench/golden.py:52",
+            "src/mappa/mappa_workflow/mapping_analytics/family.py:137"
+          ]
+        },
+        {
+          "finding": "Historical compilation used per-source compatible target sets, then reference restrictions and propagation before remaining bond tables. Current early rejection uses a global reachable-target union and compiles local relations before conditioning on the reference.",
+          "sources": [
+            "src/mappa/mappa_workflow/mapping_analytics/family.py:40",
+            "src/mappa/mappa_workflow/mapping_analytics/family.py:51",
+            "src/mappa/mappa_workflow/mapping_analytics/family.py:73"
+          ]
+        },
+        {
+          "finding": "Current compilation constructs complete discovery choices and both constrained relaxed self-actions. Allowed-pair tables are rebuilt per compilation; downstream component caching cannot avoid this preceding work. The added two-sided coverage is required.",
+          "sources": [
+            "src/mappa/mappa_core/core/symmetry/constraints.py:336",
+            "src/mappa/mappa_core/core/symmetry/constraints.py:371"
+          ]
+        }
+      ],
+      "interpretation": "Family count alone does not explain the measurements. Earlier rejection and shared preparation are concrete optimization targets; static code evidence does not apportion the measured cost. No algorithm change or new verification run was used for this comparison."
+    },
+    "verification_prefix_profile": {
+      "case": 1314,
+      "catalogue_blob_sha256": "af3cb2646a42caf7480661368549f82b8f08b60c47aee79efeb94bf381272bd3",
+      "catalogue_families": 38826,
+      "catalogue_load": {
+        "cpu_seconds": 2.109266,
+        "wall_seconds": 2.111772542120889
+      },
+      "config": {
+        "anchors": [],
+        "branch_limit": 2000,
+        "cut_floor": 0.2,
+        "event_threshold": 0.5,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2,
+        "metal_event_threshold": 0.3,
+        "random_seed": 42,
+        "seed_count": 10,
+        "seed_selection": "random",
+        "self_tolerance": 1,
+        "sweep_cuts": true,
+        "task_chunksize": 1
+      },
+      "direction": "forward",
+      "encoding_cpu_fraction_of_query_phases": 0.9825185791723869,
+      "limitations": [
+        "One cold-process prefix of this saved catalogue, not all families or a historical paired comparison.",
+        "cProfile instrumentation overhead is included in loop and per-query phase timings; cumulative owners overlap and must not be added together.",
+        "Loop budget is checked between queries. The original per-query budget does not interrupt preparation; an outer diagnostic-process guard bounds this probe.",
+        "Catalogue loading was measured separately. No matching, reduction, saved scientific task or source code was changed.",
+        "This observation does not identify which prefix behaviors dominate the full89.33-second saved verification task."
+      ],
+      "maximum_profiled_query_cpu_seconds": 0.540721,
+      "maximum_profiled_query_wall_seconds": 1.3956943748053163,
+      "observed_utc": "2026-11-03T17:54:24.856892+00:00",
+      "prefix": {
+        "first_family": 0,
+        "last_family": 499,
+        "outcomes": {
+          "not_recovered": 500
+        },
+        "queries": 500,
+        "stopped_after_recovery": false
+      },
+      "profiled_loop": {
+        "cpu_seconds": 11.216771999999999,
+        "wall_seconds": 12.072389125125483
+      },
+      "query_checks": {
+        "cache_hits": 0,
+        "components": 0,
+        "fixed_choices": 1866,
+        "solver_calls": 0
+      },
+      "query_timing_totals": {
+        "encoding": {
+          "cpu_seconds": 10.89517800000001,
+          "wall_seconds": 11.677761829691008
+        },
+        "solving": {
+          "cpu_seconds": 0.19385200000002722,
+          "wall_seconds": 0.19384363619610667
+        }
+      },
+      "reference_blob_sha256": "e0a50ac1a973ffa7940d62770b8047e3fb8067f0b273a87010cfddd8846d469e",
+      "requested_limits": {
+        "loop_budget_seconds": 15,
+        "maximum_families": 500,
+        "outer_process_guard_seconds": 60,
+        "per_query_timeout_ms": 10000
+      },
+      "schema": "mappa.verification_prefix_profile/v1",
+      "source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af"
+    },
+    "verification_preparation_counters": {
+      "act_labels": {
+        "local_source": 1147,
+        "local_target": 1147,
+        "placement": 862,
+        "source_equivalence": 100,
+        "target_equivalence": 100
+      },
+      "after_failure_expression_families": 100,
+      "case": 1314,
+      "catalogue_blob_sha256": "af3cb2646a42caf7480661368549f82b8f08b60c47aee79efeb94bf381272bd3",
+      "catalogue_families": 38826,
+      "catalogue_load": {
+        "cpu_seconds": 2.909624,
+        "wall_seconds": 2.915197958936915
+      },
+      "contradiction_examples": [
+        {
+          "allowed": [
+            24
+          ],
+          "caller": "compile_path",
+          "choice_count": 257,
+          "constraint_count": 243,
+          "domain_before": [
+            23
+          ],
+          "family": 0,
+          "line": 75,
+          "preparation_counts": {
+            "act_calls": 18,
+            "act_input_values": 344,
+            "apply_factor_calls": 43,
+            "apply_factor_input_values": 1393,
+            "compile_relaxed_relation": 6,
+            "compile_self": 12
+          },
+          "reference_target": 24,
+          "representative_target": 23,
+          "source_atom": 15
+        },
+        {
+          "allowed": [
+            24
+          ],
+          "caller": "compile_path",
+          "choice_count": 257,
+          "constraint_count": 243,
+          "domain_before": [
+            23
+          ],
+          "family": 1,
+          "line": 75,
+          "preparation_counts": {
+            "act_calls": 36,
+            "act_input_values": 688,
+            "apply_factor_calls": 86,
+            "apply_factor_input_values": 2786,
+            "compile_relaxed_relation": 12,
+            "compile_self": 24,
+            "expression_calls": 48,
+            "expression_calls_after_failure": 48,
+            "nonconstant_expression_calls_after_failure": 27,
+            "propagate_calls": 2,
+            "propagate_returned_failed": 2,
+            "solve_entered_failed": 1,
+            "solver_calls": 0
+          },
+          "reference_target": 24,
+          "representative_target": 23,
+          "source_atom": 15
+        },
+        {
+          "allowed": [
+            24
+          ],
+          "caller": "compile_path",
+          "choice_count": 253,
+          "constraint_count": 236,
+          "domain_before": [
+            23
+          ],
+          "family": 2,
+          "line": 75,
+          "preparation_counts": {
+            "act_calls": 54,
+            "act_input_values": 1032,
+            "apply_factor_calls": 132,
+            "apply_factor_input_values": 4323,
+            "compile_relaxed_relation": 18,
+            "compile_self": 36,
+            "expression_calls": 96,
+            "expression_calls_after_failure": 96,
+            "nonconstant_expression_calls_after_failure": 54,
+            "propagate_calls": 4,
+            "propagate_returned_failed": 4,
+            "solve_entered_failed": 2,
+            "solver_calls": 0
+          },
+          "reference_target": 24,
+          "representative_target": 23,
+          "source_atom": 15
+        }
+      ],
+      "counts": {
+        "act_calls": 3356,
+        "act_input_values": 56576,
+        "apply_factor_calls": 5852,
+        "apply_factor_input_values": 197611,
+        "compile_relaxed_relation": 1147,
+        "compile_self": 2294,
+        "expression_calls": 4800,
+        "expression_calls_after_failure": 4800,
+        "nonconstant_expression_calls_after_failure": 2932,
+        "propagate_calls": 200,
+        "propagate_returned_failed": 200,
+        "solve_entered_failed": 100,
+        "solver_calls": 0
+      },
+      "direction": "forward",
+      "exact_relation_keys": 109,
+      "exact_self_keys": 83,
+      "failed_before_solve_families": 100,
+      "first_family_counts": {
+        "act_calls": 18,
+        "act_input_values": 344,
+        "apply_factor_calls": 43,
+        "apply_factor_input_values": 1393,
+        "compile_relaxed_relation": 6,
+        "compile_self": 12,
+        "expression_calls": 48,
+        "expression_calls_after_failure": 48,
+        "nonconstant_expression_calls_after_failure": 27,
+        "propagate_calls": 2,
+        "propagate_returned_failed": 2,
+        "solve_entered_failed": 1
+      },
+      "immutable_key_scope": {
+        "derived_self_constraints": "Self constraint tables are deterministically constructed from this self definition and were not separately compared by the diagnostic.",
+        "relation": [
+          "source.key",
+          "target.key",
+          "witness",
+          "anchors",
+          "domains",
+          "accepted_edges including weight, tolerance and inclusive",
+          "target_edges",
+          "graph_floor"
+        ],
+        "self": [
+          "atoms",
+          "elements",
+          "anchors",
+          "bond_threshold",
+          "tolerance",
+          "generators",
+          "original_weights_bytes"
+        ]
+      },
+      "limitations": [
+        "First100 saved families only, not the complete catalogue or a historical comparison.",
+        "Counters and timings use in-process diagnostic wrappers; source and saved results are unchanged.",
+        "Exact immutable keys include the complete relation definition, endpoint atom identities, anchors and original weights. Self constraint tables are derived from this definition, not separately compared. Repeated keys do not mean family-specific solver variables can be shared.",
+        "Expression timings include diagnostic call overhead and are nested within preparation; no solver or semantic shortcut was applied.",
+        "All expression calls observed the failed flag on entry. Use expression_cpu_seconds for their dead-work time; the separate after-failure timer also includes intervening diagnostic counter updates."
+      ],
+      "loop_cpu_seconds": 1.3495239999999997,
+      "loop_wall_seconds": 1.5375015421304852,
+      "normalized_reference_contradiction_scope": "Restriction is applied to the final normalized value after source and target endpoint-equivalence actions; indices are original endpoint indices.",
+      "observed_utc": "2026-11-03T18:14:06.957236+00:00",
+      "outcomes": {
+        "not_recovered": 100
+      },
+      "queried_families": 100,
+      "query_phase_cpu_seconds": {
+        "encoding": 1.2966790000000015,
+        "solving": 0.016486999999996144
+      },
+      "relation_object_count": 109,
+      "requested_limits": {
+        "loop_budget_seconds": 15,
+        "maximum_families": 100,
+        "outer_process_guard_seconds": 60,
+        "per_query_timeout_ms": 10000
+      },
+      "schema": "mappa.verification_preparation_counters/v1",
+      "self_object_count": 151,
+      "source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+      "timings": {
+        "expression_after_failure_cpu_seconds": 0.46135599999998567,
+        "expression_after_failure_wall_seconds": 0.4652779959142208,
+        "expression_cpu_fraction_of_encoding": 0.351730844719473,
+        "expression_cpu_seconds": 0.4560820000000021,
+        "expression_wall_seconds": 0.46135845803655684,
+        "reported_dead_expression_cpu_seconds": 0.4560820000000021
+      }
+    },
+    "verification_continuation": {
+      "observed_utc": "2026-11-03T19:09:30.789565+00:00",
+      "implementation": "Frozen pre-repair verifier; these timings do not measure the repaired verifier.",
+      "source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+      "verifier_sha256": "ff3aeb201b44e56b5b8c58cf17948c4c37b0f4a280825af90722f7e1a5f03e9a",
+      "scope": "Eight interrupted reference checks for five unresolved reactions; saved catalogues reused without matching, reduction or event decoding.",
+      "selected_directions": 8,
+      "workers": 6,
+      "memory_guard_bytes": 4294967296,
+      "fresh_budget_seconds": 0,
+      "original_stage_rows_preserved": true,
+      "original_attempts_preserved": true,
+      "budget_policy": "Retain each original 3600-second allowance and its consumed time. A failed process-monitor startup was preserved and conservatively charged before relaunch; no fresh time was granted.",
+      "sleep_prevention": "Idle-sleep inhibition during the continuation; this does not prevent lid sleep.",
+      "counts": {
+        "complete": 5,
+        "timeout": 2,
+        "deliberate_interruption": 1
+      },
+      "all_selected_directions_terminal": true,
+      "omitted": {
+        "case": 867,
+        "direction": "forward",
+        "reason": "Reverse already recovered; original interrupted-forward record remains preserved."
+      },
+      "records": [
+        {
+          "case": 19,
+          "direction": "reverse",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 1832.1184639930725,
+          "original_remaining_seconds": 1767.8815360069275,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "timeout",
+          "status": "unresolved",
+          "spent_seconds": 3600.132208585739,
+          "remaining_seconds": -0.13220858573913574,
+          "elapsed_seconds": 1766.9289287501015,
+          "cpu_seconds": null,
+          "sampled_cpu_seconds": 1758.1777609600001,
+          "peak_rss_bytes": 1739849728,
+          "phase_at_exit": "compute"
+        },
+        {
+          "case": 1358,
+          "direction": "forward",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 1427.054182767868,
+          "original_remaining_seconds": 2172.945817232132,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "timeout",
+          "status": "unresolved",
+          "spent_seconds": 3600.1295812129974,
+          "remaining_seconds": -0.12958121299743652,
+          "elapsed_seconds": 2171.982710374985,
+          "cpu_seconds": null,
+          "sampled_cpu_seconds": 2162.72093496,
+          "peak_rss_bytes": 1314439168,
+          "phase_at_exit": "compute"
+        },
+        {
+          "case": 1358,
+          "direction": "reverse",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 1422.2217009067535,
+          "original_remaining_seconds": 2177.7782990932465,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "complete",
+          "status": "not_recovered",
+          "spent_seconds": 3575.4183762073517,
+          "remaining_seconds": 24.581623792648315,
+          "elapsed_seconds": 2152.14725770778,
+          "cpu_seconds": 2143.080823,
+          "sampled_cpu_seconds": 2142.9265460320003,
+          "peak_rss_bytes": 1050902528,
+          "phase_at_exit": "publication"
+        },
+        {
+          "case": 1377,
+          "direction": "forward",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 1393.574455022812,
+          "original_remaining_seconds": 2206.425544977188,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "complete",
+          "status": "not_recovered",
+          "spent_seconds": 2654.715980529785,
+          "remaining_seconds": 945.2840194702148,
+          "elapsed_seconds": 1260.1149241249077,
+          "cpu_seconds": 1253.45083,
+          "sampled_cpu_seconds": 1253.4055705120002,
+          "peak_rss_bytes": 2651799552,
+          "phase_at_exit": "publication"
+        },
+        {
+          "case": 1475,
+          "direction": "forward",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 484.7032461166382,
+          "original_remaining_seconds": 3115.296753883362,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "complete",
+          "status": "not_recovered",
+          "spent_seconds": 618.653550863266,
+          "remaining_seconds": 2981.346449136734,
+          "elapsed_seconds": 132.89903695811518,
+          "cpu_seconds": 132.177521,
+          "sampled_cpu_seconds": 132.07276690400002,
+          "peak_rss_bytes": 255442944,
+          "phase_at_exit": "publication"
+        },
+        {
+          "case": 1475,
+          "direction": "reverse",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 162.17268872261047,
+          "original_remaining_seconds": 3437.8273112773895,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "complete",
+          "status": "not_recovered",
+          "spent_seconds": 249.69942331314087,
+          "remaining_seconds": 3350.300576686859,
+          "elapsed_seconds": 86.47562312497757,
+          "cpu_seconds": 85.65084,
+          "sampled_cpu_seconds": 85.582979808,
+          "peak_rss_bytes": 238419968,
+          "phase_at_exit": "publication"
+        },
+        {
+          "case": 1568,
+          "direction": "forward",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 162.0024402141571,
+          "original_remaining_seconds": 3437.997559785843,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "error",
+          "status": "unresolved",
+          "elapsed_seconds": null,
+          "remaining_seconds": 247.60560631752014,
+          "spent_seconds": 3352.39439368248,
+          "cpu_seconds": null,
+          "sampled_cpu_seconds": null,
+          "peak_rss_bytes": null,
+          "phase_at_exit": null,
+          "classification": "deliberate_interruption",
+          "exit_code": -15,
+          "additional_budget_spent_seconds": 3189.3522849082947,
+          "note": "Stopped by explicit instruction to replace the slow frozen verifier with separate bounded validation. Supervisor final CPU/RSS metrics are unavailable; consumed case time is retained."
+        },
+        {
+          "case": 1568,
+          "direction": "reverse",
+          "original_budget_seconds": 3600.0,
+          "original_spent_seconds": 161.15282797813416,
+          "original_remaining_seconds": 3438.847172021866,
+          "conservative_startup_charge_seconds": 1.0396685600280762,
+          "state": "complete",
+          "status": "recovered",
+          "spent_seconds": 278.19417667388916,
+          "remaining_seconds": 3321.805823326111,
+          "elapsed_seconds": 116.0071184579283,
+          "cpu_seconds": 115.36303999999998,
+          "sampled_cpu_seconds": 115.166854368,
+          "peak_rss_bytes": 2349121536,
+          "phase_at_exit": "publication"
+        }
+      ],
+      "cohort_outcomes": {
+        "reactions": 16,
+        "recovered": 8,
+        "both_direction_negative": 5,
+        "unresolved": 3,
+        "recovered_cases": [
+          20,
+          44,
+          867,
+          964,
+          1034,
+          1228,
+          1314,
+          1568
+        ],
+        "both_direction_negative_cases": [
+          7,
+          986,
+          1285,
+          1377,
+          1475
+        ],
+        "timeout_unresolved_cases": [
+          19,
+          1358
+        ],
+        "memory_unresolved_cases": [
+          590
+        ],
+        "successful_direction_checks": 26,
+        "direction_outcomes": {
+          "not_recovered": 12,
+          "execution_unresolved": 4,
+          "recovered": 14,
+          "resource_unresolved": 2
+        },
+        "note": "The frozen continuation is terminal. Timeouts, deliberate interruption and memory failures are not negative reference checks. Reaction 1568 already recovered in reverse; its forward interruption does not change that reaction verdict."
+      },
+      "combined_recovery": {
+        "recovered": 1843,
+        "total": 1851,
+        "percent": 99.56780118854674,
+        "definition": "Union of the full tolerance-1 benchmark and selected tolerance-2 follow-ups through the frozen continuation. This is a lower bound from mixed settings, not a complete uniform-setting benchmark."
+      },
+      "archived_stage_counts": {
+        "complete": 5,
+        "error": 3
+      },
+      "active_owners": 0,
+      "saved_queue_tasks": 0,
+      "original_ledger_unchanged": true,
+      "runner_elapsed_seconds": 3277.0577738750726,
+      "resources": {
+        "attempts": 8,
+        "states": {
+          "complete": 5,
+          "timeout": 2,
+          "error": 1
+        },
+        "exact_compute_cpu_seconds": 3729.7230539999996,
+        "exact_compute_cpu_records": 5,
+        "observed_worker_cpu_seconds": 7650.62683292,
+        "missing_cpu_records": 1,
+        "peak_rss_bytes": 2651799552,
+        "guard_records": {
+          "4294967296": 7
+        },
+        "measurement_scope": "Archived continuation attempts; process-exit CPU may be absent and is counted as missing. Excludes original lost work and separately recorded startup allowance.",
+        "note": "Exact completed-task CPU and sampled timeout CPU are separate measurements. One interrupted attempt has no final supervisor CPU/RSS values; aggregate measured CPU excludes that attempt."
+      },
+      "deliberate_stop": {
+        "case": 1568,
+        "direction": "forward",
+        "reason": "Explicitly stop the old verifier and use separate bounded validation of the repaired verifier.",
+        "elapsed_seconds_before_stop": 3189.290437936783,
+        "additional_budget_spent_seconds": 3189.3522849082947,
+        "total_case_spent_seconds": 3352.39439368248,
+        "remaining_original_budget_seconds": 247.60560631752014,
+        "pre_stop_sample": {
+          "rss_bytes": 2309406720,
+          "process_lifetime_cpu_seconds": 3265.68108032,
+          "scope": "The pre-stop RSS is an instantaneous sample. CPU is compute-process lifetime and includes the earlier completed 1475/reverse task, not an exact 1568/forward task measurement. Supervisor final CPU and peak-RSS metrics are absent after process exit; they are not replaced with this sample."
+        },
+        "pool_drained": true,
+        "owner_lock_released": true,
+        "no_new_old_run_tasks": true
+      }
+    }
+  },
+  "verification_resources": {
+    "metrics": {
+      "records": 40,
+      "states": {
+        "complete": 39,
+        "timeout": 1
+      },
+      "compute_cpu_seconds": 4230.07844,
+      "total_worker_cpu_seconds": 4230.099898,
+      "observed_worker_cpu_seconds": 7660.42435336,
+      "observed_worker_cpu_sources": {
+        "total_cpu_seconds": 39,
+        "sampled_cpu_seconds": 1
+      },
+      "failed_attempt_sampled_cpu_seconds": 3430.3244553600002,
+      "total_cpu_sources": {
+        "total_cpu_seconds": 39,
+        "sampled_only_seconds": 1
+      },
+      "compute_seconds": 4243.850753039587,
+      "publish_cpu_seconds": 0.019128000000004697,
+      "publish_seconds": 0.19183462113142014,
+      "monitoring_seconds": 533.1107662515715,
+      "memory_samples": 35871,
+      "measurement_coverage": {
+        "cpu_seconds": 39,
+        "compute_seconds": 39,
+        "publish_cpu_seconds": 39,
+        "publish_seconds": 39,
+        "total_cpu_seconds": 39,
+        "monitoring_seconds": 40,
+        "memory_samples": 40,
+        "sampled_cpu_seconds": 40,
+        "records_with_memory_samples": 34,
+        "peak_tree_rss_bytes": 40,
+        "process_lifetime_peak_rss_bytes": 39,
+        "compute_phase_rss": 40,
+        "publication_phase_rss": 40
+      },
+      "peaks": {
+        "peak_tree_rss_bytes": 2350284800,
+        "process_lifetime_peak_rss_bytes": 1047052288,
+        "compute_sampled_rss_bytes": 2350284800,
+        "publication_sampled_rss_bytes": 242171904
+      },
+      "memory_guards_bytes": {
+        "4294967296": 40
+      },
+      "cache": {
+        "hit_fraction": null,
+        "errors": {}
+      }
+    },
+    "timing": {
+      "first_attempt_utc": "2026-11-03T08:36:40.884177+00:00",
+      "last_attempt_utc": "2026-11-03T09:42:46.021423+00:00",
+      "first_attempt_epoch": 1793695000.884177,
+      "last_attempt_epoch": 1793698966.021423,
+      "task_span_seconds": 3965.137246131897,
+      "unique_actual_workers": 6,
+      "peak_overlapping_attempts": 6,
+      "timed_attempts": 40,
+      "incomplete_attempt_intervals": 0,
+      "mean_total_worker_cpus": 1.066823072045383,
+      "mean_compute_cpus": 1.0668176603789845,
+      "mean_observed_worker_cpus": 1.9319443131086975,
+      "mean_active_task_attempts": 1.9787588496232662
+    }
+  },
+  "verification_runner_elapsed_seconds": 3906.218170417007,
+  "verification_runner_elapsed_scope": "Maintained runner time.monotonic elapsed; distinct from UTC attempt-timestamp spans. Both original measurements are retained without treating their different clock and start/end scopes as interchangeable.",
+  "reaction_completion": {
+    "all_20_scientific_outcomes_known": true,
+    "all_outcomes_known_utc": "2026-11-03T08:56:45.471228+00:00",
+    "from_first_verification_seconds": 1204.5870509147644,
+    "from_first_matching_seconds": 1318.3950719833374,
+    "definition": "First successful direction for a recovered reaction; later completed negative direction for a reaction missed in both directions. Execution errors and unknown queries do not prove absence."
+  },
+  "verification_timeout": {
+    "case": 1799,
+    "direction": "forward",
+    "state": "timeout",
+    "budget_seconds": 3600.0,
+    "spent_seconds": 3601.8620839118958,
+    "audit_sha256": "6dd7b9c9da01106a7bde843399ff5d91da8e0fcf8c5787c1434044d3f4ddaf91",
+    "metrics": {
+      "sampled_cpu_seconds": 3430.3244553600002,
+      "elapsed_seconds": 3526.353713333141,
+      "peak_tree_rss_bytes": 2350284800,
+      "phase_peak_tree_rss_bytes": {
+        "compute": 2350284800,
+        "publication": 0
+      },
+      "phase_at_exit": "compute",
+      "memory_guard_bytes": 4294967296
+    },
+    "retried": false
+  },
+  "verifier_repair": {
+    "schema": "mappa.verifier_repair/v1",
+    "observed_utc": "2026-11-03T18:40:40.983960+00:00",
+    "scope": "External reference verification of six unchanged saved Golden catalogues; no rematching, reduction or full benchmark rerun.",
+    "scientific_settings": {
+      "seed_count": 10,
+      "branch_limit": 2000,
+      "iso_tolerance": 2,
+      "self_tolerance": 1,
+      "random_seed": 42,
+      "sweep_cuts": true,
+      "cut_floor": 0.2,
+      "graph_floor": 0.2,
+      "event_threshold": 0.5,
+      "metal_event_threshold": 0.3
+    },
+    "change": "Check each requested source atom against conservative domains through the complete ordered fragment and placement program before building joint constraints. Surviving requests still use the unchanged exact joint compiler and solver. Construct physical output expressions only when needed.",
+    "source": {
+      "baseline_revision": "dd0efeba6e1c61c15d35f67f174120cef2c54b17",
+      "baseline_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+      "baseline_module_sha256": {
+        "src/mappa/mappa_core/core/symmetry/actions.py": "69830388de22a2c770bfdff4ea0661478a10e8e8e597e68c788aa4ea9b2e6099",
+        "src/mappa/mappa_core/core/symmetry/constraints.py": "adf0e2c63ee3d6d56ed20a75235427a786d58131fe4a657cd4cc943e71c5b0f3",
+        "src/mappa/mappa_core/core/symmetry/relations.py": "2a7ec8d2404e3b6d0661d33386c3c350f0e100e4ff2b3e2e7c5e6deeb827e6e0",
+        "src/mappa/mappa_core/core/symmetry/relaxed.py": "756c558f750dfcfc44578f5cfc3e5045d71530a6263f4b70a892f3a3a99b4f24",
+        "src/mappa/mappa_workflow/mapping_analytics/family.py": "f026dfbe0c07ee26585ef6054df38478f6ede447e9dbf05d0f4bb5d9c1a2106e"
+      },
+      "measured_fixed_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+      "measured_fixed_module_sha256": {
+        "src/mappa/mappa_core/core/symmetry/actions.py": "69830388de22a2c770bfdff4ea0661478a10e8e8e597e68c788aa4ea9b2e6099",
+        "src/mappa/mappa_core/core/symmetry/constraints.py": "adf0e2c63ee3d6d56ed20a75235427a786d58131fe4a657cd4cc943e71c5b0f3",
+        "src/mappa/mappa_core/core/symmetry/relations.py": "2a7ec8d2404e3b6d0661d33386c3c350f0e100e4ff2b3e2e7c5e6deeb827e6e0",
+        "src/mappa/mappa_core/core/symmetry/relaxed.py": "756c558f750dfcfc44578f5cfc3e5045d71530a6263f4b70a892f3a3a99b4f24",
+        "src/mappa/mappa_workflow/mapping_analytics/family.py": "34248b155bd93daedbc8656d7ed7f6d900a31b2d4d7758e5ffce29f48ab8fd92"
+      },
+      "measurement_state": "Working-tree repair measured before commit; recorded module hashes identify the executed implementation."
+    },
+    "cache": {
+      "reference_action_owners": 1,
+      "action_domain_tables_per_owner": 1024,
+      "endpoint_orbit_lru_entries": 256,
+      "bound_scope": "Entry-count bounds, not a fixed byte allowance. Uses the existing core action-domain cache; no cache of complete mappings."
+    },
+    "methods": {
+      "paired_forward_order": [
+        "01314/forward",
+        "01228/forward"
+      ],
+      "paired_processes": "One fresh process per implementation, the same two-case order and saved catalogues; normal bounded caches may be reused by the second case.",
+      "controls": "One fresh process per remaining case, at most two concurrent diagnostic processes.",
+      "timing": "Uninstrumented CPU and elapsed time. Catalogue loading measured separately from verify_catalogue; publication and proof-audit work excluded.",
+      "rss": "macOS process lifetime peak RSS in bytes. Forward second-case peak includes the previous case; control processes each handle one case. Baseline RSS was not captured, so no memory-reduction claim."
+    },
+    "records": [
+      {
+        "case": 1314,
+        "direction": "forward",
+        "catalogue_families": 38826,
+        "input_sha256": "2ea37be6012ee98e7f126a1fd7ab4793fb5a345123e83194e69e456c0eb2a36f",
+        "catalogue_sha256": "af3cb2646a42caf7480661368549f82b8f08b60c47aee79efeb94bf381272bd3",
+        "reference_sha256": "e0a50ac1a973ffa7940d62770b8047e3fb8067f0b273a87010cfddd8846d469e",
+        "status": "recovered",
+        "winning_family": 13974,
+        "load": {
+          "cpu_seconds": 2.271498,
+          "wall_seconds": 2.2738822500687093
+        },
+        "query": {
+          "cpu_seconds": 1.9738640000000003,
+          "wall_seconds": 2.065789874875918
+        },
+        "peak_process_rss_bytes": 417644544,
+        "rss_scope": "Peak process RSS through this case, including catalogue load and any previous case in this two-case process; no before/after memory claim.",
+        "paired_baseline_load": {
+          "cpu_seconds": 2.6698049999999998,
+          "wall_seconds": 2.6736392078455538
+        },
+        "paired_baseline_query": {
+          "cpu_seconds": 136.67869399999998,
+          "wall_seconds": 137.08123812498525
+        },
+        "paired_query_cpu_speedup": 69.24423060555335,
+        "baseline_semantic_proof_sha256": "1263c4a83864d12683d027b030ea0044a25d87cedfe882f393fbbbdd1ef78f88",
+        "fixed_semantic_proof_sha256": "b5ab094cbf812df63367546a6501d2256bf4f9c4e3b86def70a21e9e18f297f5",
+        "same_first_recovered_family": true,
+        "byte_identical_semantic_proof": false,
+        "both_witnesses_independently_validated": true
+      },
+      {
+        "case": 1228,
+        "direction": "forward",
+        "catalogue_families": 28025,
+        "input_sha256": "81904fd760028cd5288672052b9637f6bb54860cbd33d1a88172dcec6c0362d0",
+        "catalogue_sha256": "1c045f5e7d2ee1eb837394289bcb0b677bcc3a549516310108387bdec165109d",
+        "reference_sha256": "189ca1b01d9b57cf52b7279aec0f8969ea04818b397671855bf120efd717c567",
+        "status": "recovered",
+        "winning_family": 11598,
+        "load": {
+          "cpu_seconds": 0.9733840000000002,
+          "wall_seconds": 0.9747611668426543
+        },
+        "query": {
+          "cpu_seconds": 0.8992230000000001,
+          "wall_seconds": 0.9001379581168294
+        },
+        "peak_process_rss_bytes": 417644544,
+        "rss_scope": "Peak process RSS through this case, including catalogue load and any previous case in this two-case process; no before/after memory claim.",
+        "paired_baseline_load": {
+          "cpu_seconds": 0.9290710000000217,
+          "wall_seconds": 0.9313894999213517
+        },
+        "paired_baseline_query": {
+          "cpu_seconds": 40.767562999999996,
+          "wall_seconds": 40.97443229192868
+        },
+        "paired_query_cpu_speedup": 45.33643267576562,
+        "baseline_semantic_proof_sha256": "37201863397d174026b54614cc670663c62ebc1768b5506497d081016e62d8b8",
+        "fixed_semantic_proof_sha256": "a9712ccdd2d283fcff6151b5e3ef718757b081030ae7eaf95d3946b5a0da128b",
+        "same_first_recovered_family": true,
+        "byte_identical_semantic_proof": false,
+        "both_witnesses_independently_validated": true
+      },
+      {
+        "case": 1314,
+        "direction": "reverse",
+        "catalogue_families": 130351,
+        "input_sha256": "5f45bc88fdd19f04c65d7a3f255b2c0ba12e5a41056e2baf312bdbf9b7996cd3",
+        "catalogue_sha256": "0ad6f2c745e68744ca2d7161f381d59c4c1e687a6490f5ac6d49add4a5f7777e",
+        "reference_sha256": "e0a50ac1a973ffa7940d62770b8047e3fb8067f0b273a87010cfddd8846d469e",
+        "status": "recovered",
+        "winning_family": 27340,
+        "load": {
+          "cpu_seconds": 6.6367210000000005,
+          "wall_seconds": 6.645428165793419
+        },
+        "query": {
+          "cpu_seconds": 3.0507660000000003,
+          "wall_seconds": 3.213359999936074
+        },
+        "peak_process_rss_bytes": 1026572288,
+        "rss_scope": "Fresh single-case process peak including catalogue load and verification; macOS resource.getrusage returns bytes.",
+        "original_campaign_task_cpu_seconds": 41.34854300000001,
+        "same_status_and_first_family": true,
+        "fixed_semantic_proof_sha256": "5f927318d2222ba7dd66fe5eed6fd8c4c11f24b1648685f768869567923fb425",
+        "both_witnesses_independently_validated": true
+      },
+      {
+        "case": 7,
+        "direction": "forward",
+        "catalogue_families": 19218,
+        "input_sha256": "5cbafa7670ff4bebb526fb2ee912cd34f2b5687e78741022bdb6a1be24b09269",
+        "catalogue_sha256": "c626a0e539320d5e72f5d50b8ddde1189042ae3cb7fac3a5db9cdd33908ad68c",
+        "reference_sha256": "636dc0c79640349f712058e5c7ff67c1a6016f8af1aeeb7a27f1277532aeb8b3",
+        "status": "not_recovered",
+        "winning_family": null,
+        "load": {
+          "cpu_seconds": 2.062742,
+          "wall_seconds": 2.065477500203997
+        },
+        "query": {
+          "cpu_seconds": 2.480888,
+          "wall_seconds": 2.483300207881257
+        },
+        "peak_process_rss_bytes": 429228032,
+        "rss_scope": "Fresh single-case process peak including catalogue load and verification; macOS resource.getrusage returns bytes.",
+        "original_campaign_task_cpu_seconds": 402.18735699999996,
+        "same_status_and_first_family": true,
+        "fixed_semantic_proof_sha256": "4a579c2460787da96193d39cce8ff7625b6276e664e7d3ac5d6c3b5c45836b36",
+        "both_witnesses_independently_validated": null
+      },
+      {
+        "case": 1228,
+        "direction": "reverse",
+        "catalogue_families": 322957,
+        "input_sha256": "92e0f499c60bd9bfa8db90464c1cf6598b532eeaba4e05c1b524b74cf7d34778",
+        "catalogue_sha256": "760c1d0b8385212a797f197dc7692f82a354e75a8349c665bf14c71135314713",
+        "reference_sha256": "189ca1b01d9b57cf52b7279aec0f8969ea04818b397671855bf120efd717c567",
+        "status": "recovered",
+        "winning_family": 107293,
+        "load": {
+          "cpu_seconds": 11.894129,
+          "wall_seconds": 11.910160250030458
+        },
+        "query": {
+          "cpu_seconds": 7.570204999999998,
+          "wall_seconds": 7.728397042024881
+        },
+        "peak_process_rss_bytes": 1537228800,
+        "rss_scope": "Fresh single-case process peak including catalogue load and verification; macOS resource.getrusage returns bytes.",
+        "original_campaign_task_cpu_seconds": 16.517998999999975,
+        "same_status_and_first_family": true,
+        "fixed_semantic_proof_sha256": "86d2e3eba292b33f8f11399db108388428e90d8517cfb4ce65487b94c424d873",
+        "both_witnesses_independently_validated": true
+      },
+      {
+        "case": 1377,
+        "direction": "reverse",
+        "catalogue_families": 470474,
+        "input_sha256": "00f80ecf64242ef8754bbcd85dcc5db30a19fead9120f186f2dbad7df5a9e5d3",
+        "catalogue_sha256": "f43c314076ea3251f0c60fb8eb0489704a39016d97eef6762ca853447099de9b",
+        "reference_sha256": "974f17ef8a4a2794d77ee213d23f93a6504aebc8bac1669b663d452ce85abb3f",
+        "status": "not_recovered",
+        "winning_family": null,
+        "load": {
+          "cpu_seconds": 20.56913,
+          "wall_seconds": 20.58138137497008
+        },
+        "query": {
+          "cpu_seconds": 38.200435,
+          "wall_seconds": 38.24557499983348
+        },
+        "peak_process_rss_bytes": 2872164352,
+        "rss_scope": "Fresh single-case process peak including catalogue load and verification; macOS resource.getrusage returns bytes.",
+        "original_campaign_task_cpu_seconds": 632.810829,
+        "same_status_and_first_family": true,
+        "fixed_semantic_proof_sha256": "e8a9cabef762d1adb28941f2d572f24a591597cb5ce8bbd8a70aaa22735230a4",
+        "both_witnesses_independently_validated": null
+      }
+    ],
+    "outcomes": {
+      "catalogue_checks": 6,
+      "unchanged_reference_membership_results": 6,
+      "recovered": 4,
+      "not_recovered": 2,
+      "unknown": 0,
+      "same_first_recovered_family": 4
+    },
+    "verdict_parity": {
+      "equal_verdict_count": 208,
+      "false_negative_count": 0,
+      "new_family_sha256": "34248b155bd93daedbc8656d7ed7f6d900a31b2d4d7758e5ffce29f48ab8fd92",
+      "not_recovered_equal": 205,
+      "old_family_revision": "dd0efeba6e1c61c15d35f67f174120cef2c54b17",
+      "old_family_sha256": "f026dfbe0c07ee26585ef6054df38478f6ede447e9dbf05d0f4bb5d9c1a2106e",
+      "query_count": 208,
+      "records": [
+        {
+          "all_verdicts_equal": true,
+          "case": 1314,
+          "catalogue_sha256": "af3cb2646a42caf7480661368549f82b8f08b60c47aee79efeb94bf381272bd3",
+          "direction": "forward",
+          "false_negative_count": 0,
+          "not_recovered_equal": 103,
+          "queried_families": [
+            0,
+            141,
+            282,
+            423,
+            565,
+            706,
+            847,
+            988,
+            1129,
+            1270,
+            1412,
+            1553,
+            1694,
+            1835,
+            1976,
+            2117,
+            2258,
+            2400,
+            2541,
+            2682,
+            2823,
+            2964,
+            3105,
+            3246,
+            3388,
+            3529,
+            3670,
+            3811,
+            3952,
+            4093,
+            4235,
+            4376,
+            4517,
+            4658,
+            4799,
+            4940,
+            5081,
+            5223,
+            5364,
+            5505,
+            5646,
+            5787,
+            5928,
+            6070,
+            6211,
+            6352,
+            6493,
+            6634,
+            6775,
+            6916,
+            7058,
+            7199,
+            7340,
+            7481,
+            7622,
+            7763,
+            7904,
+            8046,
+            8187,
+            8328,
+            8469,
+            8610,
+            8751,
+            8893,
+            9034,
+            9175,
+            9316,
+            9457,
+            9598,
+            9739,
+            9881,
+            10022,
+            10163,
+            10304,
+            10445,
+            10586,
+            10728,
+            10869,
+            11010,
+            11151,
+            11292,
+            11433,
+            11574,
+            11716,
+            11857,
+            11998,
+            12139,
+            12280,
+            12421,
+            12562,
+            12704,
+            12845,
+            12986,
+            13127,
+            13268,
+            13409,
+            13551,
+            13692,
+            13833,
+            13972,
+            13973,
+            13974,
+            13975,
+            13976
+          ],
+          "query_count": 104,
+          "recovered_equal": 1,
+          "recovered_families": [
+            13974
+          ],
+          "unknown_count": 0
+        },
+        {
+          "all_verdicts_equal": true,
+          "case": 1228,
+          "catalogue_sha256": "1c045f5e7d2ee1eb837394289bcb0b677bcc3a549516310108387bdec165109d",
+          "direction": "forward",
+          "false_negative_count": 0,
+          "not_recovered_equal": 102,
+          "queried_families": [
+            0,
+            117,
+            234,
+            351,
+            469,
+            586,
+            703,
+            820,
+            937,
+            1054,
+            1172,
+            1289,
+            1406,
+            1523,
+            1640,
+            1757,
+            1874,
+            1992,
+            2109,
+            2226,
+            2343,
+            2460,
+            2577,
+            2694,
+            2812,
+            2929,
+            3046,
+            3163,
+            3280,
+            3397,
+            3515,
+            3632,
+            3749,
+            3866,
+            3983,
+            4100,
+            4217,
+            4335,
+            4452,
+            4569,
+            4686,
+            4803,
+            4920,
+            5038,
+            5155,
+            5272,
+            5389,
+            5506,
+            5623,
+            5740,
+            5858,
+            5975,
+            6092,
+            6209,
+            6326,
+            6443,
+            6560,
+            6678,
+            6795,
+            6912,
+            7029,
+            7146,
+            7263,
+            7381,
+            7498,
+            7615,
+            7732,
+            7849,
+            7966,
+            8083,
+            8201,
+            8318,
+            8435,
+            8552,
+            8669,
+            8786,
+            8904,
+            9021,
+            9138,
+            9255,
+            9372,
+            9489,
+            9606,
+            9724,
+            9841,
+            9958,
+            10075,
+            10192,
+            10309,
+            10426,
+            10544,
+            10661,
+            10778,
+            10895,
+            11012,
+            11129,
+            11247,
+            11364,
+            11481,
+            11596,
+            11597,
+            11598,
+            11599,
+            11600
+          ],
+          "query_count": 104,
+          "recovered_equal": 2,
+          "recovered_families": [
+            11598,
+            11600
+          ],
+          "unknown_count": 0
+        }
+      ],
+      "recovered_equal": 3,
+      "scope": "Only this deterministic sample; old family source loaded in memory with unchanged core. No whole-catalogue equivalence claim.",
+      "selection": "100 evenly spaced family indices through the known first recovery, plus winner +/-2, with duplicate indices removed.",
+      "unknown_count": 0
+    },
+    "witness_validation": {
+      "validated_saved_witnesses": 8,
+      "positive_cases": 4,
+      "scope": "Replay each saved local discovery and both self actions, certify placement group membership, compose exact physical mapping, then separately solve endpoint reference equivalence only. No family search, matching or reduction rerun.",
+      "checks": [
+        "Original discovery domains, anchors and accepted-edge predicates",
+        "Both original-weight relaxed self constraints",
+        "Exact placement group membership",
+        "Ordered composition equals the full physical mapping",
+        "Injectivity and element compatibility",
+        "Complete heavy-atom reference relation, including unmatched atoms, modulo endpoint chemical symmetry"
+      ],
+      "direct_heavy_mapping_comparison": [
+        {
+          "case": 1314,
+          "heavy_mapping_differences": [
+            {
+              "baseline": 26,
+              "fixed": 27,
+              "source": 18
+            },
+            {
+              "baseline": 27,
+              "fixed": 26,
+              "source": 19
+            }
+          ],
+          "heavy_mapping_identical": false,
+          "source_heavy_atoms": 29
+        },
+        {
+          "case": 1228,
+          "heavy_mapping_differences": [
+            {
+              "baseline": 9,
+              "fixed": 8,
+              "source": 12
+            },
+            {
+              "baseline": 8,
+              "fixed": 9,
+              "source": 13
+            }
+          ],
+          "heavy_mapping_identical": false,
+          "source_heavy_atoms": 15
+        }
+      ],
+      "note": "Alternative valid symmetry-equivalent witnesses were selected; complete proof bytes are not identical. Final forward proof hashes equal the independently validated first repair iteration."
+    },
+    "historical_query_baselines": {
+      "records": [
+        {
+          "branch_limit": 2000,
+          "case": 19,
+          "direction": "forward",
+          "families": 108262,
+          "iso_tolerance": 1.5,
+          "query_cpu_seconds": 31.525140000000007,
+          "query_wall_seconds": 31.86962016695179,
+          "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+          "seed_count": 10,
+          "status": "not_recovered",
+          "winning_family": null
+        },
+        {
+          "branch_limit": 2000,
+          "case": 1377,
+          "direction": "reverse",
+          "families": 413391,
+          "iso_tolerance": 1.5,
+          "query_cpu_seconds": 71.74964500000002,
+          "query_wall_seconds": 72.06076870812103,
+          "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+          "seed_count": 10,
+          "status": "not_recovered",
+          "winning_family": null
+        },
+        {
+          "branch_limit": 2000,
+          "case": 7,
+          "direction": "forward",
+          "families": 24332,
+          "iso_tolerance": 1.5,
+          "query_cpu_seconds": 17.514378,
+          "query_wall_seconds": 18.941818540915847,
+          "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+          "seed_count": 10,
+          "status": "not_recovered",
+          "winning_family": null
+        },
+        {
+          "branch_limit": 2000,
+          "case": 1228,
+          "direction": "forward",
+          "families": 33865,
+          "iso_tolerance": 2.0,
+          "query_cpu_seconds": 3.4886850000000003,
+          "query_wall_seconds": 3.7185969999991357,
+          "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+          "seed_count": 10,
+          "status": "recovered",
+          "winning_family": 15532
+        },
+        {
+          "branch_limit": 2000,
+          "case": 1228,
+          "direction": "reverse",
+          "families": 293377,
+          "iso_tolerance": 2.0,
+          "query_cpu_seconds": 18.642396000000005,
+          "query_wall_seconds": 19.01642333297059,
+          "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+          "seed_count": 10,
+          "status": "recovered",
+          "winning_family": 96038
+        },
+        {
+          "branch_limit": 2000,
+          "case": 1314,
+          "direction": "forward",
+          "families": 51525,
+          "iso_tolerance": 2.0,
+          "query_cpu_seconds": 5.910221,
+          "query_wall_seconds": 6.1209147500339895,
+          "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+          "seed_count": 10,
+          "status": "recovered",
+          "winning_family": 18456
+        },
+        {
+          "branch_limit": 2000,
+          "case": 1314,
+          "direction": "reverse",
+          "families": 167376,
+          "iso_tolerance": 2.0,
+          "query_cpu_seconds": 10.361041999999998,
+          "query_wall_seconds": 10.634635583963245,
+          "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+          "seed_count": 10,
+          "status": "recovered",
+          "winning_family": 34036
+        }
+      ],
+      "scope": "Historical query-only timings on revision06f7941; different retained scientific relationships, execution order and cache context. Four positive comparisons use the same seed count, cap and iso tolerance. Historical negative controls available here used iso tolerance1.5, whereas current controls use2; their speed is not a matched-tolerance comparison."
+    },
+    "tests": {
+      "focused_tests_passed": 92,
+      "smoke_tests_passed": 26,
+      "scope": "Final repair test results supplied by the implementation owner; counts are separate suites and are not added as unique tests."
+    },
+    "limitations": [
+      "The paired forward speedups apply to these identical saved catalogues and process order; no universal or full-Golden speed guarantee.",
+      "The 208-family comparison is a deterministic sample, not an exhaustive proof over every family.",
+      "Historical scientific implementations retain different mapping relations; historical speed and current same-catalogue speed answer different questions.",
+      "Original campaign task CPU for controls includes catalogue load in a persistent worker. It is not directly comparable to the new isolated query-only timings.",
+      "The known per-family query budget still does not interrupt all preparation; original benchmark task guards remain distinct."
+    ]
+  },
+  "remaining_validation": {
+    "saved_catalogues": {
+      "schema": "mappa.remaining_saved_catalogue_validation/v1",
+      "observed_utc": "2026-11-03T19:00:05.724246+00:00",
+      "scope": "Four separate reference-verification point checks on existing seed-10 catalogues; no matching or family reduction rerun.",
+      "complete": true,
+      "scientific_config": {
+        "anchors": [],
+        "branch_limit": 2000,
+        "cut_floor": 0.2,
+        "event_threshold": 0.5,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "metal_event_threshold": 0.3,
+        "random_seed": 42,
+        "seed_count": 10,
+        "seed_selection": "random",
+        "self_tolerance": 1.0,
+        "sweep_cuts": true,
+        "task_chunksize": 1
+      },
+      "source_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+      "resources": {
+        "maximum_parallel_workers": 2,
+        "memory_guard_bytes": 4294967296,
+        "query_wall_limit_rule": "Five times original measured query wall time, rounded to four decimal places. The external guard interrupts verification at that deadline, including preparation.",
+        "loading_scope": "Catalogue and reference loading are timed separately and finish before the query clock starts; separate 120-second loading guard.",
+        "budget_scope": "New validation allowances only. Original task budgets and failures were preserved; no retry extension.",
+        "memory_scope": "Process-tree RSS sampled every 0.1 seconds; process lifetime peak also checked. Peaks include catalogue loading."
+      },
+      "historical_speed_target": {
+        "revision": "06f7941aea263709c45a7b5271bdb06b7506e9ce",
+        "iso_tolerance": 1,
+        "seed_count": 10,
+        "branch_limit": 2000,
+        "caveat": "The original iso-tolerance 1 timings define the requested speed targets. Current catalogues use iso-tolerance 2, so this is not a matched-tolerance scientific comparison."
+      },
+      "records": [
+        {
+          "case": "00019/reverse",
+          "state": "complete",
+          "reference_status": "not_recovered",
+          "winning_family": null,
+          "catalogue_families": 227157,
+          "source_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+          "family_source_sha256": "34248b155bd93daedbc8656d7ed7f6d900a31b2d4d7758e5ffce29f48ab8fd92",
+          "catalogue_sha256": "cb44a7ae6220fb1d2e4d7d50741413c2481bf2a384d95d469012162a8b8b8e13",
+          "input_sha256": "3b6c0e8bddae83874ef7bd12472b773c153f22771441da680c8a4d0fb478095a",
+          "reference_sha256": "4299d8dfd74a95ff9dbb12e8be05d9d5cac323b821d87f8dfacc96eb8130fdcc",
+          "semantic_proof_sha256": "e2b072ddd65c2211aa61c2f25329c07987b65d1698daacb98b5ef96b8230296e",
+          "historical_original_query": {
+            "cpu_seconds": 44.15159,
+            "wall_seconds": 44.26247591711581
+          },
+          "query_wall_limit_seconds": 221.3124,
+          "loading": {
+            "cpu_seconds": 12.071973,
+            "wall_seconds": 12.117897209012881
+          },
+          "query": {
+            "cpu_seconds": 18.518604000000003,
+            "wall_seconds": 18.529389374889433
+          },
+          "sampled_peak_tree_rss_bytes": 1728806912,
+          "process_lifetime_peak_rss_bytes": 1728806912,
+          "memory_guard_bytes": 4294967296,
+          "within_query_limit": true,
+          "within_memory_guard": true
+        },
+        {
+          "case": "00867/forward",
+          "state": "complete",
+          "reference_status": "recovered",
+          "winning_family": 187714,
+          "catalogue_families": 189749,
+          "source_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+          "family_source_sha256": "34248b155bd93daedbc8656d7ed7f6d900a31b2d4d7758e5ffce29f48ab8fd92",
+          "catalogue_sha256": "2e0919d45f54797a90c80f1a5539bd5958634b66cfac7722b86f3fede6228633",
+          "input_sha256": "b7753d1bba5e2f60e768e259cff1877341bbf8c7339232e7d737cfecd3b3dbe3",
+          "reference_sha256": "f018f1bb63e5c8517517dfa1ec5b68587344cea35afc91915872c986a1d45e17",
+          "semantic_proof_sha256": "2ab001b3ccee8abe6eb590d4d920da064fdebe975bb70668929b329fa2873fa3",
+          "historical_original_query": {
+            "cpu_seconds": 38.752486,
+            "wall_seconds": 38.8844940001145
+          },
+          "query_wall_limit_seconds": 194.4225,
+          "loading": {
+            "cpu_seconds": 9.997933,
+            "wall_seconds": 10.012522749835625
+          },
+          "query": {
+            "cpu_seconds": 18.978005,
+            "wall_seconds": 19.728753166040406
+          },
+          "sampled_peak_tree_rss_bytes": 1399308288,
+          "process_lifetime_peak_rss_bytes": 1399308288,
+          "memory_guard_bytes": 4294967296,
+          "within_query_limit": true,
+          "within_memory_guard": true
+        },
+        {
+          "case": "01358/forward",
+          "state": "complete",
+          "reference_status": "not_recovered",
+          "winning_family": null,
+          "catalogue_families": 122090,
+          "source_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+          "family_source_sha256": "34248b155bd93daedbc8656d7ed7f6d900a31b2d4d7758e5ffce29f48ab8fd92",
+          "catalogue_sha256": "9c4a94b6e65d1d2a0f3a19bb8340dbcf6ebec49c32ac1baf80c14abf6d987cdc",
+          "input_sha256": "835b893c9bd4cd3e4b3ec7a6bdecfba350d1a53b7e9fc2c26079ca7d8dcaef31",
+          "reference_sha256": "a398479187e50274a8f4c0a64c2f3c9971fdb81dfd4d352fe6573ba56d06818e",
+          "semantic_proof_sha256": "87e0659c2139c76c3dec2dbc39cb3d186af6398419a83ae64313a00aa43b1a8d",
+          "historical_original_query": {
+            "cpu_seconds": 55.407793999999996,
+            "wall_seconds": 55.52713962481357
+          },
+          "query_wall_limit_seconds": 277.6357,
+          "loading": {
+            "cpu_seconds": 11.084323999999999,
+            "wall_seconds": 11.122652749996632
+          },
+          "query": {
+            "cpu_seconds": 13.605663999999999,
+            "wall_seconds": 13.72119962493889
+          },
+          "sampled_peak_tree_rss_bytes": 1325432832,
+          "process_lifetime_peak_rss_bytes": 1326792704,
+          "memory_guard_bytes": 4294967296,
+          "within_query_limit": true,
+          "within_memory_guard": true
+        },
+        {
+          "case": "01568/forward",
+          "state": "complete",
+          "reference_status": "not_recovered",
+          "winning_family": null,
+          "catalogue_families": 316614,
+          "source_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+          "family_source_sha256": "34248b155bd93daedbc8656d7ed7f6d900a31b2d4d7758e5ffce29f48ab8fd92",
+          "catalogue_sha256": "65f30cd647e895639b22e8fa2d1a0cb37ade705195f1bf026bed7062854f383e",
+          "input_sha256": "c581115a3716af4b0467c84abfc514c9a1934ef051d76095a2cb538c8a598223",
+          "reference_sha256": "c0c05df5489e4838786d90278be977a2b97e83821c08b7935f71cfbbe4e7002e",
+          "semantic_proof_sha256": "e2b072ddd65c2211aa61c2f25329c07987b65d1698daacb98b5ef96b8230296e",
+          "historical_original_query": {
+            "cpu_seconds": 78.071113,
+            "wall_seconds": 78.33002683403902
+          },
+          "query_wall_limit_seconds": 391.6501,
+          "loading": {
+            "cpu_seconds": 18.802187999999997,
+            "wall_seconds": 18.813838667003438
+          },
+          "query": {
+            "cpu_seconds": 34.505047999999995,
+            "wall_seconds": 34.51544566708617
+          },
+          "sampled_peak_tree_rss_bytes": 2323365888,
+          "process_lifetime_peak_rss_bytes": 2323365888,
+          "memory_guard_bytes": 4294967296,
+          "within_query_limit": true,
+          "within_memory_guard": true
+        }
+      ],
+      "outcomes": {
+        "recovered": 1,
+        "not_recovered": 3,
+        "unknown": 0,
+        "timeout": 0,
+        "memory_limit": 0
+      },
+      "positive_witness_validation": {
+        "audit_wall_seconds": 11.155959792202339,
+        "case": "00867/forward",
+        "checked_fragment_edges": 32,
+        "complete_heavy_atom_reference_equivalence": true,
+        "endpoint_reference_check": {
+          "cache_hits": 0,
+          "components": 1,
+          "fixed_choices": 4,
+          "solver_calls": 1
+        },
+        "exact_composed_mapping": true,
+        "family": 187714,
+        "injectivity_and_element_compatibility": true,
+        "local_discovery_and_both_self_constraints": true,
+        "memory_guard_bytes": 4294967296,
+        "passed": true,
+        "placement_group_membership": true,
+        "placements": 7,
+        "process_lifetime_peak_rss_bytes": 1419837440,
+        "relations": 8,
+        "sampled_peak_tree_rss_bytes": 1419853824
+      },
+      "original_ledgers_unchanged": true,
+      "original_ledger_checksums": [
+        "5d89a8f816c00d3bca01ce6659c5e9c09d258989724fa5e746df0179985691c1",
+        "33b1355257f4c95fdfb8261e2917adf4da0f85ec1a1d9396190f919fab2e8b51"
+      ],
+      "limitations": [
+        "These reference checks do not rerun or retime matching, reduction or decoding.",
+        "A not-recovered result describes reference membership in this saved catalogue and is not a claim that no chemical mapping exists.",
+        "Each check has one measured execution; no full-dataset performance claim."
+      ]
+    },
+    "final_outcomes": {
+      "observed_utc": "2026-11-03T21:10:46.238209+00:00",
+      "expected_reactions": 16,
+      "expected_directions": 32,
+      "completed_reference_checks": 32,
+      "direction_outcomes": {
+        "not_recovered": 16,
+        "recovered": 16
+      },
+      "unknown_reference_checks": 0,
+      "reaction_outcomes": {
+        "not_recovered": 7,
+        "recovered": 9
+      },
+      "recovered_cases": [
+        20,
+        44,
+        590,
+        867,
+        964,
+        1034,
+        1228,
+        1314,
+        1568
+      ],
+      "both_direction_negative_cases": [
+        7,
+        19,
+        986,
+        1285,
+        1358,
+        1377,
+        1475
+      ],
+      "unresolved_cases": [],
+      "checks_by_evidence_source": {
+        "original_pass": 21,
+        "frozen_continuation": 5,
+        "repaired_saved_catalogue_validation": 4,
+        "repaired_in_memory_catalogue_validation": 2
+      },
+      "records": [
+        {
+          "case": 7,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 7,
+          "direction": "reverse",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 19,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 19,
+          "direction": "reverse",
+          "status": "not_recovered",
+          "source": "repaired_saved_catalogue_validation"
+        },
+        {
+          "case": 20,
+          "direction": "forward",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 20,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 44,
+          "direction": "forward",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 44,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 590,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "repaired_in_memory_catalogue_validation"
+        },
+        {
+          "case": 590,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "repaired_in_memory_catalogue_validation"
+        },
+        {
+          "case": 867,
+          "direction": "forward",
+          "status": "recovered",
+          "source": "repaired_saved_catalogue_validation"
+        },
+        {
+          "case": 867,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 964,
+          "direction": "forward",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 964,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 986,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 986,
+          "direction": "reverse",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1034,
+          "direction": "forward",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1034,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1228,
+          "direction": "forward",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1228,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1285,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1285,
+          "direction": "reverse",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1314,
+          "direction": "forward",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1314,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1358,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "repaired_saved_catalogue_validation"
+        },
+        {
+          "case": 1358,
+          "direction": "reverse",
+          "status": "not_recovered",
+          "source": "frozen_continuation"
+        },
+        {
+          "case": 1377,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "frozen_continuation"
+        },
+        {
+          "case": 1377,
+          "direction": "reverse",
+          "status": "not_recovered",
+          "source": "original_pass"
+        },
+        {
+          "case": 1475,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "frozen_continuation"
+        },
+        {
+          "case": 1475,
+          "direction": "reverse",
+          "status": "not_recovered",
+          "source": "frozen_continuation"
+        },
+        {
+          "case": 1568,
+          "direction": "forward",
+          "status": "not_recovered",
+          "source": "repaired_saved_catalogue_validation"
+        },
+        {
+          "case": 1568,
+          "direction": "reverse",
+          "status": "recovered",
+          "source": "frozen_continuation"
+        }
+      ],
+      "reactions": [
+        {
+          "case": 7,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 19,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 20,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 44,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 590,
+          "status": "recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 867,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 964,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 986,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 1034,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 1228,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 1285,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 1314,
+          "status": "recovered",
+          "directions": {
+            "forward": "recovered",
+            "reverse": "recovered"
+          }
+        },
+        {
+          "case": 1358,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 1377,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 1475,
+          "status": "not_recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "not_recovered"
+          }
+        },
+        {
+          "case": 1568,
+          "status": "recovered",
+          "directions": {
+            "forward": "not_recovered",
+            "reverse": "recovered"
+          }
+        }
+      ],
+      "input_index_sha256": "de768201723fa54ab862bd9bb4d0943a86b489ec5f04c99581a92b7ce9146b65",
+      "original_matching_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+      "repaired_verifier_source_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+      "original_failures_preserved": true,
+      "matching_rerun": false,
+      "event_decoding_performed": false,
+      "catalogue_storage": {
+        "published_directions": 30,
+        "in_memory_only_directions": 2,
+        "in_memory_cases": [
+          590
+        ],
+        "note": "Both 590 catalogues were fully constructed from every saved cut and verified in RAM; only proof, scope and metrics were saved. Original catalogue-publication failures remain recorded."
+      },
+      "combined_recovery": {
+        "baseline_recovered": 1831,
+        "additional_one_seed_tolerance2_recovered": 4,
+        "additional_ten_seed_tolerance2_recovered": 9,
+        "recovered": 1844,
+        "total": 1851,
+        "percent": 99.62182603997839,
+        "definition": "Union of the full tolerance-1 run and selected tolerance-2 recovery studies, not a uniform-settings full benchmark."
+      },
+      "interpretation": "Reference membership is resolved for every direction in this 16-reaction recovery cohort. Negative answers describe the retained capped-search relation; historical execution failures remain separate immutable evidence."
+    },
+    "in_memory_590": {
+      "status": "complete",
+      "reaction": "00590",
+      "reaction_outcome": "recovered",
+      "scientific_revision": "a59711120948022c666e24f684d18a22dcb0632a",
+      "source_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+      "method": "Maintained reduce_matching over every saved cut, followed directly by verify_catalogue in the same process; directions sequential. No rematching, event decoding, or full-catalogue publication.",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 2.0,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 10,
+        "branch_limit": 2000,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true,
+        "self_tolerance": 1.0
+      },
+      "memory_guard_bytes": 8589934592,
+      "memory_sample_interval_seconds": 0.2,
+      "phase_limits_seconds": {
+        "reduction": 1111.478505,
+        "verification": 934.194811
+      },
+      "budget_basis": {
+        "multiplier": 5,
+        "reference_case": "00590/reverse",
+        "reference_settings": {
+          "seed_count": 10,
+          "branch_limit": 2000,
+          "iso_tolerance": 1
+        },
+        "reduction_wall_seconds": 222.29570120829158,
+        "verification_wall_seconds": 186.83896220801398,
+        "scope": "Historical successful reverse stage times provide an explicit runtime proxy for both current directions; current saved matching uses iso_tolerance=2 and is not identical scientific scope.",
+        "clock": "Monotonic elapsed; no extensions or resets of original attempts."
+      },
+      "original_stage_rows_unchanged": {
+        "result": true,
+        "reduction-recovery": true
+      },
+      "original_failure_history_preserved": true,
+      "original_ledger_statuses_not_rewritten": true,
+      "directions": [
+        {
+          "case": "00590/forward",
+          "status": "not_recovered",
+          "matching_cuts": 58,
+          "seed_searches": 580,
+          "matching_tasks_complete": 638,
+          "all_expected_matching_cuts_consumed": true,
+          "scope_sha256": "c19ce36b66181952a5d28cbb18e0ec8056c77335582fa052d3bd7dbd41a11294",
+          "counts": {
+            "families": 1071522,
+            "atom_set_branches": 990949,
+            "retained_paths": 1101562,
+            "incomplete_paths": 0
+          },
+          "checked_families": 1071522,
+          "winning_family": null,
+          "peak_tree_rss_bytes": 6649102336,
+          "reduction": {
+            "monotonic_elapsed_seconds": 271.60623675002716,
+            "cpu_seconds": 271.400803,
+            "utc_elapsed_seconds": 271.606013
+          },
+          "verification": {
+            "monotonic_elapsed_seconds": 118.11401804117486,
+            "cpu_seconds": 116.97975600000001,
+            "utc_elapsed_seconds": 118.113513
+          },
+          "cut_loading_included_in_reduction": {
+            "monotonic_elapsed_seconds": 81.67678616428748,
+            "cpu_seconds": 81.57352799999995,
+            "cuts": 58,
+            "compressed_bytes": 78696192
+          },
+          "limits_satisfied": true,
+          "full_catalogue_published": false,
+          "verdict_and_winning_family_sha256": "a77a6e5045345cf8090741b2e398d82a30b576d90a1c0bb69b285b4c3df9f154",
+          "digest_verified": true,
+          "process_cleanup": {
+            "scientific_result_and_small_artifact_complete": true,
+            "child_exit_code": -15,
+            "explanation": "Supervisor terminated the child only after receiving its complete scientific result and allowing five seconds for interpreter cleanup."
+          },
+          "phase_clock_intervals": {
+            "reduction": {
+              "utc_start": "2026-11-03T19:00:49.528714+00:00",
+              "utc_end": "2026-11-03T19:05:21.134727+00:00",
+              "utc_elapsed_seconds": 271.606013,
+              "monotonic_elapsed_seconds": 271.60722754197195,
+              "utc_minus_monotonic_seconds": -0.0012145419719331585
+            },
+            "verification": {
+              "utc_start": "2026-11-03T19:05:21.134727+00:00",
+              "utc_end": "2026-11-03T19:07:19.248240+00:00",
+              "utc_elapsed_seconds": 118.113513,
+              "monotonic_elapsed_seconds": 118.11404133308679,
+              "utc_minus_monotonic_seconds": -0.0005283330867911218
+            }
+          },
+          "negative_scope": "Every retained family conclusively checked; final not_recovered excludes unknown outcomes."
+        },
+        {
+          "case": "00590/reverse",
+          "status": "recovered",
+          "matching_cuts": 56,
+          "seed_searches": 560,
+          "matching_tasks_complete": 616,
+          "all_expected_matching_cuts_consumed": true,
+          "scope_sha256": "b126fd8bdb9e0b5701edf1a517eb85efd1ffc643f14e2f1ff11c198c8c1afd61",
+          "counts": {
+            "families": 1014562,
+            "atom_set_branches": 800453,
+            "retained_paths": 1075282,
+            "incomplete_paths": 0
+          },
+          "checked_families": 649601,
+          "winning_family": 649600,
+          "peak_tree_rss_bytes": 5686624256,
+          "reduction": {
+            "monotonic_elapsed_seconds": 293.5141529170796,
+            "cpu_seconds": 277.645581,
+            "utc_elapsed_seconds": 4304.400042
+          },
+          "verification": {
+            "monotonic_elapsed_seconds": 352.15514100017026,
+            "cpu_seconds": 329.71998599999995,
+            "utc_elapsed_seconds": 2984.032957
+          },
+          "cut_loading_included_in_reduction": {
+            "monotonic_elapsed_seconds": 102.29104854189791,
+            "cpu_seconds": 95.735965,
+            "cuts": 56,
+            "compressed_bytes": 76632534
+          },
+          "limits_satisfied": true,
+          "full_catalogue_published": false,
+          "verdict_and_winning_family_sha256": "52948e9c5dee40bcfd8a1f1405a4cc27dbbd4519df9593e6b025aab2cbf2861e",
+          "digest_verified": true,
+          "process_cleanup": {
+            "scientific_result_and_small_artifact_complete": true,
+            "child_exit_code": -15,
+            "explanation": "Supervisor terminated the child only after receiving its complete scientific result and allowing five seconds for interpreter cleanup."
+          },
+          "phase_clock_intervals": {
+            "reduction": {
+              "utc_start": "2026-11-03T19:07:25.982308+00:00",
+              "utc_end": "2026-11-03T20:19:10.382350+00:00",
+              "utc_elapsed_seconds": 4304.400042,
+              "monotonic_elapsed_seconds": 293.5166210839525,
+              "utc_minus_monotonic_seconds": 4010.8834209160477
+            },
+            "verification": {
+              "utc_start": "2026-11-03T20:19:10.382350+00:00",
+              "utc_end": "2026-11-03T21:08:54.415307+00:00",
+              "utc_elapsed_seconds": 2984.032957,
+              "monotonic_elapsed_seconds": 352.1551745000761,
+              "utc_minus_monotonic_seconds": 2631.877782499924
+            }
+          }
+        }
+      ],
+      "timing_caveat": "Recorded phase elapsed durations use perf_counter/monotonic, which excluded system suspension on this Mac. Reverse execution crossed confirmed clamshell sleep and maintenance dark wakes. UTC/calendar elapsed is separately retained and is much longer; CPU seconds are the computational measurement.",
+      "sleep_confirmed_from_system_power_log": true,
+      "independent_witness_audit": {
+        "case": "00590/reverse",
+        "family": 649600,
+        "passed": true,
+        "relations": 13,
+        "placements": 11,
+        "checked_fragment_edges": 42,
+        "original_representative_valid": true,
+        "exact_composed_mapping": true,
+        "local_discovery_and_both_self_constraints": true,
+        "placement_group_membership": true,
+        "injectivity_and_element_compatibility": true,
+        "complete_heavy_atom_reference_equivalence": true,
+        "endpoint_reference_check": {
+          "components": 0,
+          "cache_hits": 0,
+          "solver_calls": 0,
+          "fixed_choices": 76
+        },
+        "input_sha256": "8e363c9cef3c857bb2b4c5b43a9648c5782d2645d5b001e5ed27f73ca5b62012",
+        "reference_sha256": "456497631f800570e0145e8eb2d3fb51bedb585c8b50aaa9cf704cda78646aac",
+        "winning_family_sha256": "ef2b7245627cfb4795e558fc0b12b27453beea48ca07aac21f73542a8d124987",
+        "proof_sha256": "4a79178af89edb1a528328454e0f369b1e612e9b2e0f81dfb44e8288da17351b",
+        "scope": "one saved winning family only; no catalogue reconstruction or full reference query",
+        "audit_wall_seconds": 0.08485883404500782,
+        "audit_cpu_seconds": 0.017869999999999997,
+        "process_lifetime_peak_rss_bytes": 116867072
+      },
+      "completion_scope": "The retained, branch-capped catalogues were validated. Forward absence is conclusive within its complete retained catalogue, not a claim of exhaustive uncapped matching. Reverse recovery has an independently replayed witness."
+    }
+  },
+  "remaining_reference_audit": {
+    "schema": "golden-current-reference-cardinality/v1",
+    "scope": "Saved seed10/tolerance2/cap2000 catalogue inspection; no matching, reduction or decoding. Strict original reference outcomes unchanged.",
+    "source_revision": "488fe32c52a78e7174a2e709a843326bed104874",
+    "inspection_source_identity": "c909faac82d9c4b546d226c4c643d16659df04adb90dbe7ae596ebdce1b609f9",
+    "source_module_sha256": {
+      "src/mappa/mappa_core/core/symmetry/relations.py": "2a7ec8d2404e3b6d0661d33386c3c350f0e100e4ff2b3e2e7c5e6deeb827e6e0",
+      "src/mappa/mappa_core/core/symmetry/relaxed.py": "756c558f750dfcfc44578f5cfc3e5045d71530a6263f4b70a892f3a3a99b4f24",
+      "src/mappa/mappa_core/post_processing/final_branches.py": "72c95413c5c4d10b3051981443340876b77cc6debad875cc22c88a93f744053c",
+      "src/mappa/mappa_workflow/mapping_analytics/family.py": "34248b155bd93daedbc8656d7ed7f6d900a31b2d4d7758e5ffce29f48ab8fd92"
+    },
+    "started_utc": "2026-11-03T21:37:06.798537+00:00",
+    "finished_utc": "2026-11-03T21:40:49.728156+00:00",
+    "config": {
+      "anchors": [],
+      "branch_limit": 2000,
+      "cut_floor": 0.2,
+      "event_threshold": 0.5,
+      "graph_floor": 0.2,
+      "iso_tolerance": 2.0,
+      "metal_event_threshold": 0.3,
+      "random_seed": 42,
+      "seed_count": 10,
+      "seed_selection": "random",
+      "self_tolerance": 1.0,
+      "sweep_cuts": true,
+      "task_chunksize": 1
+    },
+    "input_index_sha256": "de768201723fa54ab862bd9bb4d0943a86b489ec5f04c99581a92b7ce9146b65",
+    "maximum_parallel_processes": 1,
+    "memory_guard_bytes": 4294967296,
+    "status": "complete",
+    "all_scans_complete": true,
+    "summary": {
+      "bounded_or_failed_scans": 0,
+      "cardinality_mismatch_cases": [
+        7,
+        1358,
+        1377,
+        1475
+      ],
+      "complete_scans": 14,
+      "directions": 14,
+      "families": 1455316,
+      "load_cpu_seconds": 78.84585,
+      "matching_cardinality_cases": [
+        19,
+        986,
+        1285
+      ],
+      "maximum_sampled_tree_rss_bytes": 2866429952,
+      "records": [
+        {
+          "case": 7,
+          "families": 26438,
+          "reference_heavy_pairs": 29,
+          "saved_family_heavy_pair_counts": [
+            30
+          ],
+          "strict_cardinality_incompatible": true
+        },
+        {
+          "case": 19,
+          "families": 291585,
+          "reference_heavy_pairs": 23,
+          "saved_family_heavy_pair_counts": [
+            23
+          ],
+          "strict_cardinality_incompatible": false
+        },
+        {
+          "case": 986,
+          "families": 7142,
+          "reference_heavy_pairs": 16,
+          "saved_family_heavy_pair_counts": [
+            16
+          ],
+          "strict_cardinality_incompatible": false
+        },
+        {
+          "case": 1285,
+          "families": 2916,
+          "reference_heavy_pairs": 14,
+          "saved_family_heavy_pair_counts": [
+            14
+          ],
+          "strict_cardinality_incompatible": false
+        },
+        {
+          "case": 1358,
+          "families": 203960,
+          "reference_heavy_pairs": 36,
+          "saved_family_heavy_pair_counts": [
+            37
+          ],
+          "strict_cardinality_incompatible": true
+        },
+        {
+          "case": 1377,
+          "families": 872707,
+          "reference_heavy_pairs": 22,
+          "saved_family_heavy_pair_counts": [
+            23
+          ],
+          "strict_cardinality_incompatible": true
+        },
+        {
+          "case": 1475,
+          "families": 50568,
+          "reference_heavy_pairs": 18,
+          "saved_family_heavy_pair_counts": [
+            19
+          ],
+          "strict_cardinality_incompatible": true
+        }
+      ],
+      "scan_cpu_seconds": 10.428740999999999
+    },
+    "cardinality_invariant": {
+      "explanation": "Each saved family starts with one injective element-preserving mapping. A local relation is a bijection between its fixed source and target sets; its source and target self choices are permutations. A placement action is a target permutation applied to the entire continuation. The ordered evaluator changes target images without adding or removing source keys. Hence every represented physical mapping has the same mapped heavy-atom cardinality as family.mapping. Endpoint chemical equivalence also preserves elements and cardinality.",
+      "representative_heavy_element_mismatches": 0,
+      "scope": "Mathematical invariant of valid saved relations/actions, combined with complete representative count scans; no enumeration of all internal choices.",
+      "source_evidence": [
+        {
+          "file": "src/mappa/mappa_core/post_processing/final_branches.py",
+          "lines": "96\u2013105",
+          "meaning": "Representative injectivity and element checks"
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relations.py",
+          "lines": "117\u2013140,161\u2013174",
+          "meaning": "Discovery bijects fixed sets; both self actions are checked permutations"
+        },
+        {
+          "file": "src/mappa/mappa_core/core/symmetry/relaxed.py",
+          "lines": "118\u2013134",
+          "meaning": "Self choices preserve bijection, elements, anchors and original constraints"
+        },
+        {
+          "file": "src/mappa/mappa_workflow/mapping_analytics/family.py",
+          "lines": "199\u2013231",
+          "meaning": "Ordered physical realization preserves source keys and validates injectivity/elements"
+        }
+      ]
+    },
+    "original_reference_reconstruction": {
+      "archived_source_file": "reports/golden_miss_analysis_20260913/original-reference-audit.json",
+      "archived_source_sha256": "13bd87ea8e0bdc3d123953927a35e12bf2b495d9ff3ef240a386c8caddc27210",
+      "asserted_original_rdf_sha256": "4e287d49b70791ec30acee6d12babc26a8b7d15bd5730a3a4464e78e43eb74ce",
+      "independent_reviewer": "golden_launch_audit",
+      "interpretation": "The unmatched atoms are present in the original reference and were preserved by preparation and viewing. Incomplete reaction inputs can legitimately leave atoms unmatched; this audit does not establish that an original annotation is chemically wrong.",
+      "label_observations": {
+        "1285": {
+          "shared_pair_wbo_changes": 9,
+          "unmatched_product_labels": [],
+          "unmatched_reactant_labels": [
+            [
+              1,
+              "O"
+            ],
+            [
+              5,
+              "O"
+            ]
+          ]
+        },
+        "1358": {
+          "both_are_methyl_attached_to_original_label": 34,
+          "product_prepared_index": 2,
+          "reactant_prepared_index": 22,
+          "shared_pair_wbo_changes": 4,
+          "unmatched_product_labels": [
+            [
+              38,
+              "C"
+            ]
+          ],
+          "unmatched_reactant_labels": [
+            [
+              35,
+              "C"
+            ]
+          ]
+        },
+        "1377": {
+          "product_oxygen_bonds_original_labels": [
+            19,
+            24
+          ],
+          "unmatched_product_labels": [
+            [
+              26,
+              "O"
+            ]
+          ],
+          "unmatched_reactant_labels": [
+            [
+              15,
+              "O"
+            ],
+            [
+              23,
+              "O"
+            ],
+            [
+              25,
+              "Cl"
+            ]
+          ]
+        },
+        "1475": {
+          "reactant_product_element_changes": {
+            "C": [
+              12,
+              14
+            ],
+            "N": [
+              1,
+              0
+            ],
+            "O": [
+              3,
+              2
+            ]
+          },
+          "unmatched_product_labels": [
+            [
+              19,
+              "C"
+            ],
+            [
+              20,
+              "C"
+            ],
+            [
+              21,
+              "C"
+            ]
+          ],
+          "unmatched_reactant_labels": [
+            [
+              22,
+              "N"
+            ],
+            [
+              23,
+              "C"
+            ],
+            [
+              24,
+              "O"
+            ]
+          ]
+        },
+        "19": {
+          "all_heavy_atoms_paired": true,
+          "shared_pair_wbo_changes": 15
+        },
+        "7": {
+          "product_oxygen_neighbors_original_labels": [
+            [
+              4,
+              1
+            ]
+          ],
+          "product_oxygen_prepared_index": 27,
+          "shared_pair_wbo_changes": 0,
+          "source_oxygen_neighbors_original_labels": [
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ]
+          ],
+          "source_oxygen_prepared_index": 2,
+          "unmatched_product_labels": [
+            [
+              33,
+              "O"
+            ]
+          ],
+          "unmatched_reactant_labels": [
+            [
+              1,
+              "C"
+            ],
+            [
+              2,
+              "C"
+            ],
+            [
+              3,
+              "O"
+            ]
+          ]
+        },
+        "986": {
+          "all_heavy_atoms_paired": true,
+          "shared_pair_wbo_changes": 7
+        }
+      },
+      "original_rdf_reopened": false,
+      "recipe": "Clear mapped labels, obtain canonical SMILES atom output order, renumber, add hydrogens, assign stereochemistry; retain original atom-map labels through the reordered index correspondence.",
+      "records": [
+        {
+          "case": 7,
+          "exact_atom_colors": true,
+          "exact_bond_stereochemistry": true,
+          "exact_elements": true,
+          "exact_full_wbo": true,
+          "exact_heavy_indices": true,
+          "exact_reference_pairs": true,
+          "independent_colored_two_endpoint_mapping_certificate_equal": true,
+          "original_map_labels_positive_and_unique_per_endpoint": true,
+          "product_heavy": 30,
+          "reactant_heavy": 32,
+          "reference_pairs": 29
+        },
+        {
+          "case": 19,
+          "exact_atom_colors": true,
+          "exact_bond_stereochemistry": true,
+          "exact_elements": true,
+          "exact_full_wbo": true,
+          "exact_heavy_indices": true,
+          "exact_reference_pairs": true,
+          "independent_colored_two_endpoint_mapping_certificate_equal": true,
+          "original_map_labels_positive_and_unique_per_endpoint": true,
+          "product_heavy": 23,
+          "reactant_heavy": 23,
+          "reference_pairs": 23
+        },
+        {
+          "case": 986,
+          "exact_atom_colors": true,
+          "exact_bond_stereochemistry": true,
+          "exact_elements": true,
+          "exact_full_wbo": true,
+          "exact_heavy_indices": true,
+          "exact_reference_pairs": true,
+          "independent_colored_two_endpoint_mapping_certificate_equal": true,
+          "original_map_labels_positive_and_unique_per_endpoint": true,
+          "product_heavy": 16,
+          "reactant_heavy": 16,
+          "reference_pairs": 16
+        },
+        {
+          "case": 1285,
+          "exact_atom_colors": true,
+          "exact_bond_stereochemistry": true,
+          "exact_elements": true,
+          "exact_full_wbo": true,
+          "exact_heavy_indices": true,
+          "exact_reference_pairs": true,
+          "independent_colored_two_endpoint_mapping_certificate_equal": true,
+          "original_map_labels_positive_and_unique_per_endpoint": true,
+          "product_heavy": 14,
+          "reactant_heavy": 16,
+          "reference_pairs": 14
+        },
+        {
+          "case": 1358,
+          "exact_atom_colors": true,
+          "exact_bond_stereochemistry": true,
+          "exact_elements": true,
+          "exact_full_wbo": true,
+          "exact_heavy_indices": true,
+          "exact_reference_pairs": true,
+          "independent_colored_two_endpoint_mapping_certificate_equal": true,
+          "original_map_labels_positive_and_unique_per_endpoint": true,
+          "product_heavy": 37,
+          "reactant_heavy": 37,
+          "reference_pairs": 36
+        },
+        {
+          "case": 1377,
+          "exact_atom_colors": true,
+          "exact_bond_stereochemistry": true,
+          "exact_elements": true,
+          "exact_full_wbo": true,
+          "exact_heavy_indices": true,
+          "exact_reference_pairs": true,
+          "independent_colored_two_endpoint_mapping_certificate_equal": true,
+          "original_map_labels_positive_and_unique_per_endpoint": true,
+          "product_heavy": 23,
+          "reactant_heavy": 25,
+          "reference_pairs": 22
+        },
+        {
+          "case": 1475,
+          "exact_atom_colors": true,
+          "exact_bond_stereochemistry": true,
+          "exact_elements": true,
+          "exact_full_wbo": true,
+          "exact_heavy_indices": true,
+          "exact_reference_pairs": true,
+          "independent_colored_two_endpoint_mapping_certificate_equal": true,
+          "original_map_labels_positive_and_unique_per_endpoint": true,
+          "product_heavy": 21,
+          "reactant_heavy": 21,
+          "reference_pairs": 18
+        }
+      ],
+      "scope": "Original archived mapped SMILES reconstructed with the original preparation recipe; current source atom order, complete WBO matrices, heavy features and reference pairs compared. No source annotations or mappings changed.",
+      "status": "all_seven_pass"
+    },
+    "catalogue_records": [
+      {
+        "case": 7,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "forward",
+        "families": 19218,
+        "heavy_pair_histogram": {
+          "30": 19218
+        },
+        "input_sha256": "5cbafa7670ff4bebb526fb2ee912cd34f2b5687e78741022bdb6a1be24b09269",
+        "inspection_elapsed_seconds": 2.4754588750656694,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 1.805481,
+          "wall_seconds": 1.8131393750663847
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 26,
+              "N": 1,
+              "O": 2,
+              "Si": 1
+            },
+            "families": 19218
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 409616384,
+        "reference_heavy_pairs": 29,
+        "reference_sha256": "636dc0c79640349f712058e5c7ff67c1a6016f8af1aeeb7a27f1277532aeb8b3",
+        "sampled_peak_tree_rss_bytes": 409616384,
+        "scan": {
+          "cpu_seconds": 0.16853799999999985,
+          "wall_seconds": 0.1685670840088278
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 32,
+        "status": "complete",
+        "target_heavy_atoms": 30,
+        "catalogue_sha256": "c626a0e539320d5e72f5d50b8ddde1189042ae3cb7fac3a5db9cdd33908ad68c"
+      },
+      {
+        "case": 7,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "reverse",
+        "families": 7220,
+        "heavy_pair_histogram": {
+          "30": 7220
+        },
+        "input_sha256": "44cc45da69df1e9f5932df608224afda8cf7fab452a179d966e9156f2aedfabe",
+        "inspection_elapsed_seconds": 1.3885814999230206,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 0.912006,
+          "wall_seconds": 0.9193624171894044
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 26,
+              "N": 1,
+              "O": 2,
+              "Si": 1
+            },
+            "families": 7220
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 343834624,
+        "reference_heavy_pairs": 29,
+        "reference_sha256": "636dc0c79640349f712058e5c7ff67c1a6016f8af1aeeb7a27f1277532aeb8b3",
+        "sampled_peak_tree_rss_bytes": 343851008,
+        "scan": {
+          "cpu_seconds": 0.06463200000000002,
+          "wall_seconds": 0.06463525001890957
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 30,
+        "status": "complete",
+        "target_heavy_atoms": 32,
+        "catalogue_sha256": "56ee7206e9856bacd43539a94259152a49c45dc74da3133f235fec8472553767"
+      },
+      {
+        "case": 19,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "forward",
+        "families": 64428,
+        "heavy_pair_histogram": {
+          "23": 64428
+        },
+        "input_sha256": "ed0f5ee417f25b215aa69a391595c53ef4a37f67ad1bf53de3dc3624d1deffed",
+        "inspection_elapsed_seconds": 4.4252721248194575,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 3.3039110000000003,
+          "wall_seconds": 3.3108764169737697
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 20,
+              "N": 1,
+              "O": 2
+            },
+            "families": 64428
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 556482560,
+        "reference_heavy_pairs": 23,
+        "reference_sha256": "4299d8dfd74a95ff9dbb12e8be05d9d5cac323b821d87f8dfacc96eb8130fdcc",
+        "sampled_peak_tree_rss_bytes": 556498944,
+        "scan": {
+          "cpu_seconds": 0.4262260000000002,
+          "wall_seconds": 0.4262406670022756
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 23,
+        "status": "complete",
+        "target_heavy_atoms": 23,
+        "catalogue_sha256": "172c2a5c28558969f86d949f090e68dadd9dade63149765a3018572f2c9633b8"
+      },
+      {
+        "case": 19,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "reverse",
+        "families": 227157,
+        "heavy_pair_histogram": {
+          "23": 227157
+        },
+        "input_sha256": "3b6c0e8bddae83874ef7bd12472b773c153f22771441da680c8a4d0fb478095a",
+        "inspection_elapsed_seconds": 14.853052416117862,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 12.177705,
+          "wall_seconds": 12.196077457861975
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 20,
+              "N": 1,
+              "O": 2
+            },
+            "families": 227157
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 1728118784,
+        "reference_heavy_pairs": 23,
+        "reference_sha256": "4299d8dfd74a95ff9dbb12e8be05d9d5cac323b821d87f8dfacc96eb8130fdcc",
+        "sampled_peak_tree_rss_bytes": 1728135168,
+        "scan": {
+          "cpu_seconds": 1.4636419999999983,
+          "wall_seconds": 1.4640304578933865
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 23,
+        "status": "complete",
+        "target_heavy_atoms": 23,
+        "catalogue_sha256": "cb44a7ae6220fb1d2e4d7d50741413c2481bf2a384d95d469012162a8b8b8e13"
+      },
+      {
+        "case": 986,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "forward",
+        "families": 4678,
+        "heavy_pair_histogram": {
+          "16": 4678
+        },
+        "input_sha256": "206e5ea768b110e4193828602b79c5e44a4c928195aaf0b3d32d0f0a54aa7305",
+        "inspection_elapsed_seconds": 1.3829985409975052,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 0.139982,
+          "wall_seconds": 0.14493129099719226
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "Br": 1,
+              "C": 10,
+              "N": 2,
+              "O": 3
+            },
+            "families": 4678
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 85819392,
+        "reference_heavy_pairs": 16,
+        "reference_sha256": "222e75b75999bfd910eb6876eedba9ee436d65c6717a3ca849b188d7ebd0aa2a",
+        "sampled_peak_tree_rss_bytes": 85819392,
+        "scan": {
+          "cpu_seconds": 0.02301800000000004,
+          "wall_seconds": 0.023021125001832843
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 16,
+        "status": "complete",
+        "target_heavy_atoms": 16,
+        "catalogue_sha256": "bfa4433ff906490ce349e8a0f905134ba90cbec52e652ff347c6995766d5a575"
+      },
+      {
+        "case": 986,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "reverse",
+        "families": 2464,
+        "heavy_pair_histogram": {
+          "16": 2464
+        },
+        "input_sha256": "2b537b1bdbc934bd565940c712401e98dd9d487ad0be12438c6af18b2d398451",
+        "inspection_elapsed_seconds": 0.4863673751242459,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 0.08037,
+          "wall_seconds": 0.08093304093927145
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "Br": 1,
+              "C": 10,
+              "N": 2,
+              "O": 3
+            },
+            "families": 2464
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 73531392,
+        "reference_heavy_pairs": 16,
+        "reference_sha256": "222e75b75999bfd910eb6876eedba9ee436d65c6717a3ca849b188d7ebd0aa2a",
+        "sampled_peak_tree_rss_bytes": 72613888,
+        "scan": {
+          "cpu_seconds": 0.012249999999999983,
+          "wall_seconds": 0.012250083032995462
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 16,
+        "status": "complete",
+        "target_heavy_atoms": 16,
+        "catalogue_sha256": "60e23b359bb79618b2c68f9a1836ba843fd23e1c540f9a5143a2621e1f205c27"
+      },
+      {
+        "case": 1285,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "forward",
+        "families": 697,
+        "heavy_pair_histogram": {
+          "14": 697
+        },
+        "input_sha256": "87c8730aa81e3b8442b43ad71fa19bf336725631d7510ab545775f82fc70d46b",
+        "inspection_elapsed_seconds": 0.47993212495930493,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 0.03367200000000001,
+          "wall_seconds": 0.04018704197369516
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 9,
+              "N": 2,
+              "O": 3
+            },
+            "families": 697
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 61702144,
+        "reference_heavy_pairs": 14,
+        "reference_sha256": "e1e12a15f3181f8d0b2ab44c289a9d859ec5fbcf3f2418457cb752a5abd4fc35",
+        "sampled_peak_tree_rss_bytes": 54181888,
+        "scan": {
+          "cpu_seconds": 0.003123999999999988,
+          "wall_seconds": 0.0031240000389516354
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 16,
+        "status": "complete",
+        "target_heavy_atoms": 14,
+        "catalogue_sha256": "95e3ca43c6b699d972c448789d9e9781398001eaf5661ec1ca328bb1d3f25007"
+      },
+      {
+        "case": 1285,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "reverse",
+        "families": 2219,
+        "heavy_pair_histogram": {
+          "14": 2219
+        },
+        "input_sha256": "1e7e98a417932f71cd6081d7c11bdfe82266609c66d41c581df08035b35e47b6",
+        "inspection_elapsed_seconds": 0.4211343750357628,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 0.059211000000000014,
+          "wall_seconds": 0.059790708124637604
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 9,
+              "N": 2,
+              "O": 3
+            },
+            "families": 2219
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 66682880,
+        "reference_heavy_pairs": 14,
+        "reference_sha256": "e1e12a15f3181f8d0b2ab44c289a9d859ec5fbcf3f2418457cb752a5abd4fc35",
+        "sampled_peak_tree_rss_bytes": 66289664,
+        "scan": {
+          "cpu_seconds": 0.009295999999999971,
+          "wall_seconds": 0.009297667071223259
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 14,
+        "status": "complete",
+        "target_heavy_atoms": 16,
+        "catalogue_sha256": "2f7bce9a99be0a4f6024219a03cd773368d8f77aff68886079d10ecb682e0ccd"
+      },
+      {
+        "case": 1358,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "forward",
+        "families": 122090,
+        "heavy_pair_histogram": {
+          "37": 122090
+        },
+        "input_sha256": "835b893c9bd4cd3e4b3ec7a6bdecfba350d1a53b7e9fc2c26079ca7d8dcaef31",
+        "inspection_elapsed_seconds": 13.749164375010878,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 11.521062,
+          "wall_seconds": 11.52698004199192
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 30,
+              "N": 2,
+              "O": 4,
+              "Si": 1
+            },
+            "families": 122090
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 1329037312,
+        "reference_heavy_pairs": 36,
+        "reference_sha256": "a398479187e50274a8f4c0a64c2f3c9971fdb81dfd4d352fe6573ba56d06818e",
+        "sampled_peak_tree_rss_bytes": 1327644672,
+        "scan": {
+          "cpu_seconds": 1.2654979999999991,
+          "wall_seconds": 1.2657314999960363
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 37,
+        "status": "complete",
+        "target_heavy_atoms": 37,
+        "catalogue_sha256": "9c4a94b6e65d1d2a0f3a19bb8340dbcf6ebec49c32ac1baf80c14abf6d987cdc"
+      },
+      {
+        "case": 1358,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "reverse",
+        "families": 81870,
+        "heavy_pair_histogram": {
+          "37": 81870
+        },
+        "input_sha256": "144d0e4980760f31bad57687eea2d96195a4e663d3838da966ab29103835920c",
+        "inspection_elapsed_seconds": 8.916240375023335,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 7.290094,
+          "wall_seconds": 7.293325749924406
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 30,
+              "N": 2,
+              "O": 4,
+              "Si": 1
+            },
+            "families": 81870
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 1064288256,
+        "reference_heavy_pairs": 36,
+        "reference_sha256": "a398479187e50274a8f4c0a64c2f3c9971fdb81dfd4d352fe6573ba56d06818e",
+        "sampled_peak_tree_rss_bytes": 1062223872,
+        "scan": {
+          "cpu_seconds": 0.8510150000000003,
+          "wall_seconds": 0.8510703330393881
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 37,
+        "status": "complete",
+        "target_heavy_atoms": 37,
+        "catalogue_sha256": "d5936fd1732b2508e173a46513b35c3fb8eaa6107ac6d0758d02e41883ff9614"
+      },
+      {
+        "case": 1377,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "forward",
+        "families": 402233,
+        "heavy_pair_histogram": {
+          "23": 402233
+        },
+        "input_sha256": "851ded7a5e7ed81f4fc0efd40a331cae9ca8f9c761032391b12d9ceaeb50246b",
+        "inspection_elapsed_seconds": 23.054869583109394,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 18.547525999999998,
+          "wall_seconds": 18.566258083097637
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 16,
+              "Cl": 1,
+              "N": 3,
+              "O": 3
+            },
+            "families": 402233
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 2637987840,
+        "reference_heavy_pairs": 22,
+        "reference_sha256": "974f17ef8a4a2794d77ee213d23f93a6504aebc8bac1669b663d452ce85abb3f",
+        "sampled_peak_tree_rss_bytes": 2638004224,
+        "scan": {
+          "cpu_seconds": 2.733395999999999,
+          "wall_seconds": 2.7337352498434484
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 25,
+        "status": "complete",
+        "target_heavy_atoms": 23,
+        "catalogue_sha256": "1f3083e7226682823821bd33ba99fb5074099dfaeff298bb23c4ded5ac1ffab5"
+      },
+      {
+        "case": 1377,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "reverse",
+        "families": 470474,
+        "heavy_pair_histogram": {
+          "23": 470474
+        },
+        "input_sha256": "00f80ecf64242ef8754bbcd85dcc5db30a19fead9120f186f2dbad7df5a9e5d3",
+        "inspection_elapsed_seconds": 26.350187208037823,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 21.225209000000003,
+          "wall_seconds": 21.229222082998604
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "C": 16,
+              "Cl": 1,
+              "N": 3,
+              "O": 3
+            },
+            "families": 470474
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 2866413568,
+        "reference_heavy_pairs": 22,
+        "reference_sha256": "974f17ef8a4a2794d77ee213d23f93a6504aebc8bac1669b663d452ce85abb3f",
+        "sampled_peak_tree_rss_bytes": 2866429952,
+        "scan": {
+          "cpu_seconds": 3.1151940000000025,
+          "wall_seconds": 3.1154851668979973
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 23,
+        "status": "complete",
+        "target_heavy_atoms": 25,
+        "catalogue_sha256": "f43c314076ea3251f0c60fb8eb0489704a39016d97eef6762ca853447099de9b"
+      },
+      {
+        "case": 1475,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "forward",
+        "families": 28134,
+        "heavy_pair_histogram": {
+          "19": 28134
+        },
+        "input_sha256": "638dc276bb3cd121e0bee4dc3b5135573b6b18cfc8c5b4f19afd7a224b87d39a",
+        "inspection_elapsed_seconds": 1.5198578331619501,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 0.945599,
+          "wall_seconds": 0.9526827919762582
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "Br": 1,
+              "C": 12,
+              "F": 3,
+              "Mg": 1,
+              "O": 2
+            },
+            "families": 28134
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 225509376,
+        "reference_heavy_pairs": 18,
+        "reference_sha256": "25e9099166a8e596e6c6cc592c04a5d79acb0f7314e8df4066ab45a78b1576bf",
+        "sampled_peak_tree_rss_bytes": 225509376,
+        "scan": {
+          "cpu_seconds": 0.15850600000000004,
+          "wall_seconds": 0.15850545815192163
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 21,
+        "status": "complete",
+        "target_heavy_atoms": 21,
+        "catalogue_sha256": "03f2e6776488a30712cae0b3dad6ca31e3c71b09bc8a6a5a095333914800a838"
+      },
+      {
+        "case": 1475,
+        "catalogue_scientific_source_identity": "e065f2765298deff05b5cb72a5b6521b4d656fef650dad479d1044bdb8fdb6af",
+        "checksum_verified_by_read_blob": true,
+        "direction": "reverse",
+        "families": 22434,
+        "heavy_pair_histogram": {
+          "19": 22434
+        },
+        "input_sha256": "54a458202dab228bc6a698038d3709803ffd8571e7f55243583217c74861f00f",
+        "inspection_elapsed_seconds": 1.4715424578171223,
+        "inspection_guard_seconds": 60.0,
+        "invalid_heavy_element_pairs": 0,
+        "load": {
+          "cpu_seconds": 0.8040220000000001,
+          "wall_seconds": 0.8073458750732243
+        },
+        "mapped_heavy_element_histogram": [
+          {
+            "elements": {
+              "Br": 1,
+              "C": 12,
+              "F": 3,
+              "Mg": 1,
+              "O": 2
+            },
+            "families": 22434
+          }
+        ],
+        "process_lifetime_peak_rss_bytes": 203603968,
+        "reference_heavy_pairs": 18,
+        "reference_sha256": "25e9099166a8e596e6c6cc592c04a5d79acb0f7314e8df4066ab45a78b1576bf",
+        "sampled_peak_tree_rss_bytes": 203620352,
+        "scan": {
+          "cpu_seconds": 0.13440600000000003,
+          "wall_seconds": 0.13834804180078208
+        },
+        "scope": "Complete scan of every saved family mapping; no mapping-choice expansion or reference query",
+        "source_heavy_atoms": 21,
+        "status": "complete",
+        "target_heavy_atoms": 21,
+        "catalogue_sha256": "7654ac985fe971b322ae2559d746e2cfe49ceb9a441492a884b4ad31def618a7"
+      }
+    ],
+    "case7_subset_query": {
+      "case": 7,
+      "direction": "forward",
+      "scope": "diagnostic_required_pair_subset_only",
+      "status": "recovered",
+      "strict_original_verdict": "not_recovered",
+      "strict_reference_score_unchanged": true,
+      "complete_reference": false,
+      "required_heavy_pairs": 29,
+      "checked_families": 1,
+      "winning_family": 0,
+      "catalogue_families": 19218,
+      "input_sha256": "5cbafa7670ff4bebb526fb2ee912cd34f2b5687e78741022bdb6a1be24b09269",
+      "reference_sha256": "636dc0c79640349f712058e5c7ff67c1a6016f8af1aeeb7a27f1277532aeb8b3",
+      "source_identity": "c909faac82d9c4b546d226c4c643d16659df04adb90dbe7ae596ebdce1b609f9",
+      "load": {
+        "cpu_seconds": 1.816376,
+        "wall_seconds": 1.8189785000868142
+      },
+      "query": {
+        "cpu_seconds": 0.9784770000000003,
+        "wall_seconds": 1.9212572081014514
+      },
+      "guard_seconds_by_phase": {
+        "load": 60.0,
+        "proof_validation": 15.0,
+        "query": 15.0
+      },
+      "memory_guard_bytes": 4294967296,
+      "process_lifetime_peak_rss_bytes": 462225408,
+      "sampled_peak_tree_rss_bytes": 462225408,
+      "unknown_queries": 0,
+      "independent_validation": {
+        "direct_reference_pair_identity": false,
+        "element_preserving": true,
+        "endpoint_equivalence": true,
+        "endpoint_equivalence_check": "independent_colored_endpoint_and_mapping_certificate",
+        "injective": true,
+        "ordered_actions": [
+          {
+            "both_self_constraints": true,
+            "discovery_anchors_domains_accepted_edges": true,
+            "kind": "relation",
+            "transition": 1
+          },
+          {
+            "element_and_exact_wbo_preserved": true,
+            "group_membership": true,
+            "kind": "placement",
+            "transition": 1
+          },
+          {
+            "both_self_constraints": true,
+            "discovery_anchors_domains_accepted_edges": true,
+            "kind": "relation",
+            "transition": 0
+          }
+        ],
+        "passed": true,
+        "physical_mapping_replayed": true
+      },
+      "full_heavy_mapping": [
+        [
+          2,
+          27
+        ],
+        [
+          3,
+          25
+        ],
+        [
+          4,
+          26
+        ],
+        [
+          5,
+          24
+        ],
+        [
+          6,
+          23
+        ],
+        [
+          7,
+          22
+        ],
+        [
+          8,
+          28
+        ],
+        [
+          9,
+          29
+        ],
+        [
+          10,
+          19
+        ],
+        [
+          11,
+          18
+        ],
+        [
+          12,
+          17
+        ],
+        [
+          13,
+          16
+        ],
+        [
+          14,
+          15
+        ],
+        [
+          15,
+          14
+        ],
+        [
+          16,
+          13
+        ],
+        [
+          17,
+          12
+        ],
+        [
+          18,
+          11
+        ],
+        [
+          19,
+          10
+        ],
+        [
+          20,
+          9
+        ],
+        [
+          21,
+          8
+        ],
+        [
+          22,
+          7
+        ],
+        [
+          23,
+          6
+        ],
+        [
+          24,
+          5
+        ],
+        [
+          25,
+          4
+        ],
+        [
+          26,
+          1
+        ],
+        [
+          27,
+          3
+        ],
+        [
+          28,
+          0
+        ],
+        [
+          29,
+          2
+        ],
+        [
+          30,
+          20
+        ],
+        [
+          31,
+          21
+        ]
+      ],
+      "additional_heavy_pairs": [
+        [
+          2,
+          27
+        ]
+      ],
+      "additional_pair_elements": [
+        "O"
+      ],
+      "additional_pair_original_atom_map_labels": [
+        [
+          3,
+          33
+        ]
+      ],
+      "note": "A diagnostic subset witness does not change the exact partial-reference evaluation policy or published recovery score.",
+      "catalogue_sha256": "c626a0e539320d5e72f5d50b8ddde1189042ae3cb7fac3a5db9cdd33908ad68c",
+      "checked_fragment_edges": 73
+    },
+    "source_identity_note": "The current identity includes presentation/viewers.py. Relative to verifier repair a59711120948022c666e24f684d18a22dcb0632a, only the two presentation files changed under src and bench; the matching, decoding and reference-query implementation is unchanged.",
+    "interpretation": "Four retained-catalogue misses are implied by paired-heavy-atom cardinality; three require joint pairing analysis. Case 7 contains the required 29 pairs modulo endpoint chemical symmetry plus one oxygen pair. These facts do not establish chemically incorrect annotations. No benchmark reference or score was changed.",
+    "strict_recovery_union": {
+      "recovered": 1844,
+      "total": 1851,
+      "uniform_setting": false,
+      "changed": false
+    },
+    "inspection_identity_difference": {
+      "changed_identity_inputs": [
+        {
+          "current_sha256": "1a8ad18a607ccba0adb9ed3ff163e14f1e8e807936be8cbc77e6826b797880d6",
+          "file": "src/mappa/presentation/viewers.py",
+          "old_sha256": "4d143c36c314bb318d0a14e200336e36ad00ef554c17bf232f2b05ccf784d045"
+        }
+      ],
+      "current_identity": "c909faac82d9c4b546d226c4c643d16659df04adb90dbe7ae596ebdce1b609f9",
+      "identity_scope": "All mappa Python files and compiled native engines. Presentation Python is included; static HTML is not.",
+      "previous_repaired_identity": "b9a1af2d6c0e3996ff6a81efbda65a545f0f9a82020df0f989445851147ab886",
+      "unchanged_matching_symmetry_decoder_reference_query_modules": true,
+      "validated_by": "Recomputed full identity with only changed Python file restored in memory to a597111 bytes; exactly reproduces the previous repaired identity. No source file changed."
+    },
+    "private_audit_sha256": "aba925725e2c339a7fa7b12505e0cb55f44d3a64bf9608b56d15303755bce459"
+  }
+}

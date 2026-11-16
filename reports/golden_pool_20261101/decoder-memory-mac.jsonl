@@ -1,0 +1,29 @@
+{"stage": "catalogue_loaded", "seconds": 0.3279236250091344, "rss_bytes": 218202112, "families": 14132, "branches": 11899, "cuts": 192}
+{"stage": "session_ready", "seconds": 0.32861450011841953, "rss_bytes": 218759168}
+{"stage": "actions_ready", "seconds": 0.4696696251630783, "rss_bytes": 220053504}
+{"stage": "building_record", "seconds": 1.3313452911097556, "rss_bytes": 309608448, "family": 1000, "tables": 1000}
+{"stage": "building_record", "seconds": 2.0880232502240688, "rss_bytes": 389988352, "family": 2000, "tables": 2000}
+{"stage": "building_record", "seconds": 2.8260173331946135, "rss_bytes": 468353024, "family": 3000, "tables": 3000}
+{"stage": "building_record", "seconds": 3.54847945808433, "rss_bytes": 556187648, "family": 4000, "tables": 4000}
+{"stage": "building_record", "seconds": 4.258597416104749, "rss_bytes": 639631360, "family": 5000, "tables": 5000}
+{"stage": "building_record", "seconds": 5.069057583110407, "rss_bytes": 734478336, "family": 6000, "tables": 6000}
+{"stage": "building_record", "seconds": 5.8396635830868036, "rss_bytes": 819838976, "family": 7000, "tables": 7000}
+{"stage": "building_record", "seconds": 6.6393619161099195, "rss_bytes": 906641408, "family": 8000, "tables": 8000}
+{"stage": "building_record", "seconds": 7.233510791091248, "rss_bytes": 987676672, "family": 9000, "tables": 9000}
+{"stage": "building_record", "seconds": 8.060708458069712, "rss_bytes": 1070841856, "family": 10000, "tables": 10000}
+{"stage": "building_record", "seconds": 8.63764795800671, "rss_bytes": 1154564096, "family": 11000, "tables": 11000}
+{"stage": "building_record", "seconds": 9.53503254102543, "rss_bytes": 1247068160, "family": 12000, "tables": 12000}
+{"stage": "building_record", "seconds": 10.118920000037178, "rss_bytes": 1328726016, "family": 13000, "tables": 13000}
+{"stage": "building_record", "seconds": 10.71345654106699, "rss_bytes": 1414594560, "family": 14000, "tables": 14000}
+{"stage": "record_built_with_live_tables", "seconds": 43.47151816613041, "rss_bytes": 1627242496, "tables": 14132, "responses": 13}
+{"stage": "operation_returned", "seconds": 43.53877266612835, "rss_bytes": 1618903040}
+{"stage": "record_shape", "seconds": 43.665901833213866, "rss_bytes": 1618903040, "terms": 1006967, "term_dictionary_bytes_excluding_values": 273895024, "domain_entries": 1512124, "projected_pair_states": 344944}
+{"stage": "pickle_allocation", "seconds": 43.666484458139166, "rss_bytes": 1618919424, "pickler_bytes": 524472}
+{"stage": "pickle_allocation", "seconds": 43.667459541000426, "rss_bytes": 1618919424, "pickler_bytes": 2097336}
+{"stage": "pickle_allocation", "seconds": 43.67149145808071, "rss_bytes": 1623130112, "pickler_bytes": 4194488}
+{"stage": "pickle_allocation", "seconds": 43.677701166132465, "rss_bytes": 1631535104, "pickler_bytes": 8388792}
+{"stage": "pickle_allocation", "seconds": 43.69014583318494, "rss_bytes": 1648328704, "pickler_bytes": 16777400}
+{"stage": "pickle_allocation", "seconds": 43.721976791042835, "rss_bytes": 1681899520, "pickler_bytes": 33554616}
+{"stage": "pickle_allocation", "seconds": 43.874291458167136, "rss_bytes": 1749336064, "pickler_bytes": 67109048}
+{"stage": "pickle_allocation", "seconds": 44.12195987510495, "rss_bytes": 1881849856, "pickler_bytes": 134217912}
+{"stage": "guard", "memory_bytes": 2147483648, "peak_rss_bytes": 2147876864, "exit_code": -9}

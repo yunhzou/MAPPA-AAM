@@ -21,9 +21,7 @@ Among completed directional searches, elapsed time including persistence has med
 
 Extended post-hoc bond-event windows are in `event_windows_extended.json`. Single-direction representative recovery plateaus at +5 (1811/1851, 97.84%); bidirectional plateaus at +6 (1824/1851, 98.54%). Larger windows, including unlimited events within the best coverage tier, add no cases. This ceiling is not full compressed-family recovery: the 27 remaining bidirectional records comprise 12 incomplete rankings, 4 cases recovered only through non-representative symmetry alternatives, 9 verified misses, and 2 unresolved family checks. No AAM was rerun for this extension.
 
-Full artifacts:
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908`
-
+Full artifacts are retained privately.
 Frozen search/analysis engine commit: `bb0a7d7`.
 
 ## Protocol
@@ -39,24 +37,20 @@ Frozen search/analysis engine commit: `bb0a7d7`.
 
 ## Timing and resources
 
-Search tasks use 16 CPUs and 32 GiB on `cpunodes_nia`, up to 160 simultaneous tasks (2,560 CPUs), subject to availability. Ranking and verification run in separately scheduled single-CPU tasks. Search subprocess watchdog: 300 seconds; job limit: 10 minutes.
+Search tasks use 16 workers. Ranking and verification run in separate single-worker tasks. Search subprocess watchdog: 300 seconds; overall limit: 10 minutes.
 
 CPU time excluding measured checkpoint encoding/compression/writing and loading/decoding is the primary additive compute measure. Raw elapsed time, persistence, ranking, and reference verification are logged separately. Summed worker saving time is **not** subtracted from parallel elapsed time. IPC, process setup, profiling, and metadata overhead remain in compute accounting. Summed direction elapsed times are not measured concurrent bidirectional latency. Timed-out tasks are censored, not counted as zero-time successes.
 
 The artifact root contains pinned inputs, source/native binary hashes, versions, configuration, hardware, Slurm jobs, compressed intermediate/final archives, witnesses, and per-process timing logs. Final postprocessing writes `publication/analytics.json`, `publication/per_case.csv`, `publication/per_direction.csv`, and `publication/README.md` without rerunning AAM.
 
-Search arrays: 443233, 443235, 443237, 443239.
-Analysis arrays: 443234, 443236, 443238, 443240.
-Mode-combination arrays: 443241, 443242.
-
 These settings are not a claim that this fresh run reproduces the earlier 1840/1851 diagnostic-union result. Its accuracy will be measured independently.
 
 ## Scheduler recovery
 
-Sixteen original search tasks remained in Slurm `CONFIGURING` for over an hour, without creating search directories. Only those unstarted tasks were cancelled and replaced (arrays 447646, 447647, 447648), excluding the affected nodes. The existing analysis dependencies were redirected to the replacements. Completed searches were not rerun and the frozen engine/configuration were not modified. The full action log is `reporting/recovery.json` in the artifact root; replacement allocations are included in final resource accounting.
+Sixteen original search tasks remained in Slurm `CONFIGURING` for over an hour, without creating search directories. Only those unstarted tasks were cancelled and replaced after startup failures. The existing analysis dependencies were redirected to the replacements. Completed searches were not rerun and the frozen engine/configuration were not modified. The full action log is `reporting/recovery.json` in the artifact root; replacement allocations are included in final resource accounting.
 
 Thirteen other searches reached the fixed five-minute subprocess watchdog. Their partial cut checkpoints remain saved; they must not be described as completed negative searches. Their original outcomes remain visible in the fixed-budget benchmark.
 
-Further scheduler-only recovery is recorded in the same action log: unstarted analysis/comparison tasks were replaced, and concurrency adjusted to available capacity. Once all 3,702 analysis completion records existed, comparison dependencies were released despite stale Slurm cleanup states. Recurrent short-job startup stalls prompted dispatching the remaining 557 unstarted comparisons through eight unchanged workers in one persistent allocation (452121). No completed comparison was selected for this batch. The final report is gated on actual worker completion records rather than scheduler cleanup alone.
+Further scheduler-only recovery is recorded in the same action log: unstarted analysis/comparison tasks were replaced, and concurrency adjusted to available capacity. Once all 3,702 analysis completion records existed, comparison dependencies were released despite stale Slurm cleanup states. Recurrent short-job startup stalls prompted dispatching the remaining 557 unstarted comparisons through eight unchanged workers in one persistent allocation. No completed comparison was selected for this batch. The final report is gated on actual worker completion records rather than scheduler cleanup alone.
 
-The persistent batch completed in 9m31s, and report job 446266 completed in 1m58s. These are scheduling/postprocessing durations, not AAM search latency. The final summary classifies missing top-five rankings from completed, incomplete searches as `unknown`, not `pending`; this reporting-label correction changes no search or mapping result.
+The persistent batch completed in 9m31s, and report generation completed in 1m58s. These are scheduling/postprocessing durations, not AAM search latency. The final summary classifies missing top-five rankings from completed, incomplete searches as `unknown`, not `pending`; this reporting-label correction changes no search or mapping result.

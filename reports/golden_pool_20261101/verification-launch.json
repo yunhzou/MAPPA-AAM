@@ -1,0 +1,8 @@
+{
+  "created_utc": "2026-11-01T05:20:24.314971+00:00",
+  "purpose": "Finish independent Golden catalogue verification; retain decoder failure and 2 GiB limit",
+  "privacy_projection": {
+    "original_sha256": "1c9ed3d6c456651567707d5f3f4e5c3dd2251d244bb550a19e2b96b72329fbe8",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
+}

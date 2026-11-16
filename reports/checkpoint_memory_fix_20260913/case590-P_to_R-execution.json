@@ -2,8 +2,6 @@
   "status": "passed",
   "peak_mib": 278.4921875,
   "elapsed_seconds": 133.70407534399965,
-  "host": "cpu-0019",
-  "job_id": "6777889",
   "platform": "linux",
   "memory_limit_mib": 6144,
   "watchdog_seconds": 300,
@@ -15,7 +13,11 @@
     "case": 590,
     "direction": "P_to_R"
   },
-  "previous_attempt": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/hpc/late-cuts/seed10-case590-P_to_R",
+  "previous_attempt": "private-reference-02dc0c2b34553fd08ce9",
   "scope": "Positive reference membership from existing raw cuts only; no new search and no inference of absence.",
-  "reference_recovery": "unknown"
+  "reference_recovery": "unknown",
+  "privacy_projection": {
+    "original_sha256": "e2b0f4ece3fbfec32ca687d72047f3ad5616e8c708bd935af2b7f272179a1753",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

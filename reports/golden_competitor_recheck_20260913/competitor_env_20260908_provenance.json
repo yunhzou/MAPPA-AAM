@@ -1,5 +1,5 @@
 {
-  "python": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/competitor_env_20260908/bin/python",
+  "python": "private-reference-1a9787024f1fc602b563",
   "version": "3.10.12 (main, Jul 15 2026, 23:40:17) [GCC 11.4.0]",
   "packages": {
     "scipy": {
@@ -72,9 +72,13 @@
     }
   },
   "artifacts": {
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/competitor_env_20260908/lib/python3.10/site-packages/chython_rxnmap/rxnmap.onnx": {
+    "private-reference-45fdd9ea52f0acf0663b": {
       "sha256": "a4c60aba5c3524dda96ea3af9e1487d3fb09a4e376604e506b1f0064cfcef2e0",
       "bytes": 84767063
     }
+  },
+  "privacy_projection": {
+    "original_sha256": "e699c599db77b60f2600ff90de5b3361ccd3ec643688c7cfbe9094c88868692f",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

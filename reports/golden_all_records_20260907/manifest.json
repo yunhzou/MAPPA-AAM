@@ -1,8 +1,8 @@
 {
-  "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907",
-  "corrected": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_domain_rescore_v2_20260907",
+  "source": "private-reference-0329d2694d516a3fc298",
+  "corrected": "private-reference-dc8fbf4a64137a387c6a",
   "one_sided": {
-    "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907",
+    "source": "private-reference-0329d2694d516a3fc298",
     "indices": [
       7,
       713,
@@ -234,5 +234,9 @@
       "src/rxn_core/retrosynthesis/ranking.py": "8462b01e0e900f6c3b4a85cd64603e60282d61951fb7f1ada85e37c8d3592537",
       "src/rxn_core/retrosynthesis/decision_graph.py": "f38061babdf6f436ee8e1d181b9d3510288b2ed05ad0a2320a52ab004f8f0aa9"
     }
+  },
+  "privacy_projection": {
+    "original_sha256": "94607483806ea6740bb85ea51acdf57920b9971445fe99fc7cd2cdd3de57c3f3",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

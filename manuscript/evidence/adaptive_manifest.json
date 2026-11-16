@@ -5,8 +5,8 @@
     "holdout": 140
   },
   "sources": {
-    "golden": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908",
-    "holdout": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/elementary140_tol1_20260909"
+    "golden": "private-artifact:be722dc251b50351",
+    "holdout": "private-artifact:8ce900572d33efa5"
   },
   "tasks": 3982,
   "original_commit": "98b01b175eeed31f70d13e7cbf178b80bf07c9e0",

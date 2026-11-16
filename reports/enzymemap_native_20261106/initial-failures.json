@@ -1,0 +1,104 @@
+[
+  {
+    "case": "18749/reverse",
+    "batch": 24,
+    "stage": "deduplication",
+    "state": "memory_limit",
+    "metrics": {
+      "peak_tree_rss_bytes": 2173087744,
+      "phase_peak_tree_rss_bytes": {
+        "compute": 2173087744,
+        "publication": 0
+      },
+      "memory_guard_bytes": 2147483648,
+      "memory_sample_interval_seconds": 0.2,
+      "sampled_cpu_seconds": 11.480000000000018,
+      "memory_samples": 59,
+      "phase_at_exit": "compute",
+      "monitoring_seconds": 0.02615205803886056,
+      "elapsed_seconds": 11.644965479848906
+    }
+  },
+  {
+    "case": "18749/forward",
+    "batch": 24,
+    "stage": "deduplication",
+    "state": "memory_limit",
+    "metrics": {
+      "peak_tree_rss_bytes": 2196721664,
+      "phase_peak_tree_rss_bytes": {
+        "compute": 2196721664,
+        "publication": 0
+      },
+      "memory_guard_bytes": 2147483648,
+      "memory_sample_interval_seconds": 0.2,
+      "sampled_cpu_seconds": 13.409999999999997,
+      "memory_samples": 69,
+      "phase_at_exit": "compute",
+      "monitoring_seconds": 0.03380265133455396,
+      "elapsed_seconds": 13.654816991183907
+    }
+  },
+  {
+    "case": "18750/reverse",
+    "batch": 25,
+    "stage": "deduplication",
+    "state": "memory_limit",
+    "metrics": {
+      "peak_tree_rss_bytes": 2170638336,
+      "phase_peak_tree_rss_bytes": {
+        "compute": 2170638336,
+        "publication": 0
+      },
+      "memory_guard_bytes": 2147483648,
+      "memory_sample_interval_seconds": 0.2,
+      "sampled_cpu_seconds": 12.250000000000014,
+      "memory_samples": 63,
+      "phase_at_exit": "compute",
+      "monitoring_seconds": 0.02410704013891518,
+      "elapsed_seconds": 12.443502502981573
+    }
+  },
+  {
+    "case": "18750/forward",
+    "batch": 25,
+    "stage": "deduplication",
+    "state": "memory_limit",
+    "metrics": {
+      "peak_tree_rss_bytes": 2161860608,
+      "phase_peak_tree_rss_bytes": {
+        "compute": 2161860608,
+        "publication": 0
+      },
+      "memory_guard_bytes": 2147483648,
+      "memory_sample_interval_seconds": 0.2,
+      "sampled_cpu_seconds": 13.27000000000001,
+      "memory_samples": 68,
+      "phase_at_exit": "compute",
+      "monitoring_seconds": 0.031072885263711214,
+      "elapsed_seconds": 13.453087146859616
+    }
+  },
+  {
+    "case": "27769/forward",
+    "batch": 27,
+    "stage": "deduplication",
+    "state": "memory_limit",
+    "metrics": {
+      "cpu_seconds": 11.405317787000001,
+      "compute_seconds": 11.540267545729876,
+      "peak_tree_rss_bytes": 2164973568,
+      "phase_peak_tree_rss_bytes": {
+        "compute": 1924694016,
+        "publication": 2164973568
+      },
+      "memory_guard_bytes": 2147483648,
+      "memory_sample_interval_seconds": 0.2,
+      "sampled_cpu_seconds": 13.510000000000005,
+      "memory_samples": 69,
+      "phase_at_exit": "publication",
+      "monitoring_seconds": 0.031564051285386086,
+      "elapsed_seconds": 13.653655904345214
+    }
+  }
+]

@@ -477,7 +477,7 @@
           0.0
         ]
       ],
-      "xyz": "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr16.carbocation_ts5/endpoints/R/reactant_combined.xyz"
+      "xyz": "private-reference-ac962dcacce9281ed812"
     },
     "TS": {
       "elements": [
@@ -954,17 +954,17 @@
           0.0
         ]
       ],
-      "xyz": "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr16.carbocation_ts5/targets/GT_sp/ts_groundtruth_01_reference_ts_01_ts5.xyz"
+      "xyz": "private-reference-d0dbeb0441083daf8bda"
     }
   },
   "sha256": {
     "R": {
-      "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr16.carbocation_ts5/endpoints/R/reactant_combined.xyz": "25ad84f26009cef37047158d92030822c029cbcfab06982c38e458c713fd8dd2",
-      "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr16.carbocation_ts5/endpoints/R/wbo": "96fa566335024833beb1d39b77f2654d5450ac5c017707d4e7317c2b8ddcabd8"
+      "private-reference-ac962dcacce9281ed812": "25ad84f26009cef37047158d92030822c029cbcfab06982c38e458c713fd8dd2",
+      "private-reference-060d686d2fd097d5debc": "96fa566335024833beb1d39b77f2654d5450ac5c017707d4e7317c2b8ddcabd8"
     },
     "TS": {
-      "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr16.carbocation_ts5/targets/GT_sp/ts_groundtruth_01_reference_ts_01_ts5.xyz": "e8953e3d618404667d195acb5f6663937e161be5ce7b5d5c41d800fa691e5954",
-      "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/work/pr16.carbocation_ts5/targets/GT_sp/wbo": "1cad5bf55e144e6684bec3f6f3f305bc11bca0ce2f31bc2d979fc7aae10f31ce"
+      "private-reference-d0dbeb0441083daf8bda": "e8953e3d618404667d195acb5f6663937e161be5ce7b5d5c41d800fa691e5954",
+      "private-reference-01e5909a9fbd641cbdc5": "1cad5bf55e144e6684bec3f6f3f305bc11bca0ce2f31bc2d979fc7aae10f31ce"
     }
   },
   "costs": [
@@ -1471,7 +1471,7 @@
       ]
     }
   ],
-  "archived_event_source": "/h/399/yunhengzou/appendix_final/bgcp_rerank_latest/stages/pr16.carbocation_ts5/ts_stage.json",
+  "archived_event_source": "private-reference-eff3cdb91116ed8e75eb",
   "archived_event_sha256": "2c88315843af209cfe6e1d4bcf43151921dcd2bbe993ec7849d865cd58620e19",
   "event_examples": [
     {
@@ -1699,5 +1699,9 @@
       "archived_ts_progress": 0.8711059867589752
     }
   ],
-  "archived_mechanisms_without_ts_assignment": []
+  "archived_mechanisms_without_ts_assignment": [],
+  "privacy_projection": {
+    "original_sha256": "a0fb7a326be4ac2ba372a0d3ca3da67da53e23357591aa8c54c35746d6a1d720",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

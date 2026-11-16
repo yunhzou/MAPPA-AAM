@@ -5,13 +5,22 @@ import numpy as np
 import pytest
 
 from mappa import AAMSearchConfig
-from mappa.aam import cut_seed
-from mappa.adaptive_cut_search import AdaptiveCutSearch
-from mappa.alignment.branch import _generate_seed_orders
-from mappa.domain import AAMProblem, MolecularEndpoint
-from mappa.native_search import find_islands_native
-from mappa.search_graph import frozen_value
-from mappa.shared_seed_search import SharedSeedSearch
+from mappa.mappa_core.core.search.branching.shared import AdaptiveSearchCondition
+from mappa.mappa_core.core.search.planning import cut_sweep_items
+from mappa.mappa_core.core.matching.reuse import FragmentPool
+from mappa.mappa_core.domain import AAMProblem, MolecularEndpoint
+from mappa.mappa_core.core.search.branching.native import find_islands_native
+from mappa.mappa_core.core.search.graph import frozen_value
+from mappa.mappa_core.core.search.branching.shared import SharedSeedSearch
+
+
+def cut_sessions(problem, config):
+    condition = AdaptiveSearchCondition.uncut(problem, config)
+    repair = FragmentPool(condition.source, condition.target)
+    for cut in cut_sweep_items(problem.reactant.wbo, config.cut_floor):
+        view = repair.for_cut(tuple(e for e in cut if condition.source.has_edge(*e)))
+        yield SharedSeedSearch(problem, config, condition=replace(condition,
+            source=view.source, cuts=tuple(cut), fragment_cache=view))
 
 
 def state_key(state):
@@ -23,9 +32,27 @@ def contents(graph):
     # Retain exact correlated fragment records, constraints and stop reasons.
     states = {state_key(s) for s in graph.states}
     edges = {(state_key(graph.states[e.source]), state_key(graph.states[e.target]),
-              frozen_value(e.match), e.preserved_bonds) for e in graph.transitions if e.match is not None}
-    stops = {(state_key(graph.states[s.state]), s.reason, s.stage) for s in graph.stops}
+              e.match.key, e.island) for e in graph.transitions if e.match is not None}
+    stops = {(None if s.state is None else state_key(graph.states[s.state]),
+              s.reason, s.stage, s.count, s.limit) for s in graph.stops}
     return states, edges, stops
+
+
+@pytest.mark.parametrize('execution', ['reference', 'reused_native', 'shared_policies'])
+def test_cached_session_preserves_fresh_results(execution):
+    from native_cases import chain_problem
+    from mappa.mappa_core.core.search.session import SearchSession
+    problem=chain_problem(6)
+    config=AAMSearchConfig(seed_count=3,branch_limit=4)
+    selected=SearchSession(problem,config,execution)
+    for cut in ((),((1,2),),((3,4),),()):
+        expected,_=SearchSession(problem,config,execution).search_cut(cut)
+        actual,_=selected.search_cut(cut)
+        assert actual==expected
+    if selected.fragments is not None:
+        stats=selected.fragments.stats()
+        assert stats['entries']>0
+        assert stats['peak_resident_bytes']<=stats['cache_budget_bytes']
 
 
 @pytest.mark.parametrize('tol', [.5, 1.])
@@ -41,44 +68,45 @@ def test_exact_union_of_original_policies_including_frontier_caps(tol, cap):
             endpoints.append(MolecularEndpoint(elements, np.zeros((n,3)), w+w.T, str(side)))
         problem = AAMProblem(*endpoints)
         config = AAMSearchConfig(seed_count=3, branch_limit=cap, iso_tolerance=tol)
-        outer = AdaptiveCutSearch(problem, config, policy='shared')
-        child = outer._session(trial % len(outer.cuts))
+        sessions = list(cut_sessions(problem, config))
+        child = sessions[trial % len(sessions)]
         while child.advance():
             pass
         actual = contents(child.builder.finish())
         reference = [set(), set(), set()]
-        for order in child.orders:
+        for index, order in enumerate(child.orders):
+            from mappa.mappa_core.core.search.planning import growth_seed
             graph = find_islands_native(child.source, child.target, order,
                 graph_floor=config.graph_floor, iso_tol=tol, max_branches=cap,
-                p_orbits=child.condition.orbits, r_orbits=child.source_orbits,
-                cuts=child.condition.cuts)
+                cuts=child.condition.cuts, random_seed=growth_seed(child.condition.cuts, index, config.random_seed))
             for target, values in zip(reference, contents(graph)):
                 target.update(values)
         assert actual == tuple(reference)
         assert nx.is_directed_acyclic_graph(nx.DiGraph((e.source,e.target)
             for e in child.builder.transitions))
-        assert child.growth_calls == len(child.decisions)
+        # Completed policies release their working memo; returned paths above
+        # still have to equal the independent union of the original searches.
+        assert not child.decisions and not child.branches and not child.available_elements
         assert child.work == child.growth_calls + child.reused_states
 
 
 def test_shared_growth_cache_and_saved_snapshot_preserve_groups():
-    from test_fragment_choices import problem
-    outer = AdaptiveCutSearch(problem(6), AAMSearchConfig(seed_count=3, iso_tolerance=1.), policy='shared')
-    for _ in range(25):
-        outer.advance()
-    prefix = outer.snapshot()
-    record = prefix.aam.graph.to_record()
-    while outer.advance():
-        pass
-    outer.snapshot()
-    assert prefix.aam.graph.to_record() == record
-    for child in outer.sessions.values():
+    from native_cases import chain_problem as problem
+    sessions = list(cut_sessions(problem(6), AAMSearchConfig(seed_count=3, iso_tolerance=1.)))
+    for child in sessions:
+        for _ in range(25):
+            child.advance()
+        prefix = child.snapshot()
+        record = prefix.aam.graph.to_record()
+        while child.advance():
+            pass
+        assert prefix.aam.graph.to_record() == record
         plain = SharedSeedSearch(child.problem, child.config,
-            condition=replace(child.condition, growth_replay=None))
+            condition=replace(child.condition, fragment_cache=None))
         while plain.advance():
             pass
         assert plain.snapshot().aam.graph == child.snapshot().aam.graph
-    assert sum(c.reused_states for c in outer.sessions.values()) > 0
+    assert all(c.work == c.growth_calls + c.reused_states for c in sessions)
 
 
 @pytest.mark.parametrize('cap', [1, 3, 100])
@@ -88,8 +116,7 @@ def test_element_exhaustion_skips_only_impossible_growth(cap, monkeypatch):
     target = MolecularEndpoint(('C','O','N'), np.zeros((3,3)), np.zeros((3,3)))
     problem = AAMProblem(source,target)
     config = AAMSearchConfig(seed_count=3, branch_limit=cap, iso_tolerance=1.)
-    outer = AdaptiveCutSearch(problem,config,policy='shared')
-    pruned = outer._session(0)
+    pruned = next(cut_sessions(problem, config))
     while pruned.advance():
         pass
     reference = SharedSeedSearch(problem,config,condition=pruned.condition)
@@ -103,15 +130,18 @@ def test_element_exhaustion_skips_only_impossible_growth(cap, monkeypatch):
 @pytest.mark.parametrize('workers', [1, 2])
 def test_cut_worker_backend_preserves_full_fragment_content_and_checkpoint_identity(tmp_path, workers):
     from mappa import search_aam
-    from test_fragment_choices import problem
+    from native_cases import chain_problem as problem
     config = AAMSearchConfig(seed_count=3, iso_tolerance=1., branch_limit=100)
     original = search_aam(problem(6), config, workers=workers, execution='reused_native')
     directory = tmp_path/'cuts'
     shared = search_aam(problem(6), config, workers=workers, execution='shared_policies',
                         intermediate_dir=directory, archive_format='checkpoint')
-    # Conditioned symmetry is finalized too: compare complete records, not only scores.
+    # Compare every completed relation and its constraints, not only witnesses.
     assert contents(shared.graph) == contents(original.graph)
-    assert len(list(directory.glob('*.raw.pkl.gz'))) == shared.metrics.cut_count
+    import sqlite3
+    with sqlite3.connect(directory/'archive.sqlite') as index:
+        assert index.execute("SELECT count(*) FROM cuts").fetchone()[0] == shared.metrics.cut_count
+    assert not list(directory.glob('cut_*'))
     resumed = search_aam(problem(6), config, workers=workers, execution='shared_policies',
                          intermediate_dir=directory, archive_format='checkpoint', resume=True)
     assert resumed.graph == shared.graph

@@ -73,8 +73,8 @@ composition, both cap stages and complete correlated fragment records).
 Previously missing cases 21 and 1246 now recover after policy exhaustion.
 The first full run nevertheless exposed an implementation/resource failure:
 round-robin retained every cut's branch dictionaries and decision caches at
-once. Slurm job 465803 reached 65,068,852 KiB, with individual workers above
-6 GiB; workers were killed in its 64-GiB allocation. Further expensive calls
+once. The failed run reached 65,068,852 KiB, with individual workers above
+6 GiB; workers were killed after exceeding available memory. Further expensive calls
 hit the 300-second one-CPU watchdog. These are not successful comparisons.
 
 Move the same shared policy scheduler into the established per-cut worker
@@ -123,3 +123,5 @@ for graph merging and checkpoint decoding; restore the caller's state even on
 exceptions. This must not change selected edges, group records or search order.
 Validate identical output with GC initially enabled and disabled. Continue from
 the saved cuts, and retain fresh versus continuation timing separately.
+
+Raw operational records and full artifacts are retained privately.

@@ -1,7 +1,7 @@
 {
   "cases": 140,
-  "aam_source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_cap1000_seed1_20260910",
-  "slap_sweep_source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_slap_xyz_sweep_20260910",
+  "aam_source": "private-reference-191c05ce9ed19d276ff3",
+  "slap_sweep_source": "private-reference-f50a1058c8d9495e26d0",
   "config": {
     "cut_floor": 0.2,
     "graph_floor": 0.2,
@@ -21,10 +21,14 @@
   "score_scope": "The recorded minimum full-H event score of each saved benchmark run; not a global minimum over every unmaterialized compressed assignment.",
   "equivalence": "Joint bond-edit patterns on original reactant atom indices, modulo automorphisms of the full explicit-H reactant graph with signed exact score-response edge colors. Broken, formed, strengthened and weakened bonds remain distinct. Numerical WBO values within an event-response class, geometry and stereochemistry are not separate mechanisms.",
   "sources_sha256": {
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_cap1000_seed1_20260910/manifest.json": "849cb74b3cc3baf52078cc68fa73036ad0b0ad2a662d31998db6a451e2927dd3",
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_cap1000_seed1_20260910/case_metrics.json": "2a846b90aed8413cf5274dce64208e66ff048eee1dd33c27b445509e5fd2a64e",
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_slap_xyz_sweep_20260910/manifest.json": "b41cc031fc5e8fade8dffa3ed511481fbaae3f304ef2e896a957ca57ed5f5f2a",
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/holdout_slap_xyz_sweep_20260910/case_metrics.json": "340e2f81acb14454212991a0a693cda4043070e0d9f4815d247927195ed8501c"
+    "private-reference-3b6b8df57d1872056046": "849cb74b3cc3baf52078cc68fa73036ad0b0ad2a662d31998db6a451e2927dd3",
+    "private-reference-719b5362cd9aa27791f8": "2a846b90aed8413cf5274dce64208e66ff048eee1dd33c27b445509e5fd2a64e",
+    "private-reference-fe00b533aba7b5f569cc": "b41cc031fc5e8fade8dffa3ed511481fbaae3f304ef2e896a957ca57ed5f5f2a",
+    "private-reference-a05caca5b830a8e72561": "340e2f81acb14454212991a0a693cda4043070e0d9f4815d247927195ed8501c"
   },
-  "driver_sha256": "7ef0da3e0bf115b9855a1013cb11fcc3aab5d0f031a8ba9e514c257d1ce72208"
+  "driver_sha256": "7ef0da3e0bf115b9855a1013cb11fcc3aab5d0f031a8ba9e514c257d1ce72208",
+  "privacy_projection": {
+    "original_sha256": "9731154f9f430ef1bef48df0c11d91cb665d0aba7b2a092557572604df82d9db",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

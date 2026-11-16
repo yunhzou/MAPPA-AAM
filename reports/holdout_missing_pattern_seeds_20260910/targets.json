@@ -113,7 +113,7 @@
       "total": 4
     },
     "baseline_minimum": 4,
-    "source": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/holdout_forward_cap1000_seed1_20260910/per_case.json"
+    "source": "private-reference-4f9fd4f6c078c218c4ce"
   },
   "64": {
     "index": 64,
@@ -177,7 +177,7 @@
       "total": 5
     },
     "baseline_minimum": 5,
-    "source": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/holdout_forward_cap1000_seed1_20260910/per_case.json"
+    "source": "private-reference-4f9fd4f6c078c218c4ce"
   },
   "101": {
     "index": 101,
@@ -248,6 +248,10 @@
       "total": 4
     },
     "baseline_minimum": 4,
-    "source": "/project/yunhengzou/coordinate_alignment/slap_sweep_worktree_20260910/reports/holdout_forward_cap1000_seed1_20260910/per_case.json"
+    "source": "private-reference-4f9fd4f6c078c218c4ce"
+  },
+  "privacy_projection": {
+    "original_sha256": "3bd1ea8cdf861ea480396b13080c88fa6e38ec42a8a244d471f49f7340ce66a4",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

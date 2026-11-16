@@ -1,0 +1,250 @@
+"""Public AAM search and checkpoint orchestration."""
+
+from __future__ import annotations
+from mappa.mappa_core.core.search.planning import AAMSearchPlan, checkpoint_manifest, cut_sweep_items
+from mappa.mappa_core.core.scheduler.search import iter_cut_tasks
+from mappa.mappa_core.core.scheduler.archive import CutArchive
+from mappa.mappa_core.core.scheduler.bundles import Blob, read_blob
+import json, gc, time
+from dataclasses import dataclass, replace
+from pathlib import Path
+from mappa.mappa_core.domain import AAMProblem, AAMResult, AAMSearchConfig, AAMSearchMetrics
+from mappa.mappa_core.core.matching.graphs import build_graph
+from mappa.mappa_core.core.search.graph import AAMSearchGraph
+
+
+def search_aam(problem: AAMProblem, config: AAMSearchConfig | None = None,
+               *, workers: int = 1, intermediate_dir=None, resume=False,
+               archive_format='json', execution='reused_native') -> AAMResult:
+    """Return raw matching histories; repair/grouping/ranking are separate calls.
+
+    When supplied, intermediate_dir receives each completed cut graph and a
+    final reusable graph record. No path or bijection
+    enumeration is needed to collect worker results.
+
+    Intermediate cuts share append-only bundles and one reaction index.
+    archive_format selects the final JSON or compact checkpoint export.
+    Completed cuts are persisted by workers and collected out of order, but
+    the returned graph always retains canonical cut/context ordering.
+
+    resume=True reuses cuts only after verifying their input/configuration
+    manifest. Invocation timings exclude the earlier checkpointed work;
+    resulting graph and cut counts still describe the whole search.
+
+    The default execution='reused_native' uses the native sequential scheduler,
+    dependency-validated fragment reuse. It
+    preserves the seed/cut policy and output graph; it requires the native engine
+    and never switches to a different search implementation on failure.
+
+    execution='shared_policies' preserves those same seed orders and frontier
+    admissions while sharing equal conditional decisions and fragment DAG
+    records across policies within each cut. Independent cuts use the same
+    producer-side checkpoint/worker pipeline; completed runtime caches are
+    released at each cut boundary. The native fragment-growth kernel is unchanged.
+    """
+    if not isinstance(problem, AAMProblem):
+        raise TypeError('search_aam requires an AAMProblem')
+    if execution not in ('reference', 'reused_native', 'shared_policies'):
+        raise ValueError('unknown AAM execution backend')
+    if execution in ('reused_native', 'shared_policies'):
+        from mappa.mappa_core.core.matching.growth.native import available
+        if not available():
+            raise ValueError('reused_native execution requires the built native engine')
+    config = config or AAMSearchConfig()
+    requested_workers=max(1,int(workers))
+    if archive_format not in ('json','checkpoint'):
+        raise ValueError('archive_format must be json or checkpoint')
+    started = time.perf_counter()
+    cuts = cut_sweep_items(problem.reactant.wbo, config.cut_floor) if config.sweep_cuts else [()]
+    directory = None if intermediate_dir is None else Path(intermediate_dir)
+    if resume and directory is None:
+        raise ValueError('Resuming requires an intermediate directory')
+    archive = None
+    if directory is not None:
+        identity = checkpoint_manifest(problem, config)
+        if execution == 'shared_policies':
+            identity['execution'] = execution
+        archive = CutArchive(directory, identity, resume=resume)
+    metrics = {'max_live_branches': 0, 'max_growth_candidates': 0}
+
+    checkpoint_seconds = worker_search_seconds = 0.0
+    def collect(payloads):
+        nonlocal checkpoint_seconds, worker_search_seconds
+        for index, graph, counts in payloads:
+            worker_search_seconds += counts['search_seconds']
+            checkpoint_seconds += counts['checkpoint_seconds']
+            if 'checkpoint' in counts:
+                reference = counts.pop('checkpoint')
+                archive.record(index, reference)
+                saved[index] = reference
+            if isinstance(graph, AAMSearchGraph):
+                graphs[index] = graph
+            for key in ('max_live_branches', 'max_growth_candidates'):
+                metrics[key] = max(metrics[key], counts[key])
+
+    graphs = [None] * len(cuts)
+    saved = archive.references() if archive else {}
+    if set(saved) - set(range(len(cuts))):
+        raise ValueError('Unexpected cut checkpoint index')
+    missing = [index for index in range(len(cuts)) if index not in saved]
+    tasks = [(index, cuts[index], str(directory) if directory else None) for index in missing]
+    # Finish independent missing cuts before rebuilding the large cached DAG.
+    # This also prevents forked cut workers from inheriting that archive heap.
+    workers = min(max(1, int(workers)), max(1,len(missing)))
+    if tasks:
+        collect(iter_cut_tasks(problem, config, execution, tasks, workers,
+                               in_process=requested_workers == 1))
+    # Restore each producer checkpoint once, after cut workers release their heaps.
+    restore_started = time.perf_counter()
+    gc_enabled = gc.isenabled()
+    try:
+        gc.disable()
+        for index in sorted(saved):
+            if graphs[index] is None:
+                graphs[index] = read_blob(saved[index], None)
+    finally:
+        if gc_enabled:
+            gc.enable()
+    metrics['checkpoint_restore_seconds'] = time.perf_counter() - restore_started
+    if execution != 'shared_policies':
+        for graph in graphs:
+            metrics['max_live_branches']=max(metrics['max_live_branches'],
+                max((sum(graph.states[t].context==context for t in graph.terminals)
+                     for context in range(len(graph.contexts))),default=0))
+    merge_started = time.perf_counter()
+    gc_enabled = gc.isenabled()
+    try:
+        gc.disable()
+        graph = AAMSearchGraph.combine(graphs)
+    finally:
+        if gc_enabled:gc.enable()
+    metrics['parent_merge_seconds'] = time.perf_counter() - merge_started
+    metrics.update(worker_search_seconds=worker_search_seconds,
+                   checkpoint_seconds=checkpoint_seconds)
+    metrics.update(cuts=len(cuts), raw_result_count=len(graph.terminals),
+        retained_branch_count=len(graph.terminals),
+        subtree_branch_cap_count=sum(stop.occurrences for stop in graph.stops if stop.reason == 'capped'))
+    result = AAMResult(problem, config, graph,
+                      AAMSearchMetrics.from_record(metrics, time.perf_counter()-started))
+    if directory is not None:
+        from mappa.mappa_core.utils.io.records import aam_json
+        from mappa.mappa_core.utils.io.checkpoints import write_aam_checkpoint
+        if archive_format=='checkpoint':
+            write_aam_checkpoint(result,directory/'aam.pkl.gz')
+        else:
+            temporary = directory / 'aam.json.tmp'
+            temporary.write_text(aam_json(result))
+            temporary.replace(directory / 'aam.json')
+    if archive is not None:
+        archive.close()
+    return result
+
+
+@dataclass(frozen=True)
+class AAMCheckpointResult:
+    """Complete cut archives with prepared fragment relationships."""
+    directory: Path
+    cut_refs: tuple[Blob, ...]
+    metrics: AAMSearchMetrics
+    capped: bool
+
+
+def search_aam_checkpoints(problem: AAMProblem, config: AAMSearchConfig | None = None,
+                           *, intermediate_dir, resume=False, workers=1,
+                           execution='reused_native') -> AAMCheckpointResult:
+    """Persist every cut without materializing the combined search history.
+
+    The search and cap semantics match search_aam. Each worker retains only its
+    current cut and bounded native reuse cache. Cut archives retain all history;
+    consumers reduce and release individual cuts. Memory can still grow with
+    one cut's history; this is not a universal memory bound.
+    """
+    if not isinstance(problem, AAMProblem):
+        raise TypeError('search_aam_checkpoints requires an AAMProblem')
+    if execution not in ('reference', 'reused_native', 'shared_policies'):
+        raise ValueError('unknown AAM execution backend')
+    if execution != 'reference':
+        from mappa.mappa_core.core.matching.growth.native import available
+        if not available():
+            raise ValueError('native execution requires the built native engine')
+    config = config or AAMSearchConfig()
+    started = time.perf_counter()
+    directory = Path(intermediate_dir)
+    directory.mkdir(parents=True, exist_ok=True)
+    manifest = checkpoint_manifest(problem, config)
+    if execution == 'shared_policies':
+        manifest['execution'] = execution
+    archive = CutArchive(directory, manifest, resume=resume)
+    cuts = cut_sweep_items(problem.reactant.wbo, config.cut_floor) if config.sweep_cuts else [()]
+    saved = archive.references()
+    if set(saved) - set(range(len(cuts))):
+        raise ValueError('Unexpected cut checkpoint index')
+    tasks = [(i, cut, str(directory)) for i, cut in enumerate(cuts) if i not in saved]
+    metrics = dict(cuts=len(cuts), worker_search_seconds=0., checkpoint_seconds=0.,
+                   max_growth_candidates=0, max_live_branches=0,
+                   raw_result_count=0, retained_branch_count=0, subtree_branch_cap_count=0)
+    def collect(results):
+        for i, reference, counts in results:
+            saved[i] = reference
+            archive.record(i, counts.pop('checkpoint'))
+            metrics['worker_search_seconds'] += counts['search_seconds']
+            metrics['checkpoint_seconds'] += counts['checkpoint_seconds']
+            metrics['max_growth_candidates'] = max(metrics['max_growth_candidates'], counts['max_growth_candidates'])
+    worker_count = min(max(1, int(workers)), max(1, len(tasks)))
+    if tasks:
+        collect(iter_cut_tasks(problem, config, execution, tasks, worker_count))
+    # Reduce archive statistics one cut at a time, including resumed cuts.
+    paths = tuple(saved[i] for i in range(len(cuts)))
+    for path in paths:
+        graph = read_blob(path, None)
+        count = len(graph.terminals)
+        metrics['raw_result_count'] += count
+        metrics['retained_branch_count'] += count
+        metrics['subtree_branch_cap_count'] += sum(stop.occurrences for stop in graph.stops if stop.reason == 'capped')
+        by_context = {}
+        for terminal in graph.terminals:
+            context = graph.states[terminal].context
+            by_context[context] = by_context.get(context, 0) + 1
+        metrics['max_live_branches'] = max(metrics['max_live_branches'], max(by_context.values(), default=0))
+        del graph
+    archive.close()
+    return AAMCheckpointResult(directory, paths,
+        AAMSearchMetrics.from_record(metrics, time.perf_counter() - started),
+        bool(metrics['subtree_branch_cap_count']))
+
+
+@dataclass(frozen=True)
+class DirectedAAMResult:
+    """A directed raw search plus conversion back to the user's atom indices."""
+    plan: AAMSearchPlan
+    aam: AAMResult
+
+    def to_input_mapping(self, mapping):
+        return self.plan.to_input_mapping(mapping)
+
+
+def search_aam_directions(problem, config=None, *, direction='both', workers=1,
+                          intermediate_dir=None, **search_options):
+    """Run forward, reverse, smaller-first, larger-first, or both searches.
+
+    Results retain native directed families; only concrete witnesses are
+    inverted. Both directions run sequentially and share the worker ceiling.
+    Search anchors are supplied in input R->P indices and inverted as needed.
+    Post-processing and cross-direction output identity remain separate.
+    """
+    from pathlib import Path
+    config = config or AAMSearchConfig()
+    choices = {'forward': (False,), 'reverse': (True,), 'both': (False, True),
+               'smaller_first': (problem.source_atom_count > problem.target_atom_count,),
+               'larger_first': (problem.source_atom_count <= problem.target_atom_count,)}
+    if direction not in choices:
+        raise ValueError(f'unknown direction: {direction}')
+    results = []
+    for reverse in choices[direction]:
+        directed = AAMProblem(problem.product, problem.reactant, problem.name) if reverse else problem
+        cfg = replace(config, anchors=tuple((p,r) for r,p in config.anchors)) if reverse else config
+        plan = AAMSearchPlan(problem, directed, cfg, reverse)
+        folder = None if intermediate_dir is None else Path(intermediate_dir) / plan.direction
+        result = search_aam(directed, cfg, workers=workers, intermediate_dir=folder, **search_options)
+        results.append(DirectedAAMResult(plan, result))
+    return tuple(results)

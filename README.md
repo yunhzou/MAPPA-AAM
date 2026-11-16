@@ -2,25 +2,124 @@
 
 **Match atoms. Recover alternatives. Understand structural change.**
 
-MAPPA is a Python library for atom–atom matching (AAM) between molecular structures. It grows matching fragments, branches over alternative placements, and keeps symmetry-related correspondences in a compressed representation. A separate decoder turns those families into distinct bond-change candidates, each with an explicit atom mapping and queryable symmetry information.
+MAPPA is a Python library for atom–atom matching (AAM) between molecular structures. It grows matching fragments, branches over alternative placements, and keeps symmetry-related correspondences in a compressed representation. The decoder combines shared fragment responses under an independent-fragment event-count approximation. The matching catalogue retains its original constraints. Decoding selects an improved starting correspondence per fragment and keeps its binary symmetry as a queryable event response; explicit realizations can be checked against original bond weights.
 
 Use MAPPA to map reactants to products, analyze how molecular structures differ, verify generated structures against a target, or carry reaction-core correspondences into transition-state workflows. It works with molecular graphs and supplied bond-order matrices, including continuous Wiberg bond orders (WBOs).
 
-**Golden reference coverage: 99.08% with the default one-seed sweep; 99.41% with ten seeds.** These scores measure recovery among alternatives across all 1,851 reactions.
+**Matching and decoding are complete for the current Golden and EnzymeMap studies.**
+Golden contains 1,851 reactions; EnzymeMap contains 47,974. Current results and
+historical comparisons are distinguished below.
 
-[Try the notebook](docs/AAM_SIMPLE.ipynb) · [Python API](docs/PYTHON_API.md) · [Paper](manuscript/manuscript.pdf) · [Benchmark evidence](reports/README.md)
+[Get started](#get-started) · [Try the notebook](docs/AAM_SIMPLE.ipynb) · [Python API](docs/PYTHON_API.md) · [Paper](manuscript/manuscript.pdf) · [Benchmark evidence](reports/README.md)
+
+## Get started
+
+```bash
+git clone git@github.com:yunhzou/MAPPA-AAM.git
+cd MAPPA-AAM
+python -m pip install -e ".[notebook]"
+```
+
+Open [the self-contained AAM notebook](docs/AAM_SIMPLE.ipynb) for embedded molecules, public Python imports, matching, unique candidates, symmetry queries, and py3Dmol visualization. For a smaller installation without notebook dependencies, use `python -m pip install -e .`. Building the native extensions requires a C++17 compiler. xTB is needed separately only if you want to compute WBO inputs; matching supplied arrays does not invoke it.
+
+The pipeline has two stages: **matching**, ending with deduplication across
+seeds and cuts, then **decoding**. Each call handles both search directions:
+
+```python
+from mappa import (
+    AAMProblem, MolecularEndpoint, AAMSearchConfig,
+    search_aam_directions, deduplicate, decode_events,
+)
+
+# Supply elements, coordinates (N × 3), and bond orders (N × N) for each endpoint.
+endpoint_a = MolecularEndpoint(elements_a, xyz_a, wbo_a)
+endpoint_b = MolecularEndpoint(elements_b, xyz_b, wbo_b)
+problem = AAMProblem(endpoint_a, endpoint_b)
+config = AAMSearchConfig(iso_tolerance=2.0, seed_count=1, branch_limit=100)
+
+# Matching: uncut search plus the full single-edge sweep, then deduplication.
+matched = search_aam_directions(problem, config, direction="both", workers=1)
+catalogues = deduplicate(matched)
+
+# Decoding: retain branches in each direction's detected minimum + 5 window.
+decoded = decode_events(catalogues, event_slack=5)
+
+print(decoded.forward.event_window)
+print(decoded.reverse.event_window)
+```
+
+Forward uses endpoint A as the base and B as the target; reverse exchanges them.
+`catalogues` and `decoded` expose `.forward` and `.reverse` results, with their
+own atom indices and event windows. No per-direction processing loop is needed.
+Increase `workers` to parallelize matching cuts, or `seed_count` for more growth
+orders. Search and decoding remain separate, so changing event settings does not
+require repeating matching. The [notebook](docs/AAM_SIMPLE.ipynb) supplies example
+molecules if you do not yet have input arrays.
+
+This example selects discovery tolerance 2 and event slack 5; their defaults
+are 1 and 6. Event counting uses empirical bond-order change thresholds of 0.5
+for organic bonds and 0.3 for metal-related bonds. The decoder uses the
+independent-fragment model described [below](#design).
+
+### Optional post-processing: reaction cores
+
+Extract distinct reaction cores from saved witnesses in the decoded window, or
+select only those at each direction's detected minimum:
+
+```python
+from mappa import extract_reaction_cores
+
+cores = extract_reaction_cores(decoded)
+minimum_cores = extract_reaction_cores(decoded, event_count="minimum")
+print(len(cores.forward), len(cores.reverse))
+```
+
+Each core contains its bond changes, representative mapping and supporting branch
+references. Symmetry-equivalent changes count once. This explicit post-processing
+call groups observed net changes; it does not search additional symmetry choices.
+These cores describe alternative endpoint changes, not a sequence of elementary
+steps. Pass an integer such as `event_count=5` to select saved witnesses at that
+model count. Core identities remain separate between directions.
+
+See [saving and inspecting results](#python-api) below to save both directions in
+one file, restore them, or inspect an individual mapping.
+
+For many reactions, the [persistent work pool](docs/shared-execution.md) offers
+the same separate stages on local CPUs or inside one Slurm allocation, using RAM
+or aggregated result bundles. Scheduling stays outside the core algorithms.
+The [portable benchmark launcher](bench/README.md) keeps cluster configuration
+private and uses the same separate stages for EnzymeMap and Golden.
 
 ## Golden benchmark: coverage of mapping alternatives
 
-![Golden benchmark: MAPPA covers 99.08% of references by default and 99.41% with ten seeds](docs/assets/golden-coverage.png)
-
 **Coverage means that the annotated heavy-atom correspondence is present among the returned alternatives**, allowing equivalent endpoint symmetries. It measures reference inclusion, not whether an automatically ranked first candidate is correct. For methods returning one bijection, the same check measures that bijection's accuracy. Failures and unresolved cases remain in the denominator.
+
+The [current one- and ten-seed Golden study](reports/golden_native_seeds_20261106/README.md)
+uses discovery tolerance 2, branch cap 100, both directions and the full single-edge
+sweep. Matching-catalogue coverage is **1,834/1,851 (99.082%)** with one seed and
+**1,843/1,851 (99.568%)** with ten. Every reaction has a definitive catalogue
+verdict. Both runs completed matching and decoding for all 3,702 directions.
+The report separately measures exact-index reference membership in the saved
+decoded minimum + 5 window.
+
+Mean compute CPU per reaction is **1.31 s matching and 1.88 s decoding** with one
+seed, and **11.64 s matching and 9.28 s decoding** with ten. Matching includes
+fragment reduction; both directions and all cuts contribute. These are the
+saved completed-stage measurements, excluding publication and external evaluation.
+
+### Historical September comparison
+
+The chart and table below preserve the September experiments: 1,834 / 1,851
+references with one seed and 1,840 / 1,851 with ten seeds. Their algorithms,
+outputs and timing protocol belong to those recorded revisions.
+
+![Historical September Golden comparison: 99.08% coverage with one seed and 99.41% with ten seeds](docs/assets/golden-coverage.png)
 
 <!-- golden-coverage-table:start -->
 
 | Method | Search setting | Output | References covered | Coverage | Mean CPU s/reaction |
 |---|---|---|---:|---:|---:|
-| **MAPPA** | **1 seed, sweep (default)** | Compressed families | **1,834 / 1,851** | **99.08%** | **0.963** |
+| **MAPPA** | **1 seed, sweep** | Compressed families | **1,834 / 1,851** | **99.08%** | **0.963** |
 | MAPPA | 3 seeds, sweep | Compressed families | 1,837 / 1,851 | 99.24% | 2.265 |
 | MAPPA | 10 seeds, sweep | Compressed families | 1,840 / 1,851 | 99.41% | 6.993 |
 | SLAP | Bidirectional + our sweep | Multiple candidates | 1,796 / 1,851 | 97.03% | 2.793 |
@@ -38,11 +137,21 @@ Unmarked CPU times are paired search averages over the same 1,403 completed reac
 
 MAPPA rows use bidirectional search and branch cap 100. Bidirectional combines searches starting from each endpoint. The cut sweep is part of default MAPPA; **SLAP + our sweep** applies our search extension to SLAP and is not its original published score. The bidirectional SLAP rows combine its binary and weighted modes; the released default row uses binary only. All numbers above come from our strict re-evaluation, including LocalMapper, the prior accuracy-SOTA baseline discussed in the paper.
 
-[Full comparison and CPU timings](manuscript/manuscript.pdf) · [Coverage data and source hashes](docs/assets/golden-coverage.json) · [Comparator audit](reports/golden_competitor_recheck_20260913/README.md) · [Branch-cap ablation](reports/golden_controlled_20260915/README.md) · [Rebuild the plot/table](bench/publish_readme_coverage.py)
+[Full comparison and CPU timings](manuscript/manuscript.pdf) · [Coverage data and source hashes](docs/assets/golden-coverage.json) · [Comparator audit](reports/golden_competitor_recheck_20260913/README.md) · [Branch-cap ablation](reports/golden_controlled_20260915/README.md) · [Rebuild the plot/table](https://github.com/yunhzou/MAPPA-AAM/blob/22f349e2761f324b273a3a80dd498981b9fa37fb/bench/publish_readme_coverage.py)
 
-## EnzymeMap: final benchmark results
+## EnzymeMap benchmark
 
-MAPPA completed **47,974 / 47,974 reactions (100%)**, with **47,335 / 47,974 strict reference matches (98.6680%)** across the recorded configurations and output policies. All remaining reference differences are classified. The [final EnzymeMap report](reports/enzymemap_20261008/README.md) presents the results, evaluation protocol and validation; machine-readable aggregate results are included.
+The [completed current campaign](reports/enzymemap_native_20261106/README.md)
+processed all **47,974 reactions / 95,948 directions**. Exact-index catalogue
+coverage is **47,798/47,974 (99.633%)**; the saved decoded minimum + 5 window
+contains **47,796/47,974 (99.629%)**. Every reaction has a definitive outcome.
+The two additional catalogue references are outside their retained decoded windows.
+Mean successful compute CPU per reaction is **4.41 s matching**, including
+reduction, and **8.75 s decoding**, across both directions and all cuts. The
+report separately records publication, external evaluation and earlier attempts.
+
+Historical campaigns remain in [the report index](reports/README.md), with their
+original source revisions and evaluation policies.
 
 ## What you can do with MAPPA
 
@@ -53,38 +162,13 @@ MAPPA completed **47,974 / 47,974 reactions (100%)**, with **47,335 / 47,974 str
 
 Different atom assignments can imply different bond changes and reaction-core motions. Keeping alternatives makes those choices available for inspection and downstream calculations. Endpoint correspondence alone does not establish a reaction pathway.
 
-## Get started
-
-```bash
-git clone git@github.com:yunhzou/MAPPA-AAM.git
-cd MAPPA-AAM
-python -m pip install -e ".[notebook]"
-```
-
-Open [the self-contained AAM notebook](docs/AAM_SIMPLE.ipynb) for embedded molecules, public Python imports, matching, unique candidates, symmetry queries, and py3Dmol visualization. For a smaller installation without notebook dependencies, use `python -m pip install -e ".[postprocessing]"`. Building the native extensions requires a C++17 compiler. xTB is needed separately only if you want to compute WBO inputs; matching supplied arrays does not invoke it.
-
-The core workflow has two steps:
-
-```python
-from mappa import search_aam
-from mappa.postprocessing import decode_events
-
-aam = search_aam(problem)       # Compressed fragment-matching families
-decoded = decode_events(aam)     # Distinct bond-event candidates
-
-for candidate in decoded.candidates:
-    print(candidate.events, candidate.mapping)
-```
-
-`problem` holds the two endpoints' elements, coordinates, and bond-order matrices; see the [complete example below](#python-api) or run the notebook. Search and decoding remain separate so you can inspect the raw families or change the event definition without rerunning matching.
-
 ## Grow, branch, decode
 
-A reaction can admit several atom correspondences, with different bond changes or symmetry-related atom assignments. Returning one mapping hides those choices, while listing every symmetry permutation quickly becomes unwieldy. MAPPA grows matching fragments, branches when alternative placements are available, and keeps symmetry compressed. Separate decoding exposes distinct bond-change candidates for inspection.
+A reaction can admit several atom correspondences, with different bond changes or symmetry-related atom assignments. Returning one mapping hides those choices, while listing every symmetry permutation quickly becomes unwieldy. MAPPA grows matching fragments, branches when alternative placements are available, and keeps symmetry compressed. Separate decoding attaches local bond-change responses to these retained choices for inspection.
 
 ![Manuscript overview: fragment growth, three levels of conditional branching, cut sweep, and symmetry-aware event decoding](manuscript/figs/fig1_algorithm.png)
 
-Each earlier fragment placement constrains the later branches. The cut sweep changes the growth conditions, while decoding separates bond-change patterns within the retained families.
+Each earlier fragment placement constrains the later branches. The cut sweep changes the growth conditions. Decoding collects the unique saved fragments, shares their conditional responses, and composes the approximate event window. Physical evaluation of a requested mapping remains separate.
 
 ![MAPPA: Golden fragment growth, branching and two distinct decoded event classes](manuscript/animations/mappa_research_preview/mappa-grow-branch-decode.gif)
 
@@ -108,7 +192,7 @@ MAPPA searches for alternative correspondences so you can turn those differences
 
 In this gold-catalyzed rearrangement, MAPPA recovers two possible destinations for the original epoxide oxygen: the ester link or the ketone. They are consistent with different pathways considered in the published study. The video follows the actual fragment growth that finds both oxygen assignments in the 65-atom system.
 
-[3D film](manuscript/animations/gold_rearrangement/gold-oxygen-3d.mp4) · [Film viewer](manuscript/animations/gold_rearrangement/index.html) · [Full growth trajectory](manuscript/animations/gold_rearrangement/trajectory.html) · [Reproduce and inspect the witnesses](examples/gold_rearrangement/README.md)
+[3D film](manuscript/animations/gold_rearrangement/gold-oxygen-3d.mp4) · [Film viewer](manuscript/animations/gold_rearrangement/index.html) · [Full growth trajectory](manuscript/animations/gold_rearrangement/trajectory.html)
 
 
 <details open>
@@ -146,7 +230,7 @@ MAPPA matches the generated structure to the target and checks whether the infer
 
 This controlled demonstration uses a 135-atom target with a changed conformation and shuffled atom order to illustrate the check. MAPPA matches it as one complete fragment and preserves all 148 inferred connections.
 
-[3D video](manuscript/animations/molecule_verification/molecule-verification.mp4) · [Interactive film](manuscript/animations/molecule_verification/index.html) · [Try it with your XYZ files](examples/molecule_verification/README.md)
+[3D video](manuscript/animations/molecule_verification/molecule-verification.mp4) · [Interactive film](manuscript/animations/molecule_verification/index.html)
 
 ### Detect a broken structure
 
@@ -156,7 +240,7 @@ A generated structure can contain every expected atom and still have a disconnec
 
 Here we deliberately disconnect a 21-atom group. MAPPA still assigns all 135 atoms, but now needs two fragments and finds one missing connection. The video shows why complete atom coverage alone is insufficient for structure verification.
 
-[Broken-molecule video and evidence](manuscript/animations/molecule_verification_broken/README.md) · [Run the negative control](examples/molecule_verification/README.md#negative-control-break-one-connection)
+[Broken-molecule video and evidence](manuscript/animations/molecule_verification_broken/README.md)
 
 ## Use AAM to guide TS mode selection
 
@@ -168,88 +252,115 @@ MAPPA first maps the reactant and product to identify their bond changes, then m
 
 The video illustrates an O–H → N–H transfer in a 57-atom guess. The selected imaginary mode moves the highlighted hydrogen along the mapped bond changes; a stable mode is shown for contrast. This particular guess has one imaginary mode. The geometry remains a **TS guess, not an optimized TS**.
 
-[3D video and scoring evidence](manuscript/animations/ts_mode_selection/README.md) · [Interactive film](manuscript/animations/ts_mode_selection/index.html) · [Self-contained Python replay](examples/ts_mode_selection/README.md)
+[3D video and scoring evidence](manuscript/animations/ts_mode_selection/README.md) · [Interactive film](manuscript/animations/ts_mode_selection/index.html)
 
 ## Design
 
-The main Python workflow keeps search and event decoding separate:
+The main Python workflow keeps matching and event decoding separate:
 
 ```text
-search_aam -> AAMResult -> decode_events -> DecodedEvents
-                                          |- unique event candidates
-                                          |- witness mappings
-                                          `- symmetry and shuffle queries
+Matching:  search_aam_directions -> deduplicate -> catalogues
+Decoding:  decode_events(catalogues)             -> decoded
+Optional:  extract_reaction_cores(decoded)       -> reaction cores
 ```
 
-TS analysis consumes an explicit `ReactionContext`. It is not run automatically by AAM or event decoding.
+The stage APIs carry both directions together while preserving their individual
+results. `search_aam` remains the simple single-direction entry point; scalar
+inputs to later stages return scalar results. TS analysis consumes an explicit
+`ReactionContext` and is called separately.
 
-The search stores fragment choices and correlated symmetry operations without expanding every atom bijection. Decoding groups the retained alternatives by their signed bond events. You can inspect a candidate's witness, ask which shuffles are allowed, or replay the search that produced it.
+The search stores fragment choices and correlated symmetry operations without expanding every atom bijection. Decoding first collects all unique saved fragments and shares their conditional internal responses. Its event model treats fragments independently, fixes ordinary boundary counts, and couples only the single sweep correction. Mapping realization still validates the original constraints. Hierarchical rematching is a separate experimental operation.
 
 Default search uses one seed ordering per cut, uncut plus single-edge sweep, and branch cap 100. The [configuration guide](docs/PYTHON_API.md) covers tolerances, anchors, search directions, and chirality limitations. Fragment competition remains experimental, optional, and off by default.
 
-See [the search-graph API](docs/AAM_SEARCH_GRAPH_API.md) for the object model,
-conditional fragment API, persistence, and path replay;
-[ALGORITHM.md](ALGORITHM.md) covers downstream algorithms.
-See [retro detection and assembly](docs/RETRO_ASSEMBLY.md) for geometric
-building-block recommendation using the same matcher and saved AAM graphs.
-The separate [big-block / gap-first beta](docs/RETRO_BETA.md) defers augmentation
-until a reactant is selected; it does not replace the full workflow.
+See [design.md](design.md) for the shared data architecture, matching invariants,
+branch identity and decoding responsibilities. The
+[Python guide](docs/PYTHON_API.md) documents current calls.
+Retrosynthesis is maintained separately on [codex/retrosynthesis](https://github.com/yunhzou/MAPPA-AAM/tree/codex/retrosynthesis).
 
 ## Python API
 
-Start with the executed, self-contained [AAM notebook](docs/AAM_SIMPLE.ipynb): embedded molecules, matching, raw branch inspection, unique bond-event candidates, certified symmetry queries, py3Dmol inspection, and a growth animation for each sweep. All inputs and display helpers are in the notebook; no benchmark files are needed. The [Python API guide](docs/PYTHON_API.md) lists anchors, directions, conditional matching, all configuration controls, and current chirality limitations. Install its dependencies with `python -m pip install -e ".[notebook]"`.
+The examples below continue the [pipeline above](#get-started). The
+[Python API guide](docs/PYTHON_API.md) covers anchors, conditional matching and
+configuration; the [self-contained notebook](docs/AAM_SIMPLE.ipynb) includes
+molecular inputs and interactive viewers.
+
+### Save and reload both directions
+
+One record contains both decoded results, their catalogues and shared fragment
+responses. Reloading restores the saved state without rerunning matching or
+decoding:
 
 ```python
-from mappa import AAMProblem, MolecularEndpoint, AAMSearchConfig, search_aam
-from mappa.postprocessing import EventDecodeConfig, decode_events
+import json
+from pathlib import Path
+from mappa import decoded_events_record, decoded_events_from_record
 
-# Arrays for both endpoints are embedded in docs/AAM_SIMPLE.ipynb.
-problem = AAMProblem(
-    MolecularEndpoint(elements_R, xyz_R, wbo_R, label="R"),
-    MolecularEndpoint(elements_P, xyz_P, wbo_P, label="P"),
-    name="reaction",
-)
-aam = search_aam(
-    problem,
-    AAMSearchConfig(iso_tolerance=1.0, seed_count=1,
-                    sweep_cuts=True, branch_limit=100),
-    workers=1,
-)
-decoded = decode_events(
-    aam, EventDecodeConfig(threshold=0.5, metal_threshold=0.3),
-)
-print("Search capped:", aam.graph.capped)
-print("Saved-family decoding complete:", decoded.complete)
-for candidate in decoded.candidates:
-    print(candidate.total, candidate.events, candidate.mapping)
-
-if decoded.candidates:
-    candidate = decoded.candidates[0]
-    symmetry = decoded.symmetry(candidate)
-    # Edit this condition to ask whether a proposed assignment is allowed.
-    answer = decoded.query(candidate, {0: candidate.mapping[0]}, same_events=True)
-    print(answer.status)  # allowed, forbidden, or unknown within saved families
+path = Path("decoded.json")
+path.write_text(json.dumps(decoded_events_record(decoded)), encoding="utf-8")
+restored = decoded_events_from_record(json.loads(path.read_text(encoding="utf-8")))
+minimum_cores = extract_reaction_cores(restored, event_count="minimum")
 ```
 
-A candidate is one signed bond-event class with a witness mapping and supporting
-family IDs. `decoded.complete` certifies decoding of retained complete families
-in the requested window; it does not certify exhaustive AAM search. The decoder
-retains all represented event counts by default, including nonminimum
-alternatives. Search and final event tolerances are configured independently.
+### Inspect saved results
 
-Anchors use `AAMSearchConfig(anchors=((r_atom, p_atom),))`.
-`from mappa import search_aam_directions` exposes forward, reverse,
-smaller-first, larger-first, and both-direction searches. The
-[API guide](docs/PYTHON_API.md) documents conditional fragment matching,
-fixed-query isomorphism, serialization, and the current chirality TODO.
+Each direction exposes the same individual decoded-result API:
 
-For one animation per sweep, use the in-memory result directly:
+```python
+forward = decoded.forward
+print(forward.minimum_events, forward.event_window)
+branches = forward.saved_branches()  # Recorded compositions at the detected minimum.
+branches_at_five = forward.saved_branches(event_count=5)
+```
+
+`forward.minimum_proven` distinguishes an established model minimum from the best count
+found within the fragment search budget (default five seconds per unique
+fragment). `forward.minimum_lower_bound` retains the bound when optimality is
+not established. Saved branch lookups use recorded counts and witnesses; they
+do not run additional optimization or count every internal symmetry arrangement.
+
+For one extracted core:
+
+```python
+if cores.forward:
+    core = cores.forward[0]
+    print(core.mapping)           # Base-to-target atom pairs.
+    print(core.decreased_bonds)   # Broken/weakened bonds, in base indices.
+    print(core.increased_bonds)   # Formed/strengthened bonds, in target indices.
+    print(core.physical_event_count)
+```
+
+Selection uses the decoder's approximate model counts. Core bond changes are
+evaluated against the original weights, so `core.physical_event_count` can
+differ from its supporting `core.model_event_counts`. A detected model minimum
+does not certify a global physical minimum.
+
+To express a reverse-direction core mapping in the original A-to-B input order:
+
+```python
+if cores.reverse:
+    mapping_ab = decoded.to_input_mapping(cores.reverse[0].mapping, direction="reverse")
+```
+
+For further targeted searches, `forward.select(family_id, lower, upper).find()`
+queries a branch's compressed response within its allowance. This can perform
+additional work; reading saved branches and extracting their cores does not.
+See the [API guide](docs/PYTHON_API.md) for query outcomes and physical evaluation.
+
+Anchors use `AAMSearchConfig(anchors=((a_atom, b_atom),))` in input endpoint
+order. `search_aam_directions` also accepts `"forward"`, `"reverse"`,
+`"smaller_first"` and `"larger_first"`.
+
+### Inspect fragment growth
+
+Use the forward search result from the both-direction example for an animation
+of its recorded growth across the sweep:
 
 ```python
 from pathlib import Path
-from mappa.viewers import aam_growth_html
+from mappa.presentation.viewers import aam_growth_html
 
-Path("aam_growth.html").write_text(aam_growth_html(aam), encoding="utf-8")
+Path("aam_growth.html").write_text(aam_growth_html(matched[0].aam), encoding="utf-8")
 ```
 
 The offline viewer replays recorded fragment calls and verifies their outputs;
@@ -268,14 +379,14 @@ The default stage is signed-event decoding. NPZ endpoints contain `elements`,
 ```bash
 mappa --stage events \
   --reactant-npz R.npz --product-npz P.npz \
-  --workers 4 --seconds-per-family 30 --output mapping
+  --workers 4 --output mapping
 ```
 
 Use `--stage aam` for raw search only. Both stages write `aam.json` and the
 self-contained `search.html` viewer. The events stage also writes `events.json`
-with candidate witnesses, per-family reports, and explicit completeness flags.
-`complete` is scoped to retained families and the requested event window; it
-must not be interpreted as proof that capped search explored every mapping.
+with the original catalogue, shared conditional responses and approximate model
+minimum/window. This retained scope does not prove that capped search explored
+every mapping or that the event minimum is physical.
 Existing xTB caches can be supplied with `--reactant-cache` and `--product-cache`.
 
 TS processing requires an explicitly supplied resolved-reaction record:
@@ -292,9 +403,24 @@ Target NPZ files additionally contain `frequencies` and `modes`. See the
 chosen decoded event witness and serializing it with `reaction_record`.
 
 The legacy orientation-selection APIs and CLI stages `rp` and `full` have been
-removed. They have no compatibility aliases or fallback dispatch.
+removed. They have no compatibility aliases or fallback dispatch. The old
+`alignment.api` and `cut_sweep` execution entry points are also removed; use
+`search_aam` followed by `decode_events`.
+
+Build the engine with `python src/mappa/mappa_core/native/build_engine.py`; see the
+[native build guide](src/mappa/mappa_core/native/README.md).
+
+`MAPPA_NATIVE=1` is the default native selection. A missing or broken native
+extension raises an error. Set `MAPPA_NATIVE=0` to explicitly select Python.
+Custom node policies and growth tracing require explicit Python selection;
+native requests reject these unsupported capabilities. The trajectory viewer
+calls Python tracing explicitly.
 
 ## Result hierarchy
+
+After `search_aam_directions`, the public stage calls return `DirectionalResults`:
+`.forward` and `.reverse` hold the requested directions' individual results.
+The records inside each direction are:
 
 ```text
 AAMResult
@@ -302,13 +428,16 @@ AAMResult
    |- contexts, states, transitions, and stop/cap evidence
    `- compressed placements, conditioned generators, and provenance
 
-DecodedEvents                              # separate signed-event post-processing
-`- EventCandidate[]                        # one witness per unique event class
-   |- event edges, count, and supporting family IDs
-   `- symmetry evidence and conditional shuffle queries
+FinalBranchCatalogue                      # reduction across retained seeds/cuts
+`- saved mapping families, ordered actions and constraints
 
-MechanismResult / AnalyticalAAMResult       # explicit family analysis
-`- analytical mapping families per mechanism
+EventInterpretation                       # separate event decoding
+|- unique fragments and shared conditional responses
+|- approximate model minimum and event window
+`- original family/partition references and mapping constraints
+
+ReactionCore                              # optional extract_reaction_cores call
+`- signed bond changes, representative mapping and decoded branch references
 
 ReactionContext                           # explicit TS input
 `- supplied mappings and corresponding bond events
@@ -319,43 +448,64 @@ TSResult
 
 ## Tests
 
+For routine refactoring, run the small set of existing contract checks:
+
 ```bash
+python -m pytest -q -m smoke
+```
+
+This covers the public CLI, partial AAM and saved-result round trips, compressed
+ring matches, branch grouping/caps, randomized growth, anchored conversion,
+ordinary/metal thresholds, incomplete results and explicit TS processing.
+It is a smoke check, not exhaustive scientific validation.
+
+Also run the tests for the module changed; select files or individual tests
+instead of repeatedly running everything. For example:
+
+```bash
+# Conversion/counting changes
+python -m pytest -q tests/test_fragment_conversion.py tests/test_partial_event_decoding.py tests/test_relative_event_window.py tests/test_saved_fragment_anchors.py
+# Full regression suite for releases or changes spanning core algorithms
 python -m pytest -q
 ```
 
-The suite includes a non-empty TS integration case that consumes explicit endpoint
-mappings and events and performs two partial core searches,
-endpoint-consensus merging, and imaginary-mode scoring.
+Matcher changes require the exhaustive compression and Python/native comparison
+tests (`test_growth_compression_exactness.py`, `test_target_action_growth.py`,
+`test_bond_tolerance.py`, plus the affected growth tests). Scheduling changes
+require the execution tests. Documentation-only edits need link/content checks,
+not molecular calculations. Run computational checks on suitable CPU resources. Record
+which tests ran; passing smoke checks does not mean the full suite passed.
 
 ## Repository layout
 
 | Location | Contents |
 |---|---|
-| `src/mappa/` | Importable matching, search, separate decoding, geometry, and viewers |
+| `src/mappa/` | `mappa_core` algorithms/I/O, `mappa_workflow` analytics, and `presentation` |
 | `docs/` | Executed notebooks and public API documentation |
-| `bench/` | Benchmark entry points and shared evaluators; see the [guide](bench/README.md) |
-| `bench/experiments/` | Optional research experiments, excluded from the published default |
-| `bench/archive/`, `bench/contracts/` | Frozen campaign source and regression contracts |
+| `bench/` | Maintained, portable experiment runners and campaign audits |
 | `reports/` | Saved measurements, witnesses, provenance, and benchmark summaries |
 | `manuscript/` | Current paper, figures, research preview, and reproducibility bundle |
-| `tests/`, `native/`, `tools/`, `hpc/` | Tests, native implementation, user utilities, batch launch examples |
+| `tests/` | Contract checks and independent scientific oracles |
+| `tools/` | Input/output utilities using the shared source modules |
+| `skills/` | Reusable viewer instructions |
 
-See the [cleanup record](docs/PUBLICATION_CLEANUP.md) for source relocations,
-removed superseded artifacts, and recovery paths.
+The architecture and ownership rules are in [design.md](design.md). Historical
+source revisions are recorded with their benchmark reports; old implementations
+are not shipped as fallback copies. The [manuscript](manuscript) contains the paper
+and its reproducibility index.
 
-## Current work and stable versions
-
-See the [branch guide](docs/BRANCHES.md) for preserved pre-acceleration baselines,
-active development, and archived experiments. The
-[manuscript folder](manuscript) on `main`
-contains the manuscript PDF, figures, animations, and reproducible figure data.
+Fragment growth uses one witness followed by exact compressed completion, without
+a mode selector. Direct search and work pools default to `reused_native` execution. Native errors and unsupported inputs are reported without switching
+implementations. Python comparison runs explicitly select `MAPPA_NATIVE=0` and
+`execution='reference'`. The shared reaction cache retains its permanent first
+snapshot for recovery, as specified in its storage design.
 
 ## Compatibility
 
 <details>
 <summary>Upgrading from the former rxn_core package</summary>
 
-The Python package and command are now named `mappa` (formerly `rxn_core` / `rxn-core`). Reinstall from this checkout and rebuild the optional native engine after updating. Use `import mappa` and `from mappa.postprocessing import decode_events`. Existing saved results remain readable; versioned archive identifiers and event IDs retain their original names for compatibility. `MAPPA_NATIVE=0` selects Python growth; the former `RXN_CORE_NATIVE` setting is still accepted as a fallback.
+The Python package and command are now named `mappa` (formerly `rxn_core` / `rxn-core`). Reinstall from this checkout and rebuild the optional native engine after updating. Use public imports such as `from mappa import decode_events`. Earlier fragment schemas require their producing revision: current readers reject incompatible scientific records rather than reinterpret their allowed mappings. `MAPPA_NATIVE=0` selects Python growth. `MAPPA_NATIVE` is the only supported engine environment setting.
 
 </details>
 
@@ -368,7 +518,7 @@ are listed in the [manuscript](manuscript/manuscript.pdf).
 ## Transition-state scoring
 
 MAPPA exposes one TS scorer: `significant_subset_motion_v1` through
-`analyze_transition_state` (or `mappa.scoring.subset_score` for an already mapped
+`analyze_transition_state` (or `mappa.mappa_workflow.ts_analytics.scoring.subset_score` for an already mapped
 geometry). It permits asynchronous event motion, combines substantial event
 support with contact selectivity and a bounded synchrony preference, and retains
 endpoint-consensus ranking. Every result records `scoring_policy`.
@@ -395,3 +545,25 @@ workflows; arbitrary file ordering is never assumed. Without that mapping the
 report says `mapped_core_pairs_only` and `outside_core_assessed=false`.
 Disagreement between the declared identity and a core assignment is reported.
 Bond diagnostics do not alter the score or impose a rejection threshold.
+
+### Partial mappings and unbalanced endpoints
+
+The same event decoder handles complete and partial mappings. Bond events touch
+mapped atoms, including mapped/unmapped boundaries; bonds wholly inside unmatched
+material are omitted. The independent-fragment model holds ordinary boundary
+contributions fixed and resolves the single sweep correction separately. Original
+WBO-change and metal thresholds apply; no missing atoms are invented.
+
+`result.realize(family_id, choices)` validates one requested mapping.
+`result.contributions(...)` and `result.counts(...)` return approximate model
+counts. `result.evaluate(...)` explicitly reports that mapping's physical bond
+events for inspection or pattern comparison. A different physical count does not
+re-bin the model result. `decoded_events_record(result)` saves the original
+catalogue, shared conditional responses, retained branch counts and shared witness
+choices, and the window predicate without enumerating
+all bijections or all event bins.
+
+Experimental hierarchical refinement is explicitly available from
+`mappa.mappa_core.post_processing.hierarchical_mapping` through `refine_mapping`
+and `RefinementConfig`. It rematches within original fragment atom sets and can
+change coverage. Normal decoding never invokes it.

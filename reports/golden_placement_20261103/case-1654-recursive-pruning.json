@@ -1,0 +1,225 @@
+{
+  "case": 1654,
+  "parent_commit": "2ca7d74129ce2f038c1dd02d04810826a4867d3e",
+  "source_engine_identity": "765ff2e10cf88a5013b40a9531a309faa053a7d13e36fa135ff1e70ad17cd5b8",
+  "branch_cap_policy": "completed_fragment_bottom_up_v2",
+  "protocol": {
+    "seed_count": 1,
+    "iso_tolerance": 1,
+    "self_tolerance": 1,
+    "random_seed": 42,
+    "sweep_cuts": true,
+    "directions": 2,
+    "workers": 4,
+    "memory_gib": 2,
+    "shared_reaction_cache": true,
+    "cache": "Fresh per study; reuse enabled within each study",
+    "decoding": "Not run",
+    "timing": "Task compute CPU includes input loading and preparation; publication recorded separately. One run per cap on the same Mac."
+  },
+  "tests": {
+    "focused_passed": 240,
+    "smoke_passed": 26
+  },
+  "studies": [
+    {
+      "branch_cap": 100,
+      "previous_elapsed_seconds": 6.5641544170212,
+      "matching_and_reduction_elapsed_seconds": 5.554163374938071,
+      "directions": {
+        "forward": {
+          "deduplication": {
+            "state": "complete",
+            "tasks": 1,
+            "compute_cpu_seconds": 1.0214549999999996,
+            "publication_cpu_seconds": 0.24958299999999944,
+            "max_task_compute_seconds": 1.024028583895415,
+            "peak_sampled_tree_rss_bytes": 421085184,
+            "memory_samples": 6,
+            "unsampled_tasks": 0,
+            "previous_compute_cpu_seconds": 1.6877119999999999,
+            "families": 2289,
+            "branches": 2267,
+            "previous_families": 3355
+          },
+          "matching": {
+            "state": "complete",
+            "tasks": 171,
+            "compute_cpu_seconds": 5.186058999999998,
+            "publication_cpu_seconds": 0.4314950000000004,
+            "max_task_compute_seconds": 0.3130681251641363,
+            "peak_sampled_tree_rss_bytes": 265453568,
+            "memory_samples": 35,
+            "unsampled_tasks": 138,
+            "previous_compute_cpu_seconds": 5.449914
+          },
+          "verification": {
+            "state": "complete",
+            "tasks": 1,
+            "compute_cpu_seconds": 2.4107000000000003,
+            "publication_cpu_seconds": 0.0009229999999997851,
+            "max_task_compute_seconds": 2.5991866670083255,
+            "peak_sampled_tree_rss_bytes": 309755904,
+            "memory_samples": 13,
+            "unsampled_tasks": 0,
+            "previous_compute_cpu_seconds": 2.580731,
+            "verification": {
+              "status": "recovered",
+              "family": 2,
+              "heavy_atoms": 62,
+              "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+            }
+          }
+        },
+        "reverse": {
+          "deduplication": {
+            "state": "complete",
+            "tasks": 1,
+            "compute_cpu_seconds": 1.0774219999999999,
+            "publication_cpu_seconds": 0.21759299999999993,
+            "max_task_compute_seconds": 1.0778765000868589,
+            "peak_sampled_tree_rss_bytes": 376913920,
+            "memory_samples": 6,
+            "unsampled_tasks": 0,
+            "previous_compute_cpu_seconds": 1.6380930000000005,
+            "families": 2488,
+            "branches": 2418,
+            "previous_families": 3007
+          },
+          "matching": {
+            "state": "complete",
+            "tasks": 149,
+            "compute_cpu_seconds": 4.370476999999999,
+            "publication_cpu_seconds": 0.36157200000000156,
+            "max_task_compute_seconds": 0.3979261249769479,
+            "peak_sampled_tree_rss_bytes": 277331968,
+            "memory_samples": 29,
+            "unsampled_tasks": 123,
+            "previous_compute_cpu_seconds": 4.238505000000001
+          },
+          "verification": {
+            "state": "complete",
+            "tasks": 1,
+            "compute_cpu_seconds": 2.5657490000000003,
+            "publication_cpu_seconds": 0.0009079999999999089,
+            "max_task_compute_seconds": 2.6993842080701143,
+            "peak_sampled_tree_rss_bytes": 298827776,
+            "memory_samples": 13,
+            "unsampled_tasks": 0,
+            "previous_compute_cpu_seconds": 2.636121,
+            "verification": {
+              "status": "recovered",
+              "family": 0,
+              "heavy_atoms": 62,
+              "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+            }
+          }
+        }
+      },
+      "matching_compute_cpu_seconds": 9.556535999999998,
+      "previous_matching_compute_cpu_seconds": 9.688419
+    },
+    {
+      "branch_cap": 2000,
+      "previous_elapsed_seconds": 34.83151291706599,
+      "matching_and_reduction_elapsed_seconds": 31.54169370792806,
+      "directions": {
+        "forward": {
+          "deduplication": {
+            "state": "complete",
+            "tasks": 1,
+            "compute_cpu_seconds": 12.561569,
+            "publication_cpu_seconds": 1.2115740000000024,
+            "max_task_compute_seconds": 12.585544165922329,
+            "peak_sampled_tree_rss_bytes": 1533313024,
+            "memory_samples": 64,
+            "unsampled_tasks": 0,
+            "previous_compute_cpu_seconds": 17.591052,
+            "families": 40761,
+            "branches": 40739,
+            "previous_families": 59119
+          },
+          "matching": {
+            "state": "complete",
+            "tasks": 171,
+            "compute_cpu_seconds": 25.083986,
+            "publication_cpu_seconds": 1.8193130000000035,
+            "max_task_compute_seconds": 3.3382864580489695,
+            "peak_sampled_tree_rss_bytes": 1029931008,
+            "memory_samples": 137,
+            "unsampled_tasks": 116,
+            "previous_compute_cpu_seconds": 24.485498000000003
+          },
+          "verification": {
+            "state": "complete",
+            "tasks": 1,
+            "compute_cpu_seconds": 8.41456,
+            "publication_cpu_seconds": 0.0008710000000000662,
+            "max_task_compute_seconds": 8.634667750215158,
+            "peak_sampled_tree_rss_bytes": 739442688,
+            "memory_samples": 40,
+            "unsampled_tasks": 0,
+            "verification": {
+              "status": "recovered",
+              "family": 2,
+              "heavy_atoms": 62,
+              "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+            }
+          }
+        },
+        "reverse": {
+          "deduplication": {
+            "state": "complete",
+            "tasks": 1,
+            "compute_cpu_seconds": 11.688221,
+            "publication_cpu_seconds": 0.8281999999999989,
+            "max_task_compute_seconds": 11.712673916015774,
+            "peak_sampled_tree_rss_bytes": 1367457792,
+            "memory_samples": 58,
+            "unsampled_tasks": 0,
+            "previous_compute_cpu_seconds": 13.323306,
+            "families": 31562,
+            "branches": 31492,
+            "previous_families": 37468
+          },
+          "matching": {
+            "state": "complete",
+            "tasks": 149,
+            "compute_cpu_seconds": 28.295052,
+            "publication_cpu_seconds": 1.4925300000000084,
+            "max_task_compute_seconds": 3.9177830000407994,
+            "peak_sampled_tree_rss_bytes": 1382760448,
+            "memory_samples": 144,
+            "unsampled_tasks": 108,
+            "previous_compute_cpu_seconds": 24.963351
+          },
+          "verification": {
+            "state": "complete",
+            "tasks": 1,
+            "compute_cpu_seconds": 8.503753999999999,
+            "publication_cpu_seconds": 0.0008750000000006253,
+            "max_task_compute_seconds": 8.602838666876778,
+            "peak_sampled_tree_rss_bytes": 584466432,
+            "memory_samples": 40,
+            "unsampled_tasks": 0,
+            "verification": {
+              "status": "recovered",
+              "family": 0,
+              "heavy_atoms": 62,
+              "policy": "exact heavy-atom relation including unmatched atoms, modulo endpoint chemical symmetry"
+            }
+          }
+        }
+      },
+      "matching_compute_cpu_seconds": 53.379037999999994,
+      "previous_matching_compute_cpu_seconds": 49.448849
+    }
+  ],
+  "limits": [
+    "One timing run per cap, same Mac and four workers; these are point measurements, not a general speed guarantee.",
+    "Decoding unchanged and not rerun. Verification is separate from matching and reduction timing.",
+    "The cap changes retained coverage intentionally; reference recovery was checked for this reaction, not rerun across the full dataset.",
+    "Memory sampling interval 0.2 seconds; short tasks can be unsampled. Process-tree RSS includes the worker retained cache.",
+    "Pruning counts distinct current continuations without unfolding history paths. Completing a whole seed step can temporarily retain up to cap squared children before pruning."
+  ]
+}

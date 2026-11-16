@@ -1,7 +1,7 @@
 {
   "index": 1665,
   "direction": "R_to_P",
-  "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_direction1665_20260907/R_to_P/case1665_seeds3_cap2000/cuts/aam.pkl.gz",
+  "archive": "private-reference-fbf48f588e494ae3e553",
   "components": [
     [
       0,
@@ -1080,5 +1080,9 @@
   "cap_stops": 0,
   "evaluation": {
     "reference_recovery": "not_recovered"
+  },
+  "privacy_projection": {
+    "original_sha256": "1cb245300f44f1d4d0a19a6a7b439646b21d5891381b629c77db2f56afda8db0",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

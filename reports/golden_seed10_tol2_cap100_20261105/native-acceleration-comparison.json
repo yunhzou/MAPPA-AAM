@@ -1,0 +1,1039 @@
+{
+  "schema": "mappa.native_postprocessing_comparison/v1",
+  "baseline_revision": "63088bd44aed5af1a88bbcd919f788ba2260f395",
+  "baseline_measurements": "seed-fragment-comparison.json",
+  "implementation_parent_revision": "c1325c30a1a037299ae6809f82e97542bfaf9682",
+  "measured_runtime_identity": "a934a7030baa3a34da59839c8f0795eb1e12957534418d69c85ed865799559d4",
+  "published_runtime_identity": "08e0d9ca3ac5380cdf6d76b07cfbec3628e4d8cde0de04cd16c5352fb109ff33",
+  "postmeasurement_cleanup": "Removed two unused Python adapters; native kernels and scientific paths unchanged. The bound oracle now calls the native operation directly.",
+  "source_hashes": {
+    "bench/golden.py": "4989bdc48f301df9e95d87d3710d951e556d55085a177c4f4d6633f4420790c8",
+    "bench/performance.py": "ea8c317cc7053fc5c63ea61d222caaa981acc8bf674b7e63e44b78ccccf87578",
+    "setup.py": "5077b437fb042e3840fa37e5d35bda383796131edba9afb1555192948eaece93",
+    "src/mappa/mappa_core/core/search/graph.py": "a16a1e0d81d7b77a129381c8fcce077ab9acfcc6705c6f0b0dd902aacf2b7088",
+    "src/mappa/mappa_core/core/symmetry/actions.py": "d00d4196cf8082dc82f1dae8ff61e44c6a5177dbb2309c69df5f4c5b08271ef3",
+    "src/mappa/mappa_core/core/symmetry/constraints.py": "e5ed0cd542adcd6141c2bc5d98946214964e9676e8874a6ffe3bbfbf054563d7",
+    "src/mappa/mappa_core/core/symmetry/groups.py": "b3428afed7d5b49f40bda23e28fea4d60891c33fd39716c9d26b1518f9bea989",
+    "src/mappa/mappa_core/core/symmetry/minimum.py": "226411c1be7080f69fa0cd2ce8c3a524efc419355a8e653399c22ced67e6e549",
+    "src/mappa/mappa_core/core/symmetry/optimization.py": "173de4b6c21791db14e9b523737be6931919f406d335131387190d8753553f33",
+    "src/mappa/mappa_core/core/symmetry/program.py": "316c2bb91254f985b28cc1b238c6b10187fa4099530828bbc8e2f94262e17879",
+    "src/mappa/mappa_core/core/symmetry/queries.py": "e29d9ee73b96e6d18549019a5951ad8bc5dd6a3d15134235ce70c98d01656885",
+    "src/mappa/mappa_core/native/README.md": "d876d35e00117646526dac3e68c973d6b27cb021aff6e5cbf3f9e99eac31a170",
+    "src/mappa/mappa_core/native/action_program.h": "59b9ceb7f948392853d07cccf56cb1193dc6be6a180300028b04628fc08b4429",
+    "src/mappa/mappa_core/native/assignment_search.h": "415bab1ad213edbfba3a1309d70b20a871461334fab8333a96b717effa254aa0",
+    "src/mappa/mappa_core/native/event_response.h": "70bd7fbedb9a4d1d3f95bab93a9a58fca6b7c820606394ac314db550679d935d",
+    "src/mappa/mappa_core/native/group_ops.cpp": "a74de96ae93a900fed86a322febf4cb47634c12dfd5dcf5d2817c7b372456bda",
+    "src/mappa/mappa_core/native/history_projection.h": "ef0ac3d58c613f766a567122c88bb71ce0003840ade759d28545f2fc3894c321",
+    "src/mappa/mappa_core/native/permutation_group.h": "d1fe334c6f8ae854a168ad95a0786e4ef1ab8accd23475e29434d363e0b21523",
+    "src/mappa/mappa_core/post_processing/final_branches.py": "c6e74c0ced1f27cb21ee011abe1de8e358e459f65cec6d4518ff894cf4b505e8",
+    "src/mappa/mappa_core/utils/io/records.py": "8eb3c0ef6609600a8845ae551a3978e340bb67e8fd73c9362a93b7d859d2d397",
+    "tests/test_final_branches.py": "59a8f69b4c1330ed5090a95c0eae39a7a661b1be8f60db45e9165935a6c99916",
+    "tests/test_fragment_event_inventory.py": "fe3f14ad3504451f13f822a35e52b5e035192f2542ef685e30bb80e779b9cb07",
+    "tests/test_fragment_event_queries.py": "80da4949fdc6fe37019e9c6bac93b5e4ab90ac59c0cb63fd9d3db403f5fd8246",
+    "tests/test_fragment_optimization.py": "a19ae318173531c2597adec7b8f85c54c766537a383be70c369d137cde13981a",
+    "tests/test_golden_campaign.py": "0fbc1f7016595abec885467c9c94af306f14228df764f7d4ef53b12222f4bef7",
+    "tests/test_native_group_ops.py": "4c47e61cf339c09e82070b5e6393a76f441f953bd0b4353a6b7f9d32265d86ae"
+  },
+  "hardware": {
+    "cpu_model": "Apple M4 Pro",
+    "machine": "arm64",
+    "python": "3.12.14",
+    "packages": {
+      "numpy": "2.3.5",
+      "scipy": "1.16.3",
+      "sympy": "1.14.0",
+      "pynauty": "2.8.8.1",
+      "z3-solver": "5.1.0.0"
+    }
+  },
+  "method": {
+    "runner": "bench/performance.py",
+    "matching_repeated": false,
+    "original_baseline_repeated": false,
+    "fresh_process_per_case": true,
+    "numerical_threads": 1,
+    "observations_per_arm": 1,
+    "memory_guard_bytes": 8589934592,
+    "timeout_seconds": 600,
+    "rss_sampling_seconds": 0.1,
+    "phase_peak_scope": "Cumulative process-lifetime high-water RSS observed after each phase, not independent phase peaks.",
+    "output_scope": "Export creates a shared record; serialization and restoration retain serialized bytes and the restored record in the same process.",
+    "verification": "Catalogue membership and exact annotated membership in the selected decoded window are separate. Window queries retain the original ten-second budget."
+  },
+  "validation": {
+    "full_suite": {
+      "passed": 1260,
+      "seconds": 119.23
+    },
+    "after_program_sharing_fix": {
+      "passed": 156,
+      "seconds": 2.33
+    },
+    "verification_lifetime_checks": {
+      "passed": 2,
+      "seconds": 0.56
+    },
+    "after_unused_adapter_cleanup": {
+      "passed": 170,
+      "seconds": 2.04
+    },
+    "independent_oracles": "Small group membership, stabilizers and compact factors; original-WBO event minima and target queries, endpoint occupancy, ordered placements, sweep corrections, discovery bounds, anchors and incomplete results.",
+    "compact_stress_cases": [
+      "32! group without full enumeration",
+      "2**80 growth histories retained as parent links"
+    ]
+  },
+  "observations": [
+    {
+      "case": "01606/reverse/seed1",
+      "input": {
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 1,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "event_slack": 5,
+          "fragment_seconds": 5.0
+        },
+        "reversed": true,
+        "input_hashes": {
+          "matching": "3ad2f30bafc6a996b856b52ebf6ec58fa142d4ca965f6e3823b930e69614c5d7",
+          "reference": "a2a2e03714e7e7fd76d964ef3230ebc2839e1cb431d68123f575a7c34adbdae8"
+        }
+      },
+      "baseline": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.14875900000000009,
+            "wall_seconds": 0.1488558785058558
+          },
+          "reduction": {
+            "cpu_seconds": 0.20533499999999955,
+            "wall_seconds": 0.20566895650699735
+          },
+          "verification": {
+            "cpu_seconds": 0.9561250000000001,
+            "wall_seconds": 0.9870082919951528
+          },
+          "decoding": {
+            "cpu_seconds": 18.489149,
+            "wall_seconds": 18.49525041715242
+          },
+          "decoded_reference": {
+            "cpu_seconds": 9.985735000000002,
+            "wall_seconds": 10.012549874838442
+          },
+          "export": {
+            "cpu_seconds": 5.905509000000002,
+            "wall_seconds": 5.906468250090256
+          },
+          "serialization": {
+            "cpu_seconds": 0.14638899999999921,
+            "wall_seconds": 0.14642058382742107
+          },
+          "restoration": {
+            "cpu_seconds": 0.1409270000000049,
+            "wall_seconds": 0.14094287483021617
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 86,
+        "seed_searches": 86,
+        "branches": 5441,
+        "families": 5633,
+        "fragments": 1087,
+        "paths": 6945,
+        "branch_composition_sha256": "782c53ab30d9ab55fb79538350b0ef2b0d697ec4351c0d55d4c9ff614cbfb19a",
+        "catalogue_reference": "not_recovered",
+        "decoded_reference": {
+          "status": "unknown",
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 7,
+        "minimum_proven": true,
+        "serialized_bytes": 28908608,
+        "process_lifetime_peak_rss_bytes": 1253359616
+      },
+      "native": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.13074199999999997,
+            "wall_seconds": 0.13079271093010902,
+            "process_lifetime_peak_rss_bytes_after": 92323840
+          },
+          "reduction": {
+            "cpu_seconds": 0.21460600000000005,
+            "wall_seconds": 0.21482528909109533,
+            "process_lifetime_peak_rss_bytes_after": 92602368
+          },
+          "verification": {
+            "cpu_seconds": 0.8760260000000001,
+            "wall_seconds": 0.8820599580649287,
+            "process_lifetime_peak_rss_bytes_after": 137936896
+          },
+          "decoding": {
+            "cpu_seconds": 10.923133,
+            "wall_seconds": 10.984036749927327,
+            "process_lifetime_peak_rss_bytes_after": 490635264
+          },
+          "decoded_reference": {
+            "cpu_seconds": 9.99772,
+            "wall_seconds": 10.005120458081365,
+            "process_lifetime_peak_rss_bytes_after": 492044288
+          },
+          "export": {
+            "cpu_seconds": 3.2349829999999997,
+            "wall_seconds": 3.2368300422094762,
+            "process_lifetime_peak_rss_bytes_after": 608485376
+          },
+          "serialization": {
+            "cpu_seconds": 0.16481100000000026,
+            "wall_seconds": 0.16497979196719825,
+            "process_lifetime_peak_rss_bytes_after": 684933120
+          },
+          "restoration": {
+            "cpu_seconds": 0.13914099999999863,
+            "wall_seconds": 0.13916854211129248,
+            "process_lifetime_peak_rss_bytes_after": 891224064
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 86,
+        "seed_searches": 86,
+        "branches": 5441,
+        "families": 5633,
+        "fragments": 1087,
+        "paths": 6945,
+        "branch_composition_sha256": "782c53ab30d9ab55fb79538350b0ef2b0d697ec4351c0d55d4c9ff614cbfb19a",
+        "catalogue_reference": "not_recovered",
+        "decoded_reference": {
+          "status": "unknown",
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 7,
+        "minimum_proven": true,
+        "serialized_bytes": 28907242,
+        "process_lifetime_peak_rss_bytes": 891240448
+      },
+      "speedups": {
+        "reduction": 0.9567999030781968,
+        "decoding": 1.692659880640472,
+        "export": 1.8255146935857167
+      },
+      "checked_field_differences": {},
+      "sampled_tree_peak_rss_bytes": 891240448,
+      "worker_wall_seconds": 27.601795500144362
+    },
+    {
+      "case": "01606/reverse/seed10",
+      "input": {
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 10,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "event_slack": 5,
+          "fragment_seconds": 5.0
+        },
+        "reversed": true,
+        "input_hashes": {
+          "matching": "2246e9747f3351e54608435de201402a2998a0d3e3e4372cc0b93708224ba95f",
+          "reference": "a2a2e03714e7e7fd76d964ef3230ebc2839e1cb431d68123f575a7c34adbdae8"
+        }
+      },
+      "baseline": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 2.136259999999999,
+            "wall_seconds": 2.1377075407654047
+          },
+          "reduction": {
+            "cpu_seconds": 1.4207919999999992,
+            "wall_seconds": 1.4216872102115303
+          },
+          "verification": {
+            "cpu_seconds": 0.06295099999999998,
+            "wall_seconds": 0.06295862491242588
+          },
+          "decoding": {
+            "cpu_seconds": 54.00191099999999,
+            "wall_seconds": 54.06911991722882
+          },
+          "decoded_reference": {
+            "cpu_seconds": 9.923655999999994,
+            "wall_seconds": 10.002703791949898
+          },
+          "export": {
+            "cpu_seconds": 18.492326000000006,
+            "wall_seconds": 18.50651075015776
+          },
+          "serialization": {
+            "cpu_seconds": 0.7225069999999931,
+            "wall_seconds": 0.723792958073318
+          },
+          "restoration": {
+            "cpu_seconds": 0.4802140000000037,
+            "wall_seconds": 0.48048812500201166
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 86,
+        "seed_searches": 860,
+        "branches": 24523,
+        "families": 26419,
+        "fragments": 2339,
+        "paths": 71199,
+        "branch_composition_sha256": "7fe132edca7e55e174562188f237771422fa9300fc19ef88fe3a9cd6f597bceb",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "unknown",
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 7,
+        "minimum_proven": true,
+        "serialized_bytes": 87086346,
+        "process_lifetime_peak_rss_bytes": 2768453632
+      },
+      "native": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 1.7882649999999973,
+            "wall_seconds": 1.7896627050358802,
+            "process_lifetime_peak_rss_bytes_after": 219037696
+          },
+          "reduction": {
+            "cpu_seconds": 1.5089279999999983,
+            "wall_seconds": 1.510149626294151,
+            "process_lifetime_peak_rss_bytes_after": 219561984
+          },
+          "verification": {
+            "cpu_seconds": 0.06348200000000004,
+            "wall_seconds": 0.06355283316224813,
+            "process_lifetime_peak_rss_bytes_after": 219693056
+          },
+          "decoding": {
+            "cpu_seconds": 28.842447999999997,
+            "wall_seconds": 28.86511320900172,
+            "process_lifetime_peak_rss_bytes_after": 1075707904
+          },
+          "decoded_reference": {
+            "cpu_seconds": 9.997856999999996,
+            "wall_seconds": 10.003705958137289,
+            "process_lifetime_peak_rss_bytes_after": 1075707904
+          },
+          "export": {
+            "cpu_seconds": 10.283994999999997,
+            "wall_seconds": 10.290837291860953,
+            "process_lifetime_peak_rss_bytes_after": 1377255424
+          },
+          "serialization": {
+            "cpu_seconds": 0.7040050000000022,
+            "wall_seconds": 0.7043849171604961,
+            "process_lifetime_peak_rss_bytes_after": 1701396480
+          },
+          "restoration": {
+            "cpu_seconds": 0.4651669999999939,
+            "wall_seconds": 0.4653704999946058,
+            "process_lifetime_peak_rss_bytes_after": 2329788416
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 86,
+        "seed_searches": 860,
+        "branches": 24523,
+        "families": 26419,
+        "fragments": 2339,
+        "paths": 71199,
+        "branch_composition_sha256": "7fe132edca7e55e174562188f237771422fa9300fc19ef88fe3a9cd6f597bceb",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "unknown",
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 7,
+        "minimum_proven": true,
+        "serialized_bytes": 87075058,
+        "process_lifetime_peak_rss_bytes": 2329788416
+      },
+      "speedups": {
+        "reduction": 0.9415903210756251,
+        "decoding": 1.8723067820040795,
+        "export": 1.79816559615208
+      },
+      "checked_field_differences": {},
+      "sampled_tree_peak_rss_bytes": 2329788416,
+      "worker_wall_seconds": 57.80348762497306
+    },
+    {
+      "case": "01640/forward/seed1",
+      "input": {
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 1,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "event_slack": 5,
+          "fragment_seconds": 5.0
+        },
+        "reversed": false,
+        "input_hashes": {
+          "matching": "a75dc016ab861b6f31c2c6f61471fe2f5ce43275368dccfdcb8f4c1595a33081",
+          "reference": "d64436608b903973fea2429487ca73be9f424edb47f2e350fd803556881ed9f9"
+        }
+      },
+      "baseline": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.052873000000000114,
+            "wall_seconds": 0.052909501595422626
+          },
+          "reduction": {
+            "cpu_seconds": 0.043490000000000306,
+            "wall_seconds": 0.043576417956501245
+          },
+          "verification": {
+            "cpu_seconds": 0.0005950000000000122,
+            "wall_seconds": 0.0005951670464128256
+          },
+          "decoding": {
+            "cpu_seconds": 11.034794,
+            "wall_seconds": 11.037008458049968
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.00544800000000123,
+            "wall_seconds": 0.0054536249954253435
+          },
+          "export": {
+            "cpu_seconds": 0.25806299999999993,
+            "wall_seconds": 0.2580766249448061
+          },
+          "serialization": {
+            "cpu_seconds": 0.05520800000000037,
+            "wall_seconds": 0.055210750084370375
+          },
+          "restoration": {
+            "cpu_seconds": 0.07271999999999856,
+            "wall_seconds": 0.07273937482386827
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 95,
+        "seed_searches": 95,
+        "branches": 186,
+        "families": 186,
+        "fragments": 261,
+        "paths": 216,
+        "branch_composition_sha256": "8e08ff2566a69dc171229d1315708895535a71f650f80e5b90481d4812637932",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 5,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 17563020,
+        "process_lifetime_peak_rss_bytes": 576045056
+      },
+      "native": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.05144600000000002,
+            "wall_seconds": 0.051467205164954066,
+            "process_lifetime_peak_rss_bytes_after": 80183296
+          },
+          "reduction": {
+            "cpu_seconds": 0.049111000000000044,
+            "wall_seconds": 0.049159165704622865,
+            "process_lifetime_peak_rss_bytes_after": 80183296
+          },
+          "verification": {
+            "cpu_seconds": 0.0005689999999999862,
+            "wall_seconds": 0.0005691249389201403,
+            "process_lifetime_peak_rss_bytes_after": 80347136
+          },
+          "decoding": {
+            "cpu_seconds": 3.007944,
+            "wall_seconds": 3.011042624944821,
+            "process_lifetime_peak_rss_bytes_after": 257703936
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0016159999999998398,
+            "wall_seconds": 0.0016171669121831656,
+            "process_lifetime_peak_rss_bytes_after": 257851392
+          },
+          "export": {
+            "cpu_seconds": 0.23881600000000036,
+            "wall_seconds": 0.23897229204885662,
+            "process_lifetime_peak_rss_bytes_after": 343359488
+          },
+          "serialization": {
+            "cpu_seconds": 0.06917000000000018,
+            "wall_seconds": 0.06929420796222985,
+            "process_lifetime_peak_rss_bytes_after": 379109376
+          },
+          "restoration": {
+            "cpu_seconds": 0.07418900000000006,
+            "wall_seconds": 0.07425016700290143,
+            "process_lifetime_peak_rss_bytes_after": 503119872
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 95,
+        "seed_searches": 95,
+        "branches": 186,
+        "families": 186,
+        "fragments": 261,
+        "paths": 216,
+        "branch_composition_sha256": "8e08ff2566a69dc171229d1315708895535a71f650f80e5b90481d4812637932",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 5,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 17560665,
+        "process_lifetime_peak_rss_bytes": 503119872
+      },
+      "speedups": {
+        "reduction": 0.8855449899207971,
+        "decoding": 3.6685503453521737,
+        "export": 1.0805934275760398
+      },
+      "checked_field_differences": {},
+      "sampled_tree_peak_rss_bytes": 503119872,
+      "worker_wall_seconds": 4.188444125000387
+    },
+    {
+      "case": "01640/forward/seed10",
+      "input": {
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 10,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "event_slack": 5,
+          "fragment_seconds": 5.0
+        },
+        "reversed": false,
+        "input_hashes": {
+          "matching": "33b63ca427ea72df69a0b1c2f149c28b57767950fbaf31395da0038831fc6c18",
+          "reference": "d64436608b903973fea2429487ca73be9f424edb47f2e350fd803556881ed9f9"
+        }
+      },
+      "baseline": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.7545769999999994,
+            "wall_seconds": 0.7547060067299753
+          },
+          "reduction": {
+            "cpu_seconds": 0.20046700000000012,
+            "wall_seconds": 0.20062083075754344
+          },
+          "verification": {
+            "cpu_seconds": 0.0006129999999999747,
+            "wall_seconds": 0.0006143751088529825
+          },
+          "decoding": {
+            "cpu_seconds": 73.59841399999999,
+            "wall_seconds": 73.61677533388138
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0011960000000073023,
+            "wall_seconds": 0.0011974170338362455
+          },
+          "export": {
+            "cpu_seconds": 1.1508660000000077,
+            "wall_seconds": 1.1509935001377016
+          },
+          "serialization": {
+            "cpu_seconds": 0.5051040000000029,
+            "wall_seconds": 0.5052305827848613
+          },
+          "restoration": {
+            "cpu_seconds": 0.35500999999999294,
+            "wall_seconds": 0.35508474987000227
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 95,
+        "seed_searches": 950,
+        "branches": 1232,
+        "families": 1253,
+        "fragments": 876,
+        "paths": 2563,
+        "branch_composition_sha256": "05113bed9590d0f2b80e029a1c062e0acc3a23a774939378c69a2f89e16c87af",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 5,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 77819417,
+        "process_lifetime_peak_rss_bytes": 2396930048
+      },
+      "native": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.6980620000000002,
+            "wall_seconds": 0.6984697533771396,
+            "process_lifetime_peak_rss_bytes_after": 160874496
+          },
+          "reduction": {
+            "cpu_seconds": 0.214263,
+            "wall_seconds": 0.21452191355638206,
+            "process_lifetime_peak_rss_bytes_after": 160874496
+          },
+          "verification": {
+            "cpu_seconds": 0.0005709999999998772,
+            "wall_seconds": 0.0005714159924536943,
+            "process_lifetime_peak_rss_bytes_after": 161005568
+          },
+          "decoding": {
+            "cpu_seconds": 15.672591,
+            "wall_seconds": 15.683054625056684,
+            "process_lifetime_peak_rss_bytes_after": 1130725376
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0010290000000026112,
+            "wall_seconds": 0.001032290980219841,
+            "process_lifetime_peak_rss_bytes_after": 1130725376
+          },
+          "export": {
+            "cpu_seconds": 1.0493780000000008,
+            "wall_seconds": 1.049996083136648,
+            "process_lifetime_peak_rss_bytes_after": 1520680960
+          },
+          "serialization": {
+            "cpu_seconds": 0.5194469999999995,
+            "wall_seconds": 0.5197187908925116,
+            "process_lifetime_peak_rss_bytes_after": 1773158400
+          },
+          "restoration": {
+            "cpu_seconds": 0.3560350000000021,
+            "wall_seconds": 0.35624537500552833,
+            "process_lifetime_peak_rss_bytes_after": 2331967488
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 95,
+        "seed_searches": 950,
+        "branches": 1232,
+        "families": 1253,
+        "fragments": 876,
+        "paths": 2563,
+        "branch_composition_sha256": "05113bed9590d0f2b80e029a1c062e0acc3a23a774939378c69a2f89e16c87af",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 5,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 3,
+        "minimum_proven": true,
+        "serialized_bytes": 77814674,
+        "process_lifetime_peak_rss_bytes": 2331967488
+      },
+      "speedups": {
+        "reduction": 0.9356118415218685,
+        "decoding": 4.695995320748176,
+        "export": 1.0967125287551358
+      },
+      "checked_field_differences": {},
+      "sampled_tree_peak_rss_bytes": 2331967488,
+      "worker_wall_seconds": 19.88593487511389
+    },
+    {
+      "case": "01763/reverse/seed1",
+      "input": {
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 1,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "event_slack": 5,
+          "fragment_seconds": 5.0
+        },
+        "reversed": true,
+        "input_hashes": {
+          "matching": "549e830c9d8ff88a2ca50ddb39f8966a92f589d5da73681b942593a76b1a14a2",
+          "reference": "a4938d50b793ad9a04eedea47de32f3c673ac709489fdf05623dad3804044a45"
+        }
+      },
+      "baseline": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.056641000000000274,
+            "wall_seconds": 0.05665471078827977
+          },
+          "reduction": {
+            "cpu_seconds": 0.07862600000000003,
+            "wall_seconds": 0.07870179205201566
+          },
+          "verification": {
+            "cpu_seconds": 0.0005379999999999274,
+            "wall_seconds": 0.0005390418227761984
+          },
+          "decoding": {
+            "cpu_seconds": 9.100112000000001,
+            "wall_seconds": 9.1060062921606
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.05062999999999995,
+            "wall_seconds": 0.05063395807519555
+          },
+          "export": {
+            "cpu_seconds": 1.7113519999999998,
+            "wall_seconds": 1.7115204168949276
+          },
+          "serialization": {
+            "cpu_seconds": 0.037348999999998966,
+            "wall_seconds": 0.03735174983739853
+          },
+          "restoration": {
+            "cpu_seconds": 0.04285899999999998,
+            "wall_seconds": 0.04288262501358986
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 52,
+        "seed_searches": 52,
+        "branches": 2792,
+        "families": 2792,
+        "fragments": 657,
+        "paths": 4124,
+        "branch_composition_sha256": "171a88cd36bf056363f034fc58ec03fbfb95263dade811cb1190dcf06ef0362b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 6,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 6,
+        "minimum_proven": true,
+        "serialized_bytes": 8333181,
+        "process_lifetime_peak_rss_bytes": 416432128
+      },
+      "native": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.06813199999999994,
+            "wall_seconds": 0.06814820575527847,
+            "process_lifetime_peak_rss_bytes_after": 73957376
+          },
+          "reduction": {
+            "cpu_seconds": 0.059888,
+            "wall_seconds": 0.05996950366534293,
+            "process_lifetime_peak_rss_bytes_after": 73957376
+          },
+          "verification": {
+            "cpu_seconds": 0.0004109999999999947,
+            "wall_seconds": 0.00041129114106297493,
+            "process_lifetime_peak_rss_bytes_after": 74088448
+          },
+          "decoding": {
+            "cpu_seconds": 3.0456149999999997,
+            "wall_seconds": 3.050242541823536,
+            "process_lifetime_peak_rss_bytes_after": 200474624
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.005592000000000041,
+            "wall_seconds": 0.0055994160939008,
+            "process_lifetime_peak_rss_bytes_after": 200474624
+          },
+          "export": {
+            "cpu_seconds": 0.9714619999999998,
+            "wall_seconds": 0.9718404579907656,
+            "process_lifetime_peak_rss_bytes_after": 230653952
+          },
+          "serialization": {
+            "cpu_seconds": 0.04129500000000075,
+            "wall_seconds": 0.04135483386926353,
+            "process_lifetime_peak_rss_bytes_after": 270286848
+          },
+          "restoration": {
+            "cpu_seconds": 0.04934299999999947,
+            "wall_seconds": 0.04942416702397168,
+            "process_lifetime_peak_rss_bytes_after": 334823424
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 52,
+        "seed_searches": 52,
+        "branches": 2792,
+        "families": 2792,
+        "fragments": 657,
+        "paths": 4124,
+        "branch_composition_sha256": "171a88cd36bf056363f034fc58ec03fbfb95263dade811cb1190dcf06ef0362b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 6,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 6,
+        "minimum_proven": true,
+        "serialized_bytes": 8327022,
+        "process_lifetime_peak_rss_bytes": 334839808
+      },
+      "speedups": {
+        "reduction": 1.312884050227091,
+        "decoding": 2.9879390533603236,
+        "export": 1.761625261718935
+      },
+      "checked_field_differences": {},
+      "sampled_tree_peak_rss_bytes": 334839808,
+      "worker_wall_seconds": 5.0352590419352055
+    },
+    {
+      "case": "01763/reverse/seed10",
+      "input": {
+        "config": {
+          "cut_floor": 0.2,
+          "graph_floor": 0.2,
+          "iso_tolerance": 2.0,
+          "event_threshold": 0.5,
+          "metal_event_threshold": 0.3,
+          "seed_count": 10,
+          "branch_limit": 100,
+          "task_chunksize": 1,
+          "anchors": [],
+          "seed_selection": "random",
+          "random_seed": 42,
+          "sweep_cuts": true
+        },
+        "decode_config": {
+          "threshold": 0.5,
+          "metal_threshold": 0.3,
+          "event_slack": 5,
+          "fragment_seconds": 5.0
+        },
+        "reversed": true,
+        "input_hashes": {
+          "matching": "0d3e85ffbfd923fb26102f9f9535c85a7a2f7e27baf13ba8d9440982a53e91aa",
+          "reference": "a4938d50b793ad9a04eedea47de32f3c673ac709489fdf05623dad3804044a45"
+        }
+      },
+      "baseline": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.9105129999999992,
+            "wall_seconds": 0.9107317107263952
+          },
+          "reduction": {
+            "cpu_seconds": 0.4200560000000006,
+            "wall_seconds": 0.4203120833262801
+          },
+          "verification": {
+            "cpu_seconds": 0.0005079999999999529,
+            "wall_seconds": 0.000507500022649765
+          },
+          "decoding": {
+            "cpu_seconds": 13.227272000000001,
+            "wall_seconds": 13.234066624892876
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.05075399999999952,
+            "wall_seconds": 0.05077624996192753
+          },
+          "export": {
+            "cpu_seconds": 3.242904000000001,
+            "wall_seconds": 3.2521217500325292
+          },
+          "serialization": {
+            "cpu_seconds": 0.12252599999999703,
+            "wall_seconds": 0.12312566698528826
+          },
+          "restoration": {
+            "cpu_seconds": 0.10741999999999763,
+            "wall_seconds": 0.10827029217034578
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 52,
+        "seed_searches": 520,
+        "branches": 4532,
+        "families": 4893,
+        "fragments": 731,
+        "paths": 41010,
+        "branch_composition_sha256": "95d0ecbb480ef0c868c5a945c77e27f7ba732bd63fb52d125e665923ccc64d3b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 6,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 6,
+        "minimum_proven": true,
+        "serialized_bytes": 16209146,
+        "process_lifetime_peak_rss_bytes": 645726208
+      },
+      "native": {
+        "kind": "result",
+        "phases": {
+          "loading": {
+            "cpu_seconds": 0.8018649999999999,
+            "wall_seconds": 0.8023486619349569,
+            "process_lifetime_peak_rss_bytes_after": 111853568
+          },
+          "reduction": {
+            "cpu_seconds": 0.2513859999999992,
+            "wall_seconds": 0.25163412652909756,
+            "process_lifetime_peak_rss_bytes_after": 111853568
+          },
+          "verification": {
+            "cpu_seconds": 0.00048800000000004395,
+            "wall_seconds": 0.0004890419077128172,
+            "process_lifetime_peak_rss_bytes_after": 111984640
+          },
+          "decoding": {
+            "cpu_seconds": 4.864459999999999,
+            "wall_seconds": 4.869346625171602,
+            "process_lifetime_peak_rss_bytes_after": 300859392
+          },
+          "decoded_reference": {
+            "cpu_seconds": 0.0052240000000001174,
+            "wall_seconds": 0.005229958100244403,
+            "process_lifetime_peak_rss_bytes_after": 300859392
+          },
+          "export": {
+            "cpu_seconds": 1.8199449999999997,
+            "wall_seconds": 1.820969874970615,
+            "process_lifetime_peak_rss_bytes_after": 352567296
+          },
+          "serialization": {
+            "cpu_seconds": 0.10032599999999992,
+            "wall_seconds": 0.10038708290085196,
+            "process_lifetime_peak_rss_bytes_after": 434143232
+          },
+          "restoration": {
+            "cpu_seconds": 0.10861700000000063,
+            "wall_seconds": 0.10878004203550518,
+            "process_lifetime_peak_rss_bytes_after": 571408384
+          }
+        },
+        "matching_repeated": false,
+        "cuts": 52,
+        "seed_searches": 520,
+        "branches": 4532,
+        "families": 4893,
+        "fragments": 731,
+        "paths": 41010,
+        "branch_composition_sha256": "95d0ecbb480ef0c868c5a945c77e27f7ba732bd63fb52d125e665923ccc64d3b",
+        "catalogue_reference": "recovered",
+        "decoded_reference": {
+          "status": "recovered",
+          "event_count": 6,
+          "policy": "exact annotated indices in selected decoded window"
+        },
+        "catalogue_content_sha256": null,
+        "minimum_events": 6,
+        "minimum_proven": true,
+        "serialized_bytes": 16202397,
+        "process_lifetime_peak_rss_bytes": 571408384
+      },
+      "speedups": {
+        "reduction": 1.670960196669671,
+        "decoding": 2.7191655394432277,
+        "export": 1.7818692323119665
+      },
+      "checked_field_differences": {},
+      "sampled_tree_peak_rss_bytes": 571408384,
+      "worker_wall_seconds": 9.0326693339739
+    }
+  ],
+  "limitations": [
+    "Six selected direction/count observations, not a full Golden or EnzymeMap rerun.",
+    "Summary comparisons do not prove identical decoded coverage for every large input; independent small exhaustive tests validate the affected mathematics.",
+    "Native group generator bases may differ while generating the same group. Bounded searches can explore more within the same allowance.",
+    "Case 1606 decoded-window reference queries remain unknown; this is not a negative mapping result.",
+    "Python still owns event-query control, boundary ledgers, public records and export. This is a native-kernel acceleration, not an entirely C++ application."
+  ]
+}

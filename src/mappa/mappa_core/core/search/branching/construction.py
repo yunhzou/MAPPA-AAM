@@ -1,0 +1,351 @@
+"""Fragment locking, branch construction and bottom-up hierarchy pruning."""
+
+from __future__ import annotations
+from mappa.mappa_core.core.matching.representation.records import FragmentMatchConfig, FragmentMatchContext
+from mappa.mappa_core.core.matching.api import match_fragment
+from mappa.mappa_core.core.search.graph import SearchContext, SearchGraphBuilder
+from mappa.mappa_core.core.matching.policy import as_node_match_policy
+
+
+class _StateKey(tuple):
+    """Canonical state tuples with a hash reused at every frontier lookup."""
+    def __new__(cls, values):
+        key = super().__new__(cls, values)
+        key._hash = hash(values)
+        return key
+
+    def __hash__(self):
+        return self._hash
+
+
+class BranchLimitExceeded(RuntimeError):
+    """Raised when an explicitly enumerated result set exceeds its cap."""
+
+    def __init__(self, max_branches, *, seed=None, pass_no=None,
+                 branch_count=None, stage=None):
+        self.max_branches = int(max_branches)
+        self.seed = seed
+        self.pass_no = pass_no
+        self.branch_count = branch_count
+        self.stage = stage
+        msg = f"alignment branch cap hit: {branch_count}/{max_branches}"
+        if seed is not None:
+            msg += f" seed={seed}"
+        if pass_no is not None:
+            msg += f" pass={pass_no}"
+        if stage:
+            msg += f" stage={stage}"
+        super().__init__(msg)
+
+
+class _Branch:
+    __slots__ = ('mapping', 'islands_R', 'next_iid',
+                 'deferred_edges', 'graph', 'node', '_signature_cache')
+    def __init__(self, graph=None, anchor_map=()):
+        self.mapping = dict(anchor_map)
+        self.islands_R = {}
+        self.next_iid = 1
+        self.deferred_edges = set()
+        self._signature_cache = None
+        for r, p in sorted(self.mapping.items()):
+            self.islands_R[r] = self.next_iid
+            self.next_iid += 1
+        self.graph = graph or SearchGraphBuilder(SearchContext((), (), ()))
+        self.node = self.graph.root(self)
+
+    @classmethod
+    def from_anchor_map(cls, anchor_map, graph=None):
+        return cls(graph, anchor_map)
+
+    def fork(self):
+        b = object.__new__(_Branch)
+        b.mapping = dict(self.mapping)
+        # Commit replaces these partitions; sibling branches can read-share
+        # them until their next fragment decision.
+        b.islands_R = self.islands_R
+        b.next_iid = self.next_iid
+        b.deferred_edges = set(self.deferred_edges)
+        b.graph = self.graph
+        b.node = self.node
+        b._signature_cache = self._signature_cache
+        return b
+
+    @property
+    def islands_P(self):
+        """Derived inspection view; matching only needs the source partition."""
+        return {self.mapping[atom]: island for atom, island in self.islands_R.items()}
+
+    @property
+    def symmetry_paths(self):
+        """Explicit path projection for consumers; never copied during growth."""
+        return [path.fragments for path in self.graph.finish().paths(self.node)]
+
+    def merge_exact_paths(self, other):
+        """Union histories after exact equality of cumulative search state."""
+        self.graph.join(self, other)
+
+    def state_key(self):
+        """One canonical snapshot for both frontier dedup and DAG storage.
+
+        Product island labels are derived from the mapping and source labels;
+        storing a second copy in the dedup key adds no information.
+        """
+        if self._signature_cache is None:
+            self._signature_cache = _StateKey((tuple(sorted(self.mapping.items())),
+                                              tuple(sorted(self.islands_R.items())),
+                                              tuple(sorted(self.deferred_edges))))
+        return self._signature_cache
+
+    def commit(self, fragment, events=None, *, deferred_edges=(), placement_generators=()):
+        """Commit one witness and retain its complete fragment relationship."""
+        atoms = frozenset(fragment.source_atoms)
+        before = self.state_key()
+        if events is not None:
+            touched = {self.islands_R[r] for r in atoms if r in self.islands_R}
+            iid = min(touched) if touched else self.next_iid
+            relabeled = [(int(r), int(self.islands_R[r])) for r in atoms
+                         if r in self.islands_R and self.islands_R[r] != iid]
+            relabeled.extend((int(r), int(k)) for r, k in self.islands_R.items()
+                             if r not in atoms and k in touched and k != iid)
+        committed_new = []
+        for r, p in fragment.witness:
+            if r not in self.mapping:
+                self.mapping[r] = p
+                committed_new.append((int(r), int(p)))
+        self.deferred_edges.update(deferred_edges)
+        ordered, islands, self.next_iid = self.graph.merged_partition(before[1], atoms)
+        self.islands_R = dict(ordered)
+        # A commit only extends the witness. Reuse the parent's immutable atom
+        # pairs instead of allocating a complete copy for every history node.
+        mapping = tuple(sorted(before[0] + tuple(committed_new))) if committed_new else before[0]
+        self._signature_cache = _StateKey((mapping, islands, tuple(sorted(self.deferred_edges))))
+        if before != self.state_key():
+            island = self.islands_R[fragment.source_atoms[0]]
+            self.node = self.graph.commit(self.node, self, fragment, island, placement_generators)
+        if events is not None:
+            events.append({
+                'type': 'island_locked',
+                'island_idx': int(iid),
+                'pairs': committed_new,
+                'merged_with': sorted(int(t) for t in touched - {iid}),
+                'relabeled': relabeled,
+                'mapped_total': len(self.mapping),
+            })
+
+
+def _normalize_anchor_map(anchor_map, g_R, g_P):
+    if not anchor_map:
+        return {}
+    out = {}
+    used_p = set()
+    for raw_r, raw_p in dict(anchor_map).items():
+        r, p = int(raw_r), int(raw_p)
+        if r not in g_R:
+            raise ValueError(f"anchor R atom is not in query graph: {r}")
+        if p not in g_P:
+            raise ValueError(f"anchor P atom is not in target graph: {p}")
+        if r in out and out[r] != p:
+            raise ValueError(f"conflicting anchors for R atom {r}")
+        if p in used_p:
+            raise ValueError(f"anchor target atom is used more than once: {p}")
+        out[r] = p
+        used_p.add(p)
+    return out
+
+
+def _anchor_nodes_compatible(anchor_map, g_R, g_P, node_policy):
+    return all(
+        node_policy.compatible(g_R, r, g_P, p)
+        for r, p in anchor_map.items()
+    )
+
+
+def find_islands(g_R, g_P, seed_order,
+                 graph_floor=0.2, iso_tol=1.0,
+                 max_branches=1_000_000, events=None,
+                 core_R=None,
+                 stop_when_core_mapped=False,
+                 node_policy=None,
+                 anchor_map=None,
+                 profile=None, cuts=(), fragment_cache=None, random_seed=42,
+                 bond_tolerance=None):
+    """Run growth over a single seed ordering, branching on
+    non-set-unique locks. Returns an AAMSearchGraph of fragment decisions.
+
+    Optional `events` only records the FIRST (best-mapped) branch's
+    trajectory — multi-branch traces would be confusing on a slider.
+
+    core_R: optional R atoms that define the scoring-relevant alignment.
+    With stop_when_core_mapped=True the search
+    returns once all live branches have mapped the core; spectators remain
+    represented only by the compressed witness state already discovered.
+
+    anchor_map: optional exact R->P constraints.  Anchors are preloaded as
+    locked single-atom islands, but their R atoms may still be used as growth
+    seeds so the surrounding subgraph can be discovered from the constraint.
+
+    bond_tolerance: optional conditional bond rule forwarded unchanged to the
+    shared fragment matcher, including during anchored internal rematching.
+    """
+    node_policy = as_node_match_policy(node_policy)
+    anchor_map = _normalize_anchor_map(anchor_map, g_R, g_P)
+    seed_order = list(dict.fromkeys(seed_order))
+    graph = SearchGraphBuilder(SearchContext(
+        tuple(sorted(g_R)), tuple(sorted(g_P)), tuple(seed_order),
+        tuple(cuts), tuple(sorted(core_R or ())), tuple(sorted(anchor_map.items())),
+        float(graph_floor), float(iso_tol), int(max_branches),
+        objective='requested_core' if stop_when_core_mapped and core_R else 'full_source',
+        random_seed=random_seed))
+    if not _anchor_nodes_compatible(anchor_map, g_R, g_P, node_policy):
+        branch = _Branch.from_anchor_map({}, graph)
+        graph.stop(branch, 'incompatible_anchors')
+        return graph.finish()
+    core_R = tuple(sorted(set(core_R or ())))
+    branches = [_Branch.from_anchor_map(anchor_map, graph)]
+    progressed = True
+    pass_no = 0
+
+    def _core_complete(mapping):
+        return core_R and all(r in mapping for r in core_R)
+
+    def _mapped_anchor_can_seed(branch, seed):
+        if seed not in anchor_map:
+            return False
+        seed_iid = branch.islands_R.get(seed)
+        for nb in g_R.neighbors(seed):
+            if g_R[seed][nb].get('wbo', 0.0) < graph_floor:
+                continue
+            if branch.islands_R.get(nb) != seed_iid:
+                return True
+        return False
+
+    def _branch_signature(branch):
+        return branch.state_key()
+
+    def _merge_equivalent_paths(kept, other):
+        if kept.mapping == other.mapping:
+            kept.merge_exact_paths(other)
+            return
+        raise RuntimeError("nonidentical branches shared an exact state key")
+
+    while progressed:
+        progressed = False
+        pass_no += 1
+        if events is not None and branches:
+            events.append({'type': 'pass_start', 'pass': pass_no,
+                           'mapped': len(branches[0].mapping)})
+        for seed_position, seed in enumerate(seed_order):
+            graph.step = (pass_no, seed_position)
+            graph.seed = int(seed)
+            new_branches = []
+            pending_seen = {}
+            changed_states = set()
+            discarded = False
+
+            def _admit_subtree(subtree, *, made_progress=False):
+                """Share equal continuations before counting the completed step."""
+                for candidate in subtree:
+                    sig = _branch_signature(candidate)
+                    if made_progress:
+                        changed_states.add(sig)
+                    if sig in pending_seen:
+                        _merge_equivalent_paths(
+                            pending_seen[sig], candidate)
+                        continue
+                    pending_seen[sig] = candidate
+                    new_branches.append(candidate)
+
+            for bi, b in enumerate(branches):
+                if stop_when_core_mapped and _core_complete(b.mapping):
+                    _admit_subtree([b])
+                    continue
+                seed_is_mapped_anchor = seed in b.mapping and seed in anchor_map
+                if seed in b.mapping and not seed_is_mapped_anchor:
+                    _admit_subtree([b])
+                    continue
+                if seed_is_mapped_anchor and not _mapped_anchor_can_seed(b, seed):
+                    _admit_subtree([b])
+                    continue
+                # Only record events for branch 0 to keep trace linear
+                ev_arg = events if (events is not None and bi == 0) else None
+                result = match_fragment(
+                        g_R, g_P, seed=seed,
+                        context=FragmentMatchContext(
+                            b.mapping, b.islands_R, tuple(b.deferred_edges),
+                            fragment_cache=fragment_cache),
+                        config=FragmentMatchConfig(
+                            graph_floor=graph_floor, iso_tolerance=iso_tol,
+                            branch_limit=max_branches, node_policy=node_policy,
+                            random_seed=random_seed,
+                            allow_mapped_seed=seed_is_mapped_anchor,
+                            bond_tolerance=bond_tolerance),
+                        events=ev_arg,
+                        profile=profile,
+                        profile_context={
+                            'pass': int(pass_no),
+                            'branch_index': int(bi),
+                            'mapped_before': len(b.mapping),
+                        })
+                if result.capped:
+                    discarded = True
+                    graph.stop(b, 'capped', stage='fragment_growth',
+                               count=result.branch_count, limit=result.branch_limit)
+                    # Only this parent branch's descendant subtree is
+                    # pathological.  Remove it and continue its siblings.
+                    continue
+                isos = result.matches
+                if not isos:
+                    _admit_subtree([b])
+                    continue
+                # Completion supplies distinct compressed choices. Event
+                # summaries cannot replace their mapping relationships.
+                subtree = []
+                subtree_progressed = False
+                for ii, iso in enumerate(isos):
+                    before_state = _branch_signature(b)
+                    b2 = b.fork()
+                    b2.commit(iso,
+                              events=events if (bi == 0 and ii == 0) else None,
+                              deferred_edges=result.deferred_edges,
+                              placement_generators=result.placement_generators)
+                    after_state = _branch_signature(b2)
+                    if after_state == before_state:
+                        subtree.append(b)
+                    else:
+                        subtree.append(b2)
+                        subtree_progressed = True
+                _admit_subtree(subtree, made_progress=subtree_progressed)
+            if len(new_branches) > max_branches:
+                new_branches = graph.cap_frontier(new_branches, max_branches, profile)
+                discarded = True
+            progressed |= any(branch.state_key() in changed_states for branch in new_branches)
+            new_branches.sort(key=lambda b: -len(b.mapping))
+            # Admission already enforces unique live state keys.
+            branches = new_branches
+            if discarded:
+                graph.retain(branches)
+            # Soft warning: pathological symmetry can blow this up. Default
+            # cap is 1e6 so we should never hit it on real molecules; if we
+            # do, surface it so we know.
+            if len(branches) >= 10_000:
+                import sys
+                print(f"  [warn] alignment branch count = {len(branches)}  "
+                      f"max_branches={max_branches}  "
+                      f"new_branches_in={len(new_branches)}",
+                      file=sys.stderr, flush=True)
+            if (stop_when_core_mapped and core_R and branches and
+                    all(_core_complete(b.mapping) for b in branches)):
+                if events is not None:
+                    events.append({'type': 'done',
+                                   'mapped': len(branches[0].mapping),
+                                   'stop_reason': 'core_mapped',
+                                   'core_size': len(core_R)})
+                for branch in branches:
+                    graph.stop(branch, 'objective_met')
+                return graph.finish()
+    if events is not None and branches:
+        events.append({'type': 'done',
+                       'mapped': len(branches[0].mapping)})
+    for branch in branches:
+        graph.stop(branch, 'objective_met' if len(branch.mapping) == len(g_R) else 'stalled')
+    return graph.finish()

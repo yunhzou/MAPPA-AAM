@@ -1959,7 +1959,7 @@
         ],
         "provenance": [
           {
-            "archive": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/coordinate/seed1/case127/R_to_P/cuts/aam.pkl.gz",
+            "archive": "private-reference-12293777a74c6865941f",
             "terminal": 2,
             "transitions": [
               0,
@@ -2652,7 +2652,7 @@
         ],
         "provenance": [
           {
-            "archive": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/coordinate/seed1/case127/R_to_P/cuts/aam.pkl.gz",
+            "archive": "private-reference-12293777a74c6865941f",
             "terminal": 12,
             "transitions": [
               6,
@@ -3247,7 +3247,7 @@
         ],
         "provenance": [
           {
-            "archive": "/Users/yunhengz/Documents/Codex/2026-09-11/aa/work/current-validation/runs/coordinate/seed1/case127/R_to_P/cuts/aam.pkl.gz",
+            "archive": "private-reference-12293777a74c6865941f",
             "terminal": 27,
             "transitions": [
               19,
@@ -3336,5 +3336,9 @@
   },
   "search_runs": 0,
   "decode_runs": 0,
-  "cpu_seconds": 1.183102
+  "cpu_seconds": 1.183102,
+  "privacy_projection": {
+    "original_sha256": "8991c096bc9c7a440f3862de0615f95740ad4911a5d1b59196791c5f7deb3b18",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

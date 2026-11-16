@@ -1,5 +1,5 @@
 {
-  "source": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_seed_diversity_20260907/random",
+  "source": "private-reference-3e9b0a8ff3b71818b0c2",
   "cases": [
     {
       "index": 7,
@@ -178,5 +178,9 @@
   "baseline_recovered": 1830,
   "benchmark_total": 1851,
   "git_commit": "056bb9a8ccf4a6a3555011b2d427296a4fe008c7",
-  "note": "Fixed unresolved cohort; opposite search direction only. Reuse case 590. Diagnostic recovery union, not a new full-dataset policy score."
+  "note": "Fixed unresolved cohort; opposite search direction only. Reuse case 590. Diagnostic recovery union, not a new full-dataset policy score.",
+  "privacy_projection": {
+    "original_sha256": "99d075af95a261d4ef51cca2cd90898169749ab9886fdb0ad8276bc7401395d3",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

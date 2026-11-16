@@ -1,0 +1,1278 @@
+{
+  "measurements": [
+    {
+      "policy": "incremental",
+      "task": "7f4819aaacb34dcebf41376412ee924c/10383/forward/cut/00334/finalize",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 1,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 1,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true,
+        "growth_policy": "incremental"
+      },
+      "atoms": [
+        374,
+        374
+      ],
+      "platform": "macOS-26.7.1-arm64-arm-64bit",
+      "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+      "revision": "30f0bc97fdd05af8d77e3178ef2b380cd8479191",
+      "source_diff": "diff --git a/src/mappa/mappa_core/core/matching/growth/engine.py b/src/mappa/mappa_core/core/matching/growth/engine.py\nindex 9eff2a4..120d736 100644\n--- a/src/mappa/mappa_core/core/matching/growth/engine.py\n+++ b/src/mappa/mappa_core/core/matching/growth/engine.py\n@@ -62,8 +62,6 @@ def grow_island(g_R, g_P, seed, mapping,\n     if growth_policy not in ('incremental', 'existence'):\n         raise ValueError(\"growth_policy must be 'incremental' or 'existence'\")\n     existence = growth_policy == 'existence'\n-    if existence and replay is not None:\n-        raise ValueError('existence growth does not support candidate-based cut replay')\n     bond_tolerance = None if bond_tolerance is None else bond_tolerance.resolve(g_R)\n     if replay is not None and not native.applicable(g_R, g_P, p_orbits, node_policy, events):\n         raise ValueError(\"cut replay requires the native element-policy matcher without trace events\")\ndiff --git a/src/mappa/mappa_core/core/matching/growth/native.py b/src/mappa/mappa_core/core/matching/growth/native.py\nindex 07a9784..6f0e5dd 100644\n--- a/src/mappa/mappa_core/core/matching/growth/native.py\n+++ b/src/mappa/mappa_core/core/matching/growth/native.py\n@@ -157,8 +157,13 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,\n                 allow_mapped_seed, profile, profile_context, replay=None, random_seed=42, bond_tolerance=None,\n                 growth_policy='incremental'):\n     \"\"\"Run the native engine; returns None when the inputs are not covered.\"\"\"\n-    if growth_policy == 'existence' and replay is not None:\n-        raise ValueError('existence growth does not support candidate-based replay caches')\n+    if replay is not None:\n+        cache = getattr(replay, 'engine', None)\n+        if isinstance(cache, _engine.FragmentRepair):\n+            if cache.growth_policy != growth_policy:\n+                raise ValueError('fragment cache growth_policy differs from the requested policy')\n+        elif growth_policy == 'existence':\n+            raise ValueError('existence growth requires complete-fragment replay, not candidate checkpoints')\n     if replay is not None and (replay.source is not g_R or replay.target is not g_P):\n         raise ValueError(\"cut replay view belongs to different source/target graphs\")\n     source_view = replay.source_view if replay is not None else source_graph(g_R, bond_tolerance)\ndiff --git a/src/mappa/mappa_core/core/search/branching/competition.py b/src/mappa/mappa_core/core/search/branching/competition.py\nindex fa72c76..9f20690 100644\n--- a/src/mappa/mappa_core/core/search/branching/competition.py\n+++ b/src/mappa/mappa_core/core/search/branching/competition.py\n@@ -266,6 +266,7 @@ def compete_fragments(a, config=None):\n                         iso_tolerance=cfg.iso_tolerance,\n                         branch_limit=cfg.branch_limit, random_seed=cfg.random_seed,\n                         allow_mapped_seed=False,\n+                        growth_policy=cfg.growth_policy,\n                     ),\n                 )\n                 offers_cache[key] = result\n@@ -363,6 +364,7 @@ def compete_fragments(a, config=None):\n                     p_orbits=po,\n                     cuts=effective_cuts,\n                     anchor_map=anchors,\n+                    growth_policy=cfg.growth_policy,\n                 )\n                 graph, _ = finalize_graph_symmetry(\n                     graph,\ndiff --git a/src/mappa/mappa_core/core/search/branching/construction.py b/src/mappa/mappa_core/core/search/branching/construction.py\nindex e3b392f..e08fe7d 100644\n--- a/src/mappa/mappa_core/core/search/branching/construction.py\n+++ b/src/mappa/mappa_core/core/search/branching/construction.py\n@@ -176,7 +176,7 @@ def find_islands(g_R, g_P, seed_order,\n                  node_policy=None,\n                  anchor_map=None,\n                  profile=None, cuts=(), growth_replay=None, random_seed=42,\n-                 bond_tolerance=None):\n+                 bond_tolerance=None, growth_policy='incremental'):\n     \"\"\"Run growth over a single seed ordering, branching on\n     non-set-unique locks. Returns an AAMSearchGraph of fragment decisions.\n \n@@ -353,7 +353,7 @@ def find_islands(g_R, g_P, seed_order,\n                             branch_limit=max_branches, node_policy=node_policy,\n                             orbit_dedup=orbit_dedup, random_seed=random_seed,\n                             allow_mapped_seed=seed_is_mapped_anchor,\n-                            bond_tolerance=bond_tolerance),\n+                            bond_tolerance=bond_tolerance, growth_policy=growth_policy),\n                         events=ev_arg,\n                         profile=profile,\n                         profile_context={\ndiff --git a/src/mappa/mappa_core/core/search/branching/native.py b/src/mappa/mappa_core/core/search/branching/native.py\nindex 0013468..50c541d 100644\n--- a/src/mappa/mappa_core/core/search/branching/native.py\n+++ b/src/mappa/mappa_core/core/search/branching/native.py\n@@ -11,7 +11,7 @@ from mappa.mappa_core.core.search.graph import SearchContext\n def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1.,\n                         max_branches=100, p_orbits=None, r_orbits=None, cuts=(),\n                         anchor_map=None, core_R=None, stop_when_core_mapped=False,\n-                        growth_replay=None, profile=None, random_seed=42):\n+                        growth_replay=None, profile=None, random_seed=42, growth_policy='incremental'):\n     order=list(dict.fromkeys(seed_order))\n     anchors=_normalize_anchor_map(anchor_map,source,target)\n     p_orbits=p_orbits if p_orbits is not None else _nauty_orbits(target,wbo_tol=iso_tol)\n@@ -44,7 +44,8 @@ def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1\n         graph,growth_calls,max_growth_candidates=native._engine.search_fragments(r.graph,p.graph,[r.index[a] for a in order],\n             float(graph_floor),float(iso_tol),int(max_branches),\n             [(r.index[a],p.index[b]) for a,b in sorted(anchors.items())],\n-            [r.index[a] for a in core],bool(stop_when_core_mapped),r.nodes,p.nodes,context,repair,repair_cuts,int(random_seed) & ((1<<64)-1))\n+            [r.index[a] for a in core],bool(stop_when_core_mapped),r.nodes,p.nodes,context,repair,repair_cuts,\n+            int(random_seed) & ((1<<64)-1),growth_policy)\n         native_cpu=time.process_time()-cpu if profile is not None else 0.\n         native_wall=time.perf_counter()-wall if profile is not None else 0.\n     finally:\ndiff --git a/src/mappa/mappa_core/core/search/branching/reuse.py b/src/mappa/mappa_core/core/search/branching/reuse.py\nindex 30e8bdb..4151e46 100644\n--- a/src/mappa/mappa_core/core/search/branching/reuse.py\n+++ b/src/mappa/mappa_core/core/search/branching/reuse.py\n@@ -52,7 +52,8 @@ class FragmentRepair(_CutSession):\n     independent fragment. Search ordering and admission remain the caller's.\n     \"\"\"\n     def __init__(self, source, target, target_orbits, *, cache_bytes=64*1024*1024,\n-                 extension_cache_bytes=0, bond_tolerance=None):\n+                 extension_cache_bytes=0, bond_tolerance=None, growth_policy='incremental'):\n         super().__init__(source, target, target_orbits, bond_tolerance)\n         self.engine = native._engine.FragmentRepair(\n-            self.source_view.graph, self.target_view.graph, cache_bytes, extension_cache_bytes)\n+            self.source_view.graph, self.target_view.graph, cache_bytes, extension_cache_bytes,\n+            growth_policy)\ndiff --git a/src/mappa/mappa_core/core/search/branching/shared.py b/src/mappa/mappa_core/core/search/branching/shared.py\nindex e65ac2f..d2b6688 100644\n--- a/src/mappa/mappa_core/core/search/branching/shared.py\n+++ b/src/mappa/mappa_core/core/search/branching/shared.py\n@@ -106,7 +106,7 @@ unchanged. Identical growth output is never expanded into bijections.\n                 growth_replay=self.condition.growth_replay),\n             config=FragmentMatchConfig(graph_floor=self.config.graph_floor,\n                 iso_tolerance=self.config.iso_tolerance, branch_limit=self.config.branch_limit,\n-                random_seed=self.config.random_seed),\n+                random_seed=self.config.random_seed, growth_policy=self.config.growth_policy),\n             profile=self.profile)\n         if result.capped:\n             self.builder.stop(branch, 'capped', stage='fragment_growth',\ndiff --git a/src/mappa/mappa_core/core/search/planning.py b/src/mappa/mappa_core/core/search/planning.py\nindex f2d6528..e09bbb5 100644\n--- a/src/mappa/mappa_core/core/search/planning.py\n+++ b/src/mappa/mappa_core/core/search/planning.py\n@@ -61,6 +61,8 @@ def checkpoint_manifest(problem, config):\n         return dict(elements=list(value.elements), wbo=value.wbo.tolist(),\n                     coordinates=value.coordinates.tolist())\n     settings = asdict(config)\n+    if config.growth_policy == 'incremental':\n+        settings.pop('growth_policy')\n     if config.random_seed == 42:\n         settings.pop('random_seed')\n     if config.sweep_cuts:\ndiff --git a/src/mappa/mappa_core/core/search/queries/partial.py b/src/mappa/mappa_core/core/search/queries/partial.py\nindex a053827..83797e6 100644\n--- a/src/mappa/mappa_core/core/search/queries/partial.py\n+++ b/src/mappa/mappa_core/core/search/queries/partial.py\n@@ -57,6 +57,7 @@ def search_core_assignments(\n             stop_when_core_mapped=True,\n             p_orbits=target_orbits,\n             r_orbits=source_orbits,\n+            growth_policy=config.growth_policy,\n         )\n         capped += int(graph.capped)\n         for raw in graph.paths():\ndiff --git a/src/mappa/mappa_core/core/search/session.py b/src/mappa/mappa_core/core/search/session.py\nindex 09c1b00..504623a 100644\n--- a/src/mappa/mappa_core/core/search/session.py\n+++ b/src/mappa/mappa_core/core/search/session.py\n@@ -41,7 +41,7 @@ class SearchSession:\n             from mappa.mappa_core.core.search.branching.reuse import FragmentRepair\n             source = build_graph(problem.reactant.elements, problem.reactant.wbo,\n                                  bond_cut=config.graph_floor)\n-            self.repair = FragmentRepair(source, target, self.context[3])\n+            self.repair = FragmentRepair(source, target, self.context[3], growth_policy=config.growth_policy)\n \n     def search_cut(self, cut, *, seed_indices=None):\n         started = time.perf_counter()\n@@ -92,7 +92,8 @@ class SearchSession:\n                 graph_floor=config.graph_floor, iso_tol=config.iso_tolerance,\n                 max_branches=config.branch_limit, p_orbits=target_orbits,\n                 r_orbits=source_orbits, anchor_map=dict(config.anchors),\n-                profile=profile, cuts=cut, growth_replay=view, random_seed=config.random_seed))\n+                profile=profile, cuts=cut, growth_replay=view, random_seed=config.random_seed,\n+                growth_policy=config.growth_policy))\n         graph = AAMSearchGraph.combine(graphs)\n         return graph, {\n             'search_seconds': time.perf_counter() - started,\ndiff --git a/src/mappa/mappa_core/domain.py b/src/mappa/mappa_core/domain.py\nindex 7a0e213..1123ce0 100644\n--- a/src/mappa/mappa_core/domain.py\n+++ b/src/mappa/mappa_core/domain.py\n@@ -582,8 +582,11 @@ class AAMSearchConfig:\n     seed_selection: str = 'random'\n     random_seed: int = 42\n     sweep_cuts: bool = True\n+    growth_policy: str = 'incremental'\n \n     def __post_init__(self):\n+        if self.growth_policy not in ('incremental', 'existence'):\n+            raise ValueError(\"growth_policy must be 'incremental' or 'existence'\")\n         for name in ('cut_floor', 'graph_floor', 'iso_tolerance', 'event_threshold'):\n             if not math.isfinite(getattr(self, name)):\n                 raise ValueError(f'{name} must be finite')\ndiff --git a/src/mappa/mappa_core/native/engine.cpp b/src/mappa/mappa_core/native/engine.cpp\nindex ad1ebc6..aabc1a0 100644\n--- a/src/mappa/mappa_core/native/engine.cpp\n+++ b/src/mappa/mappa_core/native/engine.cpp\n@@ -1507,6 +1507,12 @@ void finish_fragment(const Source& R, const Target& P, const std::vector<int>& m\n #include \"growth_checkpoint.h\"\n #include \"growth_dependencies.h\"\n \n+bool existence_policy(const std::string& policy) {\n+    if (policy!=\"incremental\" && policy!=\"existence\")\n+        throw std::invalid_argument(\"growth_policy must be incremental or existence\");\n+    return policy==\"existence\";\n+}\n+\n GrowResult grow_island(const Source& R, const Target& P, int seed, const std::vector<int>& mapping,\n                        double graph_floor, double iso_tol, int min_lock_size, long max_branches,\n                        const std::vector<Pair>* islands, const std::vector<Pair>& prior_deferred,\n@@ -1515,8 +1521,9 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve\n                        GrowthDependencies* dependencies = nullptr,\n                        ExtensionCache* extension_cache = nullptr,\n                        uint64_t random_seed = 42,\n-                       GrowthObservation* observation = nullptr, bool existence = false) {\n-    SourceReadScope dependency_scope(R, trace ? &trace->reads : nullptr);\n+                       GrowthObservation* observation = nullptr, bool existence = false,\n+                       SourceReads* source_reads = nullptr) {\n+    SourceReadScope dependency_scope(R, trace ? &trace->reads : source_reads);\n     GrowResult result;\n     GrowProfile& prof = result.profile;\n     const int NR = R.n, NP = P.n;\n@@ -1921,8 +1928,7 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se\n                           int min_lock_size, long max_branches, py::object islands_obj,\n                           const std::vector<Pair>& prior_deferred, bool allow_mapped_seed, uint64_t random_seed, bool observe,\n                           const std::string& growth_policy) {\n-    if (growth_policy!=\"incremental\" && growth_policy!=\"existence\")\n-        throw std::invalid_argument(\"growth_policy must be incremental or existence\");\n+    const bool existence=existence_policy(growth_policy);\n     std::vector<Pair> islands;\n     const std::vector<Pair>* islands_ptr = nullptr;\n     if (!islands_obj.is_none()) {\n@@ -1936,7 +1942,7 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se\n         res = grow_island(source.g, target.g, seed, mapping, graph_floor, iso_tol, min_lock_size,\n                           max_branches, islands_ptr, prior_deferred, allow_mapped_seed,\n                           nullptr,nullptr,-1,nullptr,nullptr,random_seed,observe ? &observation : nullptr,\n-                          growth_policy==\"existence\");\n+                          existence);\n     }\n     auto out = grow_result_dict(res).cast<py::dict>();\n     if (observe) {\ndiff --git a/src/mappa/mappa_core/native/fragment_repair.h b/src/mappa/mappa_core/native/fragment_repair.h\nindex ff5afb6..a3e5650 100644\n--- a/src/mappa/mappa_core/native/fragment_repair.h\n+++ b/src/mappa/mappa_core/native/fragment_repair.h\n@@ -6,6 +6,7 @@ class FragmentRepair {\n     const Target& target;\n     std::vector<Pair> active_cuts;\n     size_t budget, resident=0, peak_resident=0;\n+    bool existence;\n     std::unique_ptr<ExtensionCache> extensions;\n     struct Entry {\n         std::string key;\n@@ -21,7 +22,7 @@ class FragmentRepair {\n     Entries lru;\n     std::unordered_map<std::string,std::vector<Entries::iterator>> cache;\n     long calls=0, hits=0, history_hits=0, topology_hits=0, boundary_rebases=0;\n-    long checks=0, evictions=0, mapping_misses=0, island_misses=0, topology_misses=0, boundary_misses=0;\n+    long checks=0, evictions=0, oversized=0, mapping_misses=0, island_misses=0, topology_misses=0, boundary_misses=0;\n     long logical_extensions=0, reused_extensions=0, logical_certificates=0, reused_certificates=0;\n \n     static std::vector<Pair> normalized(std::vector<Pair> pairs) {\n@@ -39,14 +40,19 @@ class FragmentRepair {\n         key.append(reinterpret_cast<const char*>(&value),sizeof(value));\n     }\n     static size_t entry_bytes(const Entry& e) {\n-        size_t out=sizeof(e)+e.key.capacity()+256+e.mapping.capacity()*sizeof(int)\n+        // Charge owned vector capacity, both key copies, and conservative\n+        // list/hash-index overhead. The budget does not include caller outputs.\n+        size_t out=sizeof(e)+2*(e.key.capacity()+1)+256+e.mapping.capacity()*sizeof(int)\n             +e.row_reads.capacity()+e.dependencies.mapping_reads.capacity()+e.dependencies.boundary_atoms.capacity();\n+        out+=e.result.isos.capacity()*sizeof(IsoOut)\n+            +e.result.profile.result.capacity()+1+e.result.profile.growth_policy.capacity()+1\n+            +e.dependencies.island_reads.capacity()*sizeof(decltype(e.dependencies.island_reads)::value_type);\n         for (const auto* v:{&e.islands,&e.cuts,&e.deferred,&e.pair_reads,&e.dependencies.local_deferred})\n             out+=v->capacity()*sizeof(Pair);\n         for (const auto& [r,members]:e.dependencies.island_reads)\n-            out+=sizeof(r)+sizeof(members)+members.capacity()*sizeof(int);\n+            out+=members.capacity()*sizeof(int);\n         for (const auto& iso:e.result.isos) {\n-            out+=sizeof(iso)+(iso.mapping.capacity()+iso.deferred_edges.capacity())*sizeof(Pair)\n+            out+=(iso.mapping.capacity()+iso.deferred_edges.capacity()+iso.preserved_bonds.capacity())*sizeof(Pair)\n                 +iso.fragment.capacity()*sizeof(int);\n             const auto& c=iso.cand;\n             out+=(c.img.capacity()+c.mapped.capacity()+c.exact_fixed.capacity())*sizeof(int);\n@@ -58,8 +64,6 @@ class FragmentRepair {\n         return out;\n     }\n     void insert(Entry entry) {\n-        entry.bytes=entry_bytes(entry);\n-        if (entry.bytes>budget) return;\n         while (!lru.empty() && resident+entry.bytes>budget) {\n             auto old=lru.begin();\n             auto bucket=cache.find(old->key);\n@@ -100,11 +104,16 @@ class FragmentRepair {\n         return true;\n     }\n public:\n-    FragmentRepair(const PySource& source,const PyTarget& product,size_t cache_bytes,size_t extension_bytes=0)\n-        :base(source.g),active_source(source.g),target(product.g),budget(cache_bytes) {\n+    FragmentRepair(const PySource& source,const PyTarget& product,size_t cache_bytes,size_t extension_bytes=0,\n+                   const std::string& growth_policy=\"incremental\")\n+        :base(source.g),active_source(source.g),target(product.g),budget(cache_bytes),\n+         existence(existence_policy(growth_policy)) {\n         base.reads=nullptr;active_source.reads=nullptr;\n+        if (existence && extension_bytes)\n+            throw std::invalid_argument(\"existence growth does not support a candidate extension cache\");\n         if (extension_bytes) extensions=std::make_unique<ExtensionCache>(extension_bytes);\n     }\n+    bool uses_existence() const { return existence; }\n     std::pair<GrowResult,long> compute(const std::vector<Pair>& cuts_in,int seed,const std::vector<int>& mapping,\n                     double graph_floor,double iso_tol,int min_lock_size,long max_branches,\n                     const std::vector<Pair>* islands_ptr,const std::vector<Pair>& prior_deferred,bool allow_mapped_seed, uint64_t random_seed=42) {\n@@ -159,17 +168,27 @@ public:\n                 lru.splice(lru.end(),lru,chosen);\n             } else {\n                 Entry entry(base.n);\n-                GrowthTrace trace(active_source);trace.store_checkpoints=false;\n-                result=grow_island(active_source,target,seed,mapping,graph_floor,iso_tol,min_lock_size,\n-                    max_branches,islands_ptr,prior_deferred,allow_mapped_seed,&trace,nullptr,-1,&entry.dependencies,extensions.get(),random_seed);\n-                entry.key=std::move(key);entry.result=result;entry.mapping=mapping;\n+                // Complete-result reuse needs dependency reads, not candidate\n+                // checkpoints. Both growth policies record these same inputs.\n+                SourceReads reads(base.n);\n+                entry.result=grow_island(active_source,target,seed,mapping,graph_floor,iso_tol,min_lock_size,\n+                    max_branches,islands_ptr,prior_deferred,allow_mapped_seed,nullptr,nullptr,-1,\n+                    &entry.dependencies,extensions.get(),random_seed,nullptr,existence,&reads);\n+                entry.key=std::move(key);entry.mapping=mapping;\n                 entry.islands=islands;entry.cuts=cuts;entry.deferred=deferred;\n                 entry.row_reads.resize(base.n);\n-                for (int r=0;r<base.n;++r) entry.row_reads[r]=(trace.reads.rows[r]!=-2);\n+                for (int r=0;r<base.n;++r) entry.row_reads[r]=(reads.rows[r]!=-2);\n                 for (int a=0;a<base.n;++a) for (int b=a+1;b<base.n;++b)\n-                    if (!entry.row_reads[a] && !entry.row_reads[b] && trace.reads.pairs[(size_t)a*base.n+b]!=-2)\n+                    if (!entry.row_reads[a] && !entry.row_reads[b] && reads.pairs[(size_t)a*base.n+b]!=-2)\n                         entry.pair_reads.push_back({a,b});\n-                insert(std::move(entry));\n+                entry.bytes=entry_bytes(entry);\n+                if (entry.bytes>budget) {\n+                    ++oversized;\n+                    result=std::move(entry.result);\n+                } else {\n+                    result=entry.result;\n+                    insert(std::move(entry));\n+                }\n             }\n             logical_extensions+=result.profile.extend_calls;\n             logical_certificates+=result.profile.certificate_calls;\n@@ -201,7 +220,7 @@ public:\n         out[\"logical_extensions\"]=logical_extensions;out[\"reused_extensions\"]=reused_extensions;\n         out[\"logical_certificates\"]=logical_certificates;out[\"reused_certificates\"]=reused_certificates;\n         out[\"entries\"]=lru.size();out[\"resident_bytes\"]=resident;out[\"peak_resident_bytes\"]=peak_resident;\n-        out[\"cache_budget_bytes\"]=budget;out[\"evictions\"]=evictions;\n+        out[\"cache_budget_bytes\"]=budget;out[\"evictions\"]=evictions;out[\"oversized_results\"]=oversized;\n         if (extensions) out.attr(\"update\")(extensions->stats());\n         return out;\n     }\n@@ -209,8 +228,12 @@ public:\n \n void register_fragment_repair(py::module_& mod) {\n     py::class_<FragmentRepair>(mod,\"FragmentRepair\")\n-        .def(py::init<const PySource&,const PyTarget&,size_t,size_t>(),\n-            py::arg(\"source\"),py::arg(\"target\"),py::arg(\"cache_bytes\"),py::arg(\"extension_cache_bytes\")=0,py::keep_alive<1,3>())\n+        .def(py::init<const PySource&,const PyTarget&,size_t,size_t,const std::string&>(),\n+            py::arg(\"source\"),py::arg(\"target\"),py::arg(\"cache_bytes\"),py::arg(\"extension_cache_bytes\")=0,\n+            py::arg(\"growth_policy\")=\"incremental\",py::keep_alive<1,3>())\n+        .def_property_readonly(\"growth_policy\",[](const FragmentRepair& cache) {\n+            return cache.uses_existence() ? \"existence\" : \"incremental\";\n+        })\n         .def(\"grow\",&FragmentRepair::grow,py::arg(\"cuts\"),py::arg(\"seed\"),py::arg(\"mapping\"),\n              py::arg(\"graph_floor\"),py::arg(\"iso_tol\"),py::arg(\"min_lock_size\"),py::arg(\"max_branches\"),\n              py::arg(\"islands\"),py::arg(\"prior_deferred_edges\"),py::arg(\"allow_mapped_seed\"),py::arg(\"random_seed\")=42)\ndiff --git a/src/mappa/mappa_core/native/fragment_scheduler.h b/src/mappa/mappa_core/native/fragment_scheduler.h\nindex b20b5a4..e59e9b3 100644\n--- a/src/mappa/mappa_core/native/fragment_scheduler.h\n+++ b/src/mappa/mappa_core/native/fragment_scheduler.h\n@@ -110,7 +110,8 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,\n                                   const std::vector<int>& order,double graph_floor,double iso_tol,\n                                   long max_branches,const std::vector<Pair>& anchors,\n                                   const std::vector<int>& core,bool stop_at_core,\n-                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed) {\n+                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed,\n+                                  bool existence=false) {\n     ScheduledGraph graph;\n     auto root=std::make_shared<ScheduledBranch>();\n     root->mapping.assign(source.n,-1);root->labels.assign(source.n,-1);\n@@ -196,7 +197,7 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,\n                     ? repair->compute(cuts,seed,branch->mapping,graph_floor,iso_tol,1,max_branches,\n                                       &branch->islands,branch->deferred,anchor,random_seed).first\n                     : grow_island(source,target,seed,branch->mapping,graph_floor,iso_tol,1,max_branches,\n-                                  &branch->islands,branch->deferred,anchor,nullptr,nullptr,-1,nullptr,nullptr,random_seed);\n+                                  &branch->islands,branch->deferred,anchor,nullptr,nullptr,-1,nullptr,nullptr,random_seed,nullptr,existence);\n                 graph.max_growth_candidates=std::max(graph.max_growth_candidates,result.profile.max_cands_before);\n                 if (result.capped) {\n                     graph.stop(*branch,\"capped\",\"fragment_growth\",result.cap.count,result.cap.limit);\ndiff --git a/src/mappa/mappa_core/native/fragment_scheduler_binding.h b/src/mappa/mappa_core/native/fragment_scheduler_binding.h\nindex 75cac82..17745af 100644\n--- a/src/mappa/mappa_core/native/fragment_scheduler_binding.h\n+++ b/src/mappa/mappa_core/native/fragment_scheduler_binding.h\n@@ -122,15 +122,20 @@ void register_fragment_scheduler(py::module_& mod) {\n                                   double floor,double tol,long cap,const std::vector<Pair>& anchors,\n                                   const std::vector<int>& core,bool stop_at_core,\n                                   const std::vector<int>& r_ids,const std::vector<int>& p_ids,const py::object& context,\n-                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed) {\n+                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed,\n+                                  const std::string& growth_policy) {\n+        const bool existence=existence_policy(growth_policy);\n+        if (repair && repair->uses_existence()!=existence)\n+            throw std::invalid_argument(\"fragment cache growth_policy differs from the requested policy\");\n         ScheduledGraph graph;\n         {\n             py::gil_scoped_release release;\n-            graph=schedule_fragments(r.g,p.g,order,floor,tol,cap,anchors,core,stop_at_core,repair,cuts,random_seed);\n+            graph=schedule_fragments(r.g,p.g,order,floor,tol,cap,anchors,core,stop_at_core,repair,cuts,random_seed,existence);\n         }\n         return scheduled_graph_result(graph,r_ids,p_ids,context);\n     },py::arg(\"source\"),py::arg(\"target\"),py::arg(\"seed_order\"),py::arg(\"graph_floor\"),\n        py::arg(\"iso_tolerance\"),py::arg(\"branch_cap\"),py::arg(\"anchors\"),py::arg(\"core_atoms\"),\n        py::arg(\"stop_at_core\"),py::arg(\"source_ids\"),py::arg(\"target_ids\"),py::arg(\"context\"),\n-       py::arg(\"repair\")=nullptr,py::arg(\"cuts\")=std::vector<Pair>{},py::arg(\"random_seed\")=42);\n+       py::arg(\"repair\")=nullptr,py::arg(\"cuts\")=std::vector<Pair>{},py::arg(\"random_seed\")=42,\n+       py::arg(\"growth_policy\")=\"incremental\");\n }\n",
+      "input_sha256": "5ee2540da696f0adbb9a88f8ec4efee4a12ccbb54ebccd6e4b75de76cf6315a9",
+      "engine_sha256": "f9a0b2cd6fb795703ce464a2cead78a275efbbbff9e7d8be3803016e182ec0e6",
+      "runs": [
+        {
+          "repetition": 0,
+          "search_wall_seconds": 305.99726629187353,
+          "search_cpu_seconds": 305.84837799999997,
+          "finalization_wall_seconds": 0.2360436669550836,
+          "finalization_cpu_seconds": 0.23660999999998467,
+          "peak_process_rss_bytes": 4503764992,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 305.9955321671441,
+            "max_live_branches": 100,
+            "max_growth_candidates": 224
+          },
+          "repair": {
+            "calls": 2476,
+            "full_hits": 1019,
+            "prefix_hits": 0,
+            "history_hits": 1019,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1021,
+            "mapping_misses": 2,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 23698,
+            "reused_extensions": 1963,
+            "logical_certificates": 51022,
+            "reused_certificates": 752,
+            "entries": 1457,
+            "resident_bytes": 24145284,
+            "peak_resident_bytes": 24145284,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0,
+            "oversized_results": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 188924868,
+            "value_bytes": 3512310336,
+            "entries": 48978,
+            "hits": 1292,
+            "misses": 48978
+          }
+        },
+        {
+          "repetition": 1,
+          "search_wall_seconds": 0.2939226671587676,
+          "search_cpu_seconds": 0.2939039999999977,
+          "finalization_wall_seconds": 0.005628000013530254,
+          "finalization_cpu_seconds": 0.005628000000001521,
+          "peak_process_rss_bytes": 4535091200,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 0.291977290995419,
+            "max_live_branches": 100,
+            "max_growth_candidates": 224
+          },
+          "repair": {
+            "calls": 4952,
+            "full_hits": 3495,
+            "prefix_hits": 0,
+            "history_hits": 2038,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 3499,
+            "mapping_misses": 4,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 47396,
+            "reused_extensions": 25661,
+            "logical_certificates": 102044,
+            "reused_certificates": 51774,
+            "entries": 1457,
+            "resident_bytes": 24145284,
+            "peak_resident_bytes": 24145284,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0,
+            "oversized_results": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 188924868,
+            "value_bytes": 3512310336,
+            "entries": 48978,
+            "hits": 1292,
+            "misses": 48978
+          }
+        },
+        {
+          "repetition": 2,
+          "search_wall_seconds": 0.31909054098650813,
+          "search_cpu_seconds": 0.31907300000000305,
+          "finalization_wall_seconds": 0.00579370791092515,
+          "finalization_cpu_seconds": 0.005793999999980315,
+          "peak_process_rss_bytes": 4535435264,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 0.31695920904166996,
+            "max_live_branches": 100,
+            "max_growth_candidates": 224
+          },
+          "repair": {
+            "calls": 7428,
+            "full_hits": 5971,
+            "prefix_hits": 0,
+            "history_hits": 3057,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 5977,
+            "mapping_misses": 6,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 71094,
+            "reused_extensions": 49359,
+            "logical_certificates": 153066,
+            "reused_certificates": 102796,
+            "entries": 1457,
+            "resident_bytes": 24145284,
+            "peak_resident_bytes": 24145284,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0,
+            "oversized_results": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 188924868,
+            "value_bytes": 3512310336,
+            "entries": 48978,
+            "hits": 1292,
+            "misses": 48978
+          }
+        }
+      ]
+    },
+    {
+      "policy": "existence",
+      "task": "7f4819aaacb34dcebf41376412ee924c/10383/forward/cut/00334/finalize",
+      "config": {
+        "cut_floor": 0.2,
+        "graph_floor": 0.2,
+        "iso_tolerance": 1,
+        "event_threshold": 0.5,
+        "metal_event_threshold": 0.3,
+        "seed_count": 1,
+        "branch_limit": 100,
+        "task_chunksize": 1,
+        "anchors": [],
+        "seed_selection": "random",
+        "random_seed": 42,
+        "sweep_cuts": true,
+        "growth_policy": "existence"
+      },
+      "atoms": [
+        374,
+        374
+      ],
+      "platform": "macOS-26.7.1-arm64-arm-64bit",
+      "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+      "revision": "30f0bc97fdd05af8d77e3178ef2b380cd8479191",
+      "source_diff": "diff --git a/src/mappa/mappa_core/core/matching/growth/engine.py b/src/mappa/mappa_core/core/matching/growth/engine.py\nindex 9eff2a4..120d736 100644\n--- a/src/mappa/mappa_core/core/matching/growth/engine.py\n+++ b/src/mappa/mappa_core/core/matching/growth/engine.py\n@@ -62,8 +62,6 @@ def grow_island(g_R, g_P, seed, mapping,\n     if growth_policy not in ('incremental', 'existence'):\n         raise ValueError(\"growth_policy must be 'incremental' or 'existence'\")\n     existence = growth_policy == 'existence'\n-    if existence and replay is not None:\n-        raise ValueError('existence growth does not support candidate-based cut replay')\n     bond_tolerance = None if bond_tolerance is None else bond_tolerance.resolve(g_R)\n     if replay is not None and not native.applicable(g_R, g_P, p_orbits, node_policy, events):\n         raise ValueError(\"cut replay requires the native element-policy matcher without trace events\")\ndiff --git a/src/mappa/mappa_core/core/matching/growth/native.py b/src/mappa/mappa_core/core/matching/growth/native.py\nindex 07a9784..6f0e5dd 100644\n--- a/src/mappa/mappa_core/core/matching/growth/native.py\n+++ b/src/mappa/mappa_core/core/matching/growth/native.py\n@@ -157,8 +157,13 @@ def grow_island(g_R, g_P, seed, mapping, *, graph_floor, iso_tol, min_lock_size,\n                 allow_mapped_seed, profile, profile_context, replay=None, random_seed=42, bond_tolerance=None,\n                 growth_policy='incremental'):\n     \"\"\"Run the native engine; returns None when the inputs are not covered.\"\"\"\n-    if growth_policy == 'existence' and replay is not None:\n-        raise ValueError('existence growth does not support candidate-based replay caches')\n+    if replay is not None:\n+        cache = getattr(replay, 'engine', None)\n+        if isinstance(cache, _engine.FragmentRepair):\n+            if cache.growth_policy != growth_policy:\n+                raise ValueError('fragment cache growth_policy differs from the requested policy')\n+        elif growth_policy == 'existence':\n+            raise ValueError('existence growth requires complete-fragment replay, not candidate checkpoints')\n     if replay is not None and (replay.source is not g_R or replay.target is not g_P):\n         raise ValueError(\"cut replay view belongs to different source/target graphs\")\n     source_view = replay.source_view if replay is not None else source_graph(g_R, bond_tolerance)\ndiff --git a/src/mappa/mappa_core/core/search/branching/competition.py b/src/mappa/mappa_core/core/search/branching/competition.py\nindex fa72c76..9f20690 100644\n--- a/src/mappa/mappa_core/core/search/branching/competition.py\n+++ b/src/mappa/mappa_core/core/search/branching/competition.py\n@@ -266,6 +266,7 @@ def compete_fragments(a, config=None):\n                         iso_tolerance=cfg.iso_tolerance,\n                         branch_limit=cfg.branch_limit, random_seed=cfg.random_seed,\n                         allow_mapped_seed=False,\n+                        growth_policy=cfg.growth_policy,\n                     ),\n                 )\n                 offers_cache[key] = result\n@@ -363,6 +364,7 @@ def compete_fragments(a, config=None):\n                     p_orbits=po,\n                     cuts=effective_cuts,\n                     anchor_map=anchors,\n+                    growth_policy=cfg.growth_policy,\n                 )\n                 graph, _ = finalize_graph_symmetry(\n                     graph,\ndiff --git a/src/mappa/mappa_core/core/search/branching/construction.py b/src/mappa/mappa_core/core/search/branching/construction.py\nindex e3b392f..e08fe7d 100644\n--- a/src/mappa/mappa_core/core/search/branching/construction.py\n+++ b/src/mappa/mappa_core/core/search/branching/construction.py\n@@ -176,7 +176,7 @@ def find_islands(g_R, g_P, seed_order,\n                  node_policy=None,\n                  anchor_map=None,\n                  profile=None, cuts=(), growth_replay=None, random_seed=42,\n-                 bond_tolerance=None):\n+                 bond_tolerance=None, growth_policy='incremental'):\n     \"\"\"Run growth over a single seed ordering, branching on\n     non-set-unique locks. Returns an AAMSearchGraph of fragment decisions.\n \n@@ -353,7 +353,7 @@ def find_islands(g_R, g_P, seed_order,\n                             branch_limit=max_branches, node_policy=node_policy,\n                             orbit_dedup=orbit_dedup, random_seed=random_seed,\n                             allow_mapped_seed=seed_is_mapped_anchor,\n-                            bond_tolerance=bond_tolerance),\n+                            bond_tolerance=bond_tolerance, growth_policy=growth_policy),\n                         events=ev_arg,\n                         profile=profile,\n                         profile_context={\ndiff --git a/src/mappa/mappa_core/core/search/branching/native.py b/src/mappa/mappa_core/core/search/branching/native.py\nindex 0013468..50c541d 100644\n--- a/src/mappa/mappa_core/core/search/branching/native.py\n+++ b/src/mappa/mappa_core/core/search/branching/native.py\n@@ -11,7 +11,7 @@ from mappa.mappa_core.core.search.graph import SearchContext\n def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1.,\n                         max_branches=100, p_orbits=None, r_orbits=None, cuts=(),\n                         anchor_map=None, core_R=None, stop_when_core_mapped=False,\n-                        growth_replay=None, profile=None, random_seed=42):\n+                        growth_replay=None, profile=None, random_seed=42, growth_policy='incremental'):\n     order=list(dict.fromkeys(seed_order))\n     anchors=_normalize_anchor_map(anchor_map,source,target)\n     p_orbits=p_orbits if p_orbits is not None else _nauty_orbits(target,wbo_tol=iso_tol)\n@@ -44,7 +44,8 @@ def find_islands_native(source, target, seed_order, *, graph_floor=.2, iso_tol=1\n         graph,growth_calls,max_growth_candidates=native._engine.search_fragments(r.graph,p.graph,[r.index[a] for a in order],\n             float(graph_floor),float(iso_tol),int(max_branches),\n             [(r.index[a],p.index[b]) for a,b in sorted(anchors.items())],\n-            [r.index[a] for a in core],bool(stop_when_core_mapped),r.nodes,p.nodes,context,repair,repair_cuts,int(random_seed) & ((1<<64)-1))\n+            [r.index[a] for a in core],bool(stop_when_core_mapped),r.nodes,p.nodes,context,repair,repair_cuts,\n+            int(random_seed) & ((1<<64)-1),growth_policy)\n         native_cpu=time.process_time()-cpu if profile is not None else 0.\n         native_wall=time.perf_counter()-wall if profile is not None else 0.\n     finally:\ndiff --git a/src/mappa/mappa_core/core/search/branching/reuse.py b/src/mappa/mappa_core/core/search/branching/reuse.py\nindex 30e8bdb..4151e46 100644\n--- a/src/mappa/mappa_core/core/search/branching/reuse.py\n+++ b/src/mappa/mappa_core/core/search/branching/reuse.py\n@@ -52,7 +52,8 @@ class FragmentRepair(_CutSession):\n     independent fragment. Search ordering and admission remain the caller's.\n     \"\"\"\n     def __init__(self, source, target, target_orbits, *, cache_bytes=64*1024*1024,\n-                 extension_cache_bytes=0, bond_tolerance=None):\n+                 extension_cache_bytes=0, bond_tolerance=None, growth_policy='incremental'):\n         super().__init__(source, target, target_orbits, bond_tolerance)\n         self.engine = native._engine.FragmentRepair(\n-            self.source_view.graph, self.target_view.graph, cache_bytes, extension_cache_bytes)\n+            self.source_view.graph, self.target_view.graph, cache_bytes, extension_cache_bytes,\n+            growth_policy)\ndiff --git a/src/mappa/mappa_core/core/search/branching/shared.py b/src/mappa/mappa_core/core/search/branching/shared.py\nindex e65ac2f..d2b6688 100644\n--- a/src/mappa/mappa_core/core/search/branching/shared.py\n+++ b/src/mappa/mappa_core/core/search/branching/shared.py\n@@ -106,7 +106,7 @@ unchanged. Identical growth output is never expanded into bijections.\n                 growth_replay=self.condition.growth_replay),\n             config=FragmentMatchConfig(graph_floor=self.config.graph_floor,\n                 iso_tolerance=self.config.iso_tolerance, branch_limit=self.config.branch_limit,\n-                random_seed=self.config.random_seed),\n+                random_seed=self.config.random_seed, growth_policy=self.config.growth_policy),\n             profile=self.profile)\n         if result.capped:\n             self.builder.stop(branch, 'capped', stage='fragment_growth',\ndiff --git a/src/mappa/mappa_core/core/search/planning.py b/src/mappa/mappa_core/core/search/planning.py\nindex f2d6528..e09bbb5 100644\n--- a/src/mappa/mappa_core/core/search/planning.py\n+++ b/src/mappa/mappa_core/core/search/planning.py\n@@ -61,6 +61,8 @@ def checkpoint_manifest(problem, config):\n         return dict(elements=list(value.elements), wbo=value.wbo.tolist(),\n                     coordinates=value.coordinates.tolist())\n     settings = asdict(config)\n+    if config.growth_policy == 'incremental':\n+        settings.pop('growth_policy')\n     if config.random_seed == 42:\n         settings.pop('random_seed')\n     if config.sweep_cuts:\ndiff --git a/src/mappa/mappa_core/core/search/queries/partial.py b/src/mappa/mappa_core/core/search/queries/partial.py\nindex a053827..83797e6 100644\n--- a/src/mappa/mappa_core/core/search/queries/partial.py\n+++ b/src/mappa/mappa_core/core/search/queries/partial.py\n@@ -57,6 +57,7 @@ def search_core_assignments(\n             stop_when_core_mapped=True,\n             p_orbits=target_orbits,\n             r_orbits=source_orbits,\n+            growth_policy=config.growth_policy,\n         )\n         capped += int(graph.capped)\n         for raw in graph.paths():\ndiff --git a/src/mappa/mappa_core/core/search/session.py b/src/mappa/mappa_core/core/search/session.py\nindex 09c1b00..504623a 100644\n--- a/src/mappa/mappa_core/core/search/session.py\n+++ b/src/mappa/mappa_core/core/search/session.py\n@@ -41,7 +41,7 @@ class SearchSession:\n             from mappa.mappa_core.core.search.branching.reuse import FragmentRepair\n             source = build_graph(problem.reactant.elements, problem.reactant.wbo,\n                                  bond_cut=config.graph_floor)\n-            self.repair = FragmentRepair(source, target, self.context[3])\n+            self.repair = FragmentRepair(source, target, self.context[3], growth_policy=config.growth_policy)\n \n     def search_cut(self, cut, *, seed_indices=None):\n         started = time.perf_counter()\n@@ -92,7 +92,8 @@ class SearchSession:\n                 graph_floor=config.graph_floor, iso_tol=config.iso_tolerance,\n                 max_branches=config.branch_limit, p_orbits=target_orbits,\n                 r_orbits=source_orbits, anchor_map=dict(config.anchors),\n-                profile=profile, cuts=cut, growth_replay=view, random_seed=config.random_seed))\n+                profile=profile, cuts=cut, growth_replay=view, random_seed=config.random_seed,\n+                growth_policy=config.growth_policy))\n         graph = AAMSearchGraph.combine(graphs)\n         return graph, {\n             'search_seconds': time.perf_counter() - started,\ndiff --git a/src/mappa/mappa_core/domain.py b/src/mappa/mappa_core/domain.py\nindex 7a0e213..1123ce0 100644\n--- a/src/mappa/mappa_core/domain.py\n+++ b/src/mappa/mappa_core/domain.py\n@@ -582,8 +582,11 @@ class AAMSearchConfig:\n     seed_selection: str = 'random'\n     random_seed: int = 42\n     sweep_cuts: bool = True\n+    growth_policy: str = 'incremental'\n \n     def __post_init__(self):\n+        if self.growth_policy not in ('incremental', 'existence'):\n+            raise ValueError(\"growth_policy must be 'incremental' or 'existence'\")\n         for name in ('cut_floor', 'graph_floor', 'iso_tolerance', 'event_threshold'):\n             if not math.isfinite(getattr(self, name)):\n                 raise ValueError(f'{name} must be finite')\ndiff --git a/src/mappa/mappa_core/native/engine.cpp b/src/mappa/mappa_core/native/engine.cpp\nindex ad1ebc6..aabc1a0 100644\n--- a/src/mappa/mappa_core/native/engine.cpp\n+++ b/src/mappa/mappa_core/native/engine.cpp\n@@ -1507,6 +1507,12 @@ void finish_fragment(const Source& R, const Target& P, const std::vector<int>& m\n #include \"growth_checkpoint.h\"\n #include \"growth_dependencies.h\"\n \n+bool existence_policy(const std::string& policy) {\n+    if (policy!=\"incremental\" && policy!=\"existence\")\n+        throw std::invalid_argument(\"growth_policy must be incremental or existence\");\n+    return policy==\"existence\";\n+}\n+\n GrowResult grow_island(const Source& R, const Target& P, int seed, const std::vector<int>& mapping,\n                        double graph_floor, double iso_tol, int min_lock_size, long max_branches,\n                        const std::vector<Pair>* islands, const std::vector<Pair>& prior_deferred,\n@@ -1515,8 +1521,9 @@ GrowResult grow_island(const Source& R, const Target& P, int seed, const std::ve\n                        GrowthDependencies* dependencies = nullptr,\n                        ExtensionCache* extension_cache = nullptr,\n                        uint64_t random_seed = 42,\n-                       GrowthObservation* observation = nullptr, bool existence = false) {\n-    SourceReadScope dependency_scope(R, trace ? &trace->reads : nullptr);\n+                       GrowthObservation* observation = nullptr, bool existence = false,\n+                       SourceReads* source_reads = nullptr) {\n+    SourceReadScope dependency_scope(R, trace ? &trace->reads : source_reads);\n     GrowResult result;\n     GrowProfile& prof = result.profile;\n     const int NR = R.n, NP = P.n;\n@@ -1921,8 +1928,7 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se\n                           int min_lock_size, long max_branches, py::object islands_obj,\n                           const std::vector<Pair>& prior_deferred, bool allow_mapped_seed, uint64_t random_seed, bool observe,\n                           const std::string& growth_policy) {\n-    if (growth_policy!=\"incremental\" && growth_policy!=\"existence\")\n-        throw std::invalid_argument(\"growth_policy must be incremental or existence\");\n+    const bool existence=existence_policy(growth_policy);\n     std::vector<Pair> islands;\n     const std::vector<Pair>* islands_ptr = nullptr;\n     if (!islands_obj.is_none()) {\n@@ -1936,7 +1942,7 @@ py::object py_grow_island(const PySource& source, const PyTarget& target, int se\n         res = grow_island(source.g, target.g, seed, mapping, graph_floor, iso_tol, min_lock_size,\n                           max_branches, islands_ptr, prior_deferred, allow_mapped_seed,\n                           nullptr,nullptr,-1,nullptr,nullptr,random_seed,observe ? &observation : nullptr,\n-                          growth_policy==\"existence\");\n+                          existence);\n     }\n     auto out = grow_result_dict(res).cast<py::dict>();\n     if (observe) {\ndiff --git a/src/mappa/mappa_core/native/fragment_repair.h b/src/mappa/mappa_core/native/fragment_repair.h\nindex ff5afb6..a3e5650 100644\n--- a/src/mappa/mappa_core/native/fragment_repair.h\n+++ b/src/mappa/mappa_core/native/fragment_repair.h\n@@ -6,6 +6,7 @@ class FragmentRepair {\n     const Target& target;\n     std::vector<Pair> active_cuts;\n     size_t budget, resident=0, peak_resident=0;\n+    bool existence;\n     std::unique_ptr<ExtensionCache> extensions;\n     struct Entry {\n         std::string key;\n@@ -21,7 +22,7 @@ class FragmentRepair {\n     Entries lru;\n     std::unordered_map<std::string,std::vector<Entries::iterator>> cache;\n     long calls=0, hits=0, history_hits=0, topology_hits=0, boundary_rebases=0;\n-    long checks=0, evictions=0, mapping_misses=0, island_misses=0, topology_misses=0, boundary_misses=0;\n+    long checks=0, evictions=0, oversized=0, mapping_misses=0, island_misses=0, topology_misses=0, boundary_misses=0;\n     long logical_extensions=0, reused_extensions=0, logical_certificates=0, reused_certificates=0;\n \n     static std::vector<Pair> normalized(std::vector<Pair> pairs) {\n@@ -39,14 +40,19 @@ class FragmentRepair {\n         key.append(reinterpret_cast<const char*>(&value),sizeof(value));\n     }\n     static size_t entry_bytes(const Entry& e) {\n-        size_t out=sizeof(e)+e.key.capacity()+256+e.mapping.capacity()*sizeof(int)\n+        // Charge owned vector capacity, both key copies, and conservative\n+        // list/hash-index overhead. The budget does not include caller outputs.\n+        size_t out=sizeof(e)+2*(e.key.capacity()+1)+256+e.mapping.capacity()*sizeof(int)\n             +e.row_reads.capacity()+e.dependencies.mapping_reads.capacity()+e.dependencies.boundary_atoms.capacity();\n+        out+=e.result.isos.capacity()*sizeof(IsoOut)\n+            +e.result.profile.result.capacity()+1+e.result.profile.growth_policy.capacity()+1\n+            +e.dependencies.island_reads.capacity()*sizeof(decltype(e.dependencies.island_reads)::value_type);\n         for (const auto* v:{&e.islands,&e.cuts,&e.deferred,&e.pair_reads,&e.dependencies.local_deferred})\n             out+=v->capacity()*sizeof(Pair);\n         for (const auto& [r,members]:e.dependencies.island_reads)\n-            out+=sizeof(r)+sizeof(members)+members.capacity()*sizeof(int);\n+            out+=members.capacity()*sizeof(int);\n         for (const auto& iso:e.result.isos) {\n-            out+=sizeof(iso)+(iso.mapping.capacity()+iso.deferred_edges.capacity())*sizeof(Pair)\n+            out+=(iso.mapping.capacity()+iso.deferred_edges.capacity()+iso.preserved_bonds.capacity())*sizeof(Pair)\n                 +iso.fragment.capacity()*sizeof(int);\n             const auto& c=iso.cand;\n             out+=(c.img.capacity()+c.mapped.capacity()+c.exact_fixed.capacity())*sizeof(int);\n@@ -58,8 +64,6 @@ class FragmentRepair {\n         return out;\n     }\n     void insert(Entry entry) {\n-        entry.bytes=entry_bytes(entry);\n-        if (entry.bytes>budget) return;\n         while (!lru.empty() && resident+entry.bytes>budget) {\n             auto old=lru.begin();\n             auto bucket=cache.find(old->key);\n@@ -100,11 +104,16 @@ class FragmentRepair {\n         return true;\n     }\n public:\n-    FragmentRepair(const PySource& source,const PyTarget& product,size_t cache_bytes,size_t extension_bytes=0)\n-        :base(source.g),active_source(source.g),target(product.g),budget(cache_bytes) {\n+    FragmentRepair(const PySource& source,const PyTarget& product,size_t cache_bytes,size_t extension_bytes=0,\n+                   const std::string& growth_policy=\"incremental\")\n+        :base(source.g),active_source(source.g),target(product.g),budget(cache_bytes),\n+         existence(existence_policy(growth_policy)) {\n         base.reads=nullptr;active_source.reads=nullptr;\n+        if (existence && extension_bytes)\n+            throw std::invalid_argument(\"existence growth does not support a candidate extension cache\");\n         if (extension_bytes) extensions=std::make_unique<ExtensionCache>(extension_bytes);\n     }\n+    bool uses_existence() const { return existence; }\n     std::pair<GrowResult,long> compute(const std::vector<Pair>& cuts_in,int seed,const std::vector<int>& mapping,\n                     double graph_floor,double iso_tol,int min_lock_size,long max_branches,\n                     const std::vector<Pair>* islands_ptr,const std::vector<Pair>& prior_deferred,bool allow_mapped_seed, uint64_t random_seed=42) {\n@@ -159,17 +168,27 @@ public:\n                 lru.splice(lru.end(),lru,chosen);\n             } else {\n                 Entry entry(base.n);\n-                GrowthTrace trace(active_source);trace.store_checkpoints=false;\n-                result=grow_island(active_source,target,seed,mapping,graph_floor,iso_tol,min_lock_size,\n-                    max_branches,islands_ptr,prior_deferred,allow_mapped_seed,&trace,nullptr,-1,&entry.dependencies,extensions.get(),random_seed);\n-                entry.key=std::move(key);entry.result=result;entry.mapping=mapping;\n+                // Complete-result reuse needs dependency reads, not candidate\n+                // checkpoints. Both growth policies record these same inputs.\n+                SourceReads reads(base.n);\n+                entry.result=grow_island(active_source,target,seed,mapping,graph_floor,iso_tol,min_lock_size,\n+                    max_branches,islands_ptr,prior_deferred,allow_mapped_seed,nullptr,nullptr,-1,\n+                    &entry.dependencies,extensions.get(),random_seed,nullptr,existence,&reads);\n+                entry.key=std::move(key);entry.mapping=mapping;\n                 entry.islands=islands;entry.cuts=cuts;entry.deferred=deferred;\n                 entry.row_reads.resize(base.n);\n-                for (int r=0;r<base.n;++r) entry.row_reads[r]=(trace.reads.rows[r]!=-2);\n+                for (int r=0;r<base.n;++r) entry.row_reads[r]=(reads.rows[r]!=-2);\n                 for (int a=0;a<base.n;++a) for (int b=a+1;b<base.n;++b)\n-                    if (!entry.row_reads[a] && !entry.row_reads[b] && trace.reads.pairs[(size_t)a*base.n+b]!=-2)\n+                    if (!entry.row_reads[a] && !entry.row_reads[b] && reads.pairs[(size_t)a*base.n+b]!=-2)\n                         entry.pair_reads.push_back({a,b});\n-                insert(std::move(entry));\n+                entry.bytes=entry_bytes(entry);\n+                if (entry.bytes>budget) {\n+                    ++oversized;\n+                    result=std::move(entry.result);\n+                } else {\n+                    result=entry.result;\n+                    insert(std::move(entry));\n+                }\n             }\n             logical_extensions+=result.profile.extend_calls;\n             logical_certificates+=result.profile.certificate_calls;\n@@ -201,7 +220,7 @@ public:\n         out[\"logical_extensions\"]=logical_extensions;out[\"reused_extensions\"]=reused_extensions;\n         out[\"logical_certificates\"]=logical_certificates;out[\"reused_certificates\"]=reused_certificates;\n         out[\"entries\"]=lru.size();out[\"resident_bytes\"]=resident;out[\"peak_resident_bytes\"]=peak_resident;\n-        out[\"cache_budget_bytes\"]=budget;out[\"evictions\"]=evictions;\n+        out[\"cache_budget_bytes\"]=budget;out[\"evictions\"]=evictions;out[\"oversized_results\"]=oversized;\n         if (extensions) out.attr(\"update\")(extensions->stats());\n         return out;\n     }\n@@ -209,8 +228,12 @@ public:\n \n void register_fragment_repair(py::module_& mod) {\n     py::class_<FragmentRepair>(mod,\"FragmentRepair\")\n-        .def(py::init<const PySource&,const PyTarget&,size_t,size_t>(),\n-            py::arg(\"source\"),py::arg(\"target\"),py::arg(\"cache_bytes\"),py::arg(\"extension_cache_bytes\")=0,py::keep_alive<1,3>())\n+        .def(py::init<const PySource&,const PyTarget&,size_t,size_t,const std::string&>(),\n+            py::arg(\"source\"),py::arg(\"target\"),py::arg(\"cache_bytes\"),py::arg(\"extension_cache_bytes\")=0,\n+            py::arg(\"growth_policy\")=\"incremental\",py::keep_alive<1,3>())\n+        .def_property_readonly(\"growth_policy\",[](const FragmentRepair& cache) {\n+            return cache.uses_existence() ? \"existence\" : \"incremental\";\n+        })\n         .def(\"grow\",&FragmentRepair::grow,py::arg(\"cuts\"),py::arg(\"seed\"),py::arg(\"mapping\"),\n              py::arg(\"graph_floor\"),py::arg(\"iso_tol\"),py::arg(\"min_lock_size\"),py::arg(\"max_branches\"),\n              py::arg(\"islands\"),py::arg(\"prior_deferred_edges\"),py::arg(\"allow_mapped_seed\"),py::arg(\"random_seed\")=42)\ndiff --git a/src/mappa/mappa_core/native/fragment_scheduler.h b/src/mappa/mappa_core/native/fragment_scheduler.h\nindex b20b5a4..e59e9b3 100644\n--- a/src/mappa/mappa_core/native/fragment_scheduler.h\n+++ b/src/mappa/mappa_core/native/fragment_scheduler.h\n@@ -110,7 +110,8 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,\n                                   const std::vector<int>& order,double graph_floor,double iso_tol,\n                                   long max_branches,const std::vector<Pair>& anchors,\n                                   const std::vector<int>& core,bool stop_at_core,\n-                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed) {\n+                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed,\n+                                  bool existence=false) {\n     ScheduledGraph graph;\n     auto root=std::make_shared<ScheduledBranch>();\n     root->mapping.assign(source.n,-1);root->labels.assign(source.n,-1);\n@@ -196,7 +197,7 @@ ScheduledGraph schedule_fragments(const Source& source,const Target& target,\n                     ? repair->compute(cuts,seed,branch->mapping,graph_floor,iso_tol,1,max_branches,\n                                       &branch->islands,branch->deferred,anchor,random_seed).first\n                     : grow_island(source,target,seed,branch->mapping,graph_floor,iso_tol,1,max_branches,\n-                                  &branch->islands,branch->deferred,anchor,nullptr,nullptr,-1,nullptr,nullptr,random_seed);\n+                                  &branch->islands,branch->deferred,anchor,nullptr,nullptr,-1,nullptr,nullptr,random_seed,nullptr,existence);\n                 graph.max_growth_candidates=std::max(graph.max_growth_candidates,result.profile.max_cands_before);\n                 if (result.capped) {\n                     graph.stop(*branch,\"capped\",\"fragment_growth\",result.cap.count,result.cap.limit);\ndiff --git a/src/mappa/mappa_core/native/fragment_scheduler_binding.h b/src/mappa/mappa_core/native/fragment_scheduler_binding.h\nindex 75cac82..17745af 100644\n--- a/src/mappa/mappa_core/native/fragment_scheduler_binding.h\n+++ b/src/mappa/mappa_core/native/fragment_scheduler_binding.h\n@@ -122,15 +122,20 @@ void register_fragment_scheduler(py::module_& mod) {\n                                   double floor,double tol,long cap,const std::vector<Pair>& anchors,\n                                   const std::vector<int>& core,bool stop_at_core,\n                                   const std::vector<int>& r_ids,const std::vector<int>& p_ids,const py::object& context,\n-                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed) {\n+                                  FragmentRepair* repair,const std::vector<Pair>& cuts,uint64_t random_seed,\n+                                  const std::string& growth_policy) {\n+        const bool existence=existence_policy(growth_policy);\n+        if (repair && repair->uses_existence()!=existence)\n+            throw std::invalid_argument(\"fragment cache growth_policy differs from the requested policy\");\n         ScheduledGraph graph;\n         {\n             py::gil_scoped_release release;\n-            graph=schedule_fragments(r.g,p.g,order,floor,tol,cap,anchors,core,stop_at_core,repair,cuts,random_seed);\n+            graph=schedule_fragments(r.g,p.g,order,floor,tol,cap,anchors,core,stop_at_core,repair,cuts,random_seed,existence);\n         }\n         return scheduled_graph_result(graph,r_ids,p_ids,context);\n     },py::arg(\"source\"),py::arg(\"target\"),py::arg(\"seed_order\"),py::arg(\"graph_floor\"),\n        py::arg(\"iso_tolerance\"),py::arg(\"branch_cap\"),py::arg(\"anchors\"),py::arg(\"core_atoms\"),\n        py::arg(\"stop_at_core\"),py::arg(\"source_ids\"),py::arg(\"target_ids\"),py::arg(\"context\"),\n-       py::arg(\"repair\")=nullptr,py::arg(\"cuts\")=std::vector<Pair>{},py::arg(\"random_seed\")=42);\n+       py::arg(\"repair\")=nullptr,py::arg(\"cuts\")=std::vector<Pair>{},py::arg(\"random_seed\")=42,\n+       py::arg(\"growth_policy\")=\"incremental\");\n }\n",
+      "input_sha256": "5ee2540da696f0adbb9a88f8ec4efee4a12ccbb54ebccd6e4b75de76cf6315a9",
+      "engine_sha256": "f9a0b2cd6fb795703ce464a2cead78a275efbbbff9e7d8be3803016e182ec0e6",
+      "runs": [
+        {
+          "repetition": 0,
+          "search_wall_seconds": 31.87611895916052,
+          "search_cpu_seconds": 31.847238,
+          "finalization_wall_seconds": 0.24598145787604153,
+          "finalization_cpu_seconds": 0.24638300000000157,
+          "peak_process_rss_bytes": 606732288,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 31.87447000015527,
+            "max_live_branches": 100,
+            "max_growth_candidates": 1
+          },
+          "repair": {
+            "calls": 2476,
+            "full_hits": 1019,
+            "prefix_hits": 0,
+            "history_hits": 1019,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1021,
+            "mapping_misses": 2,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 23698,
+            "reused_extensions": 1963,
+            "logical_certificates": 4621,
+            "reused_certificates": 564,
+            "entries": 1457,
+            "resident_bytes": 24145284,
+            "peak_resident_bytes": 24145284,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0,
+            "oversized_results": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 16161204,
+            "value_bytes": 285772320,
+            "entries": 3985,
+            "hits": 72,
+            "misses": 3985
+          }
+        },
+        {
+          "repetition": 1,
+          "search_wall_seconds": 0.3308575840201229,
+          "search_cpu_seconds": 0.3305730000000011,
+          "finalization_wall_seconds": 0.005538542056456208,
+          "finalization_cpu_seconds": 0.005531000000004838,
+          "peak_process_rss_bytes": 639123456,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 0.3289904580451548,
+            "max_live_branches": 100,
+            "max_growth_candidates": 1
+          },
+          "repair": {
+            "calls": 4952,
+            "full_hits": 3495,
+            "prefix_hits": 0,
+            "history_hits": 2038,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 3499,
+            "mapping_misses": 4,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 47396,
+            "reused_extensions": 25661,
+            "logical_certificates": 9242,
+            "reused_certificates": 5185,
+            "entries": 1457,
+            "resident_bytes": 24145284,
+            "peak_resident_bytes": 24145284,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0,
+            "oversized_results": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 16161204,
+            "value_bytes": 285772320,
+            "entries": 3985,
+            "hits": 72,
+            "misses": 3985
+          }
+        },
+        {
+          "repetition": 2,
+          "search_wall_seconds": 0.35119204106740654,
+          "search_cpu_seconds": 0.3509609999999981,
+          "finalization_wall_seconds": 0.005728208227083087,
+          "finalization_cpu_seconds": 0.005725000000005309,
+          "peak_process_rss_bytes": 640204800,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 0.34906625002622604,
+            "max_live_branches": 100,
+            "max_growth_candidates": 1
+          },
+          "repair": {
+            "calls": 7428,
+            "full_hits": 5971,
+            "prefix_hits": 0,
+            "history_hits": 3057,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 5977,
+            "mapping_misses": 6,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 71094,
+            "reused_extensions": 49359,
+            "logical_certificates": 13863,
+            "reused_certificates": 9806,
+            "entries": 1457,
+            "resident_bytes": 24145284,
+            "peak_resident_bytes": 24145284,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0,
+            "oversized_results": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 16161204,
+            "value_bytes": 285772320,
+            "entries": 3985,
+            "hits": 72,
+            "misses": 3985
+          }
+        },
+        {
+          "repetition": 3,
+          "search_wall_seconds": 0.334599583176896,
+          "search_cpu_seconds": 0.33433899999999994,
+          "finalization_wall_seconds": 0.006153917172923684,
+          "finalization_cpu_seconds": 0.006151000000002682,
+          "peak_process_rss_bytes": 643612672,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 0.33243858395144343,
+            "max_live_branches": 100,
+            "max_growth_candidates": 1
+          },
+          "repair": {
+            "calls": 9904,
+            "full_hits": 8447,
+            "prefix_hits": 0,
+            "history_hits": 4076,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 8455,
+            "mapping_misses": 8,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 94792,
+            "reused_extensions": 73057,
+            "logical_certificates": 18484,
+            "reused_certificates": 14427,
+            "entries": 1457,
+            "resident_bytes": 24145284,
+            "peak_resident_bytes": 24145284,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0,
+            "oversized_results": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 16161204,
+            "value_bytes": 285772320,
+            "entries": 3985,
+            "hits": 72,
+            "misses": 3985
+          }
+        },
+        {
+          "repetition": 4,
+          "search_wall_seconds": 0.3567547909915447,
+          "search_cpu_seconds": 0.35641600000000295,
+          "finalization_wall_seconds": 0.0057916659861803055,
+          "finalization_cpu_seconds": 0.005781000000006031,
+          "peak_process_rss_bytes": 644923392,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 0.35429916693829,
+            "max_live_branches": 100,
+            "max_growth_candidates": 1
+          },
+          "repair": {
+            "calls": 12380,
+            "full_hits": 10923,
+            "prefix_hits": 0,
+            "history_hits": 5095,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 10933,
+            "mapping_misses": 10,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 118490,
+            "reused_extensions": 96755,
+            "logical_certificates": 23105,
+            "reused_certificates": 19048,
+            "entries": 1457,
+            "resident_bytes": 24145284,
+            "peak_resident_bytes": 24145284,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0,
+            "oversized_results": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 16161204,
+            "value_bytes": 285772320,
+            "entries": 3985,
+            "hits": 72,
+            "misses": 3985
+          }
+        },
+        {
+          "repetition": 5,
+          "search_wall_seconds": 0.3425721670500934,
+          "search_cpu_seconds": 0.3423000000000016,
+          "finalization_wall_seconds": 0.005858124932274222,
+          "finalization_cpu_seconds": 0.005843999999996186,
+          "peak_process_rss_bytes": 645169152,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 0.34027616609819233,
+            "max_live_branches": 100,
+            "max_growth_candidates": 1
+          },
+          "repair": {
+            "calls": 14856,
+            "full_hits": 13399,
+            "prefix_hits": 0,
+            "history_hits": 6114,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 13411,
+            "mapping_misses": 12,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 142188,
+            "reused_extensions": 120453,
+            "logical_certificates": 27726,
+            "reused_certificates": 23669,
+            "entries": 1457,
+            "resident_bytes": 24145284,
+            "peak_resident_bytes": 24145284,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0,
+            "oversized_results": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 16161204,
+            "value_bytes": 285772320,
+            "entries": 3985,
+            "hits": 72,
+            "misses": 3985
+          }
+        },
+        {
+          "repetition": 6,
+          "search_wall_seconds": 0.3527476249728352,
+          "search_cpu_seconds": 0.3514729999999986,
+          "finalization_wall_seconds": 0.00585604109801352,
+          "finalization_cpu_seconds": 0.00585500000000394,
+          "peak_process_rss_bytes": 645201920,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 0.3504726670216769,
+            "max_live_branches": 100,
+            "max_growth_candidates": 1
+          },
+          "repair": {
+            "calls": 17332,
+            "full_hits": 15875,
+            "prefix_hits": 0,
+            "history_hits": 7133,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 15889,
+            "mapping_misses": 14,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 165886,
+            "reused_extensions": 144151,
+            "logical_certificates": 32347,
+            "reused_certificates": 28290,
+            "entries": 1457,
+            "resident_bytes": 24145284,
+            "peak_resident_bytes": 24145284,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0,
+            "oversized_results": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 16161204,
+            "value_bytes": 285772320,
+            "entries": 3985,
+            "hits": 72,
+            "misses": 3985
+          }
+        },
+        {
+          "repetition": 7,
+          "search_wall_seconds": 0.3402964170090854,
+          "search_cpu_seconds": 0.33999399999999724,
+          "finalization_wall_seconds": 0.005591250024735928,
+          "finalization_cpu_seconds": 0.005592000000000041,
+          "peak_process_rss_bytes": 645201920,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 0.3381024170666933,
+            "max_live_branches": 100,
+            "max_growth_candidates": 1
+          },
+          "repair": {
+            "calls": 19808,
+            "full_hits": 18351,
+            "prefix_hits": 0,
+            "history_hits": 8152,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 18367,
+            "mapping_misses": 16,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 189584,
+            "reused_extensions": 167849,
+            "logical_certificates": 36968,
+            "reused_certificates": 32911,
+            "entries": 1457,
+            "resident_bytes": 24145284,
+            "peak_resident_bytes": 24145284,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0,
+            "oversized_results": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 16161204,
+            "value_bytes": 285772320,
+            "entries": 3985,
+            "hits": 72,
+            "misses": 3985
+          }
+        },
+        {
+          "repetition": 8,
+          "search_wall_seconds": 0.3490619158837944,
+          "search_cpu_seconds": 0.348711999999999,
+          "finalization_wall_seconds": 0.006030208896845579,
+          "finalization_cpu_seconds": 0.0060189999999948895,
+          "peak_process_rss_bytes": 645201920,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 0.34678633278235793,
+            "max_live_branches": 100,
+            "max_growth_candidates": 1
+          },
+          "repair": {
+            "calls": 22284,
+            "full_hits": 20827,
+            "prefix_hits": 0,
+            "history_hits": 9171,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 20845,
+            "mapping_misses": 18,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 213282,
+            "reused_extensions": 191547,
+            "logical_certificates": 41589,
+            "reused_certificates": 37532,
+            "entries": 1457,
+            "resident_bytes": 24145284,
+            "peak_resident_bytes": 24145284,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0,
+            "oversized_results": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 16161204,
+            "value_bytes": 285772320,
+            "entries": 3985,
+            "hits": 72,
+            "misses": 3985
+          }
+        },
+        {
+          "repetition": 9,
+          "search_wall_seconds": 0.3595823331270367,
+          "search_cpu_seconds": 0.35940000000000083,
+          "finalization_wall_seconds": 0.005693125072866678,
+          "finalization_cpu_seconds": 0.005694999999995787,
+          "peak_process_rss_bytes": 645201920,
+          "states": 9340,
+          "transitions": 9339,
+          "terminals": 100,
+          "search_counts": {
+            "search_seconds": 0.3573663749266416,
+            "max_live_branches": 100,
+            "max_growth_candidates": 1
+          },
+          "repair": {
+            "calls": 24760,
+            "full_hits": 23303,
+            "prefix_hits": 0,
+            "history_hits": 10190,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 23323,
+            "mapping_misses": 20,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 236980,
+            "reused_extensions": 215245,
+            "logical_certificates": 46210,
+            "reused_certificates": 42153,
+            "entries": 1457,
+            "resident_bytes": 24145284,
+            "peak_resident_bytes": 24145284,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0,
+            "oversized_results": 0
+          },
+          "certificate_cache": {
+            "key_bytes": 16161204,
+            "value_bytes": 285772320,
+            "entries": 3985,
+            "hits": 72,
+            "misses": 3985
+          }
+        }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "policy": "incremental",
+      "repetition": 0,
+      "stage": "raw",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "incremental",
+      "repetition": 0,
+      "stage": "graph",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "incremental",
+      "repetition": 1,
+      "stage": "raw",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "incremental",
+      "repetition": 1,
+      "stage": "graph",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "incremental",
+      "repetition": 2,
+      "stage": "raw",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "incremental",
+      "repetition": 2,
+      "stage": "graph",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 0,
+      "stage": "raw",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 0,
+      "stage": "graph",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 1,
+      "stage": "raw",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 1,
+      "stage": "graph",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 2,
+      "stage": "raw",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 2,
+      "stage": "graph",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 3,
+      "stage": "raw",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 3,
+      "stage": "graph",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 4,
+      "stage": "raw",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 4,
+      "stage": "graph",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 5,
+      "stage": "raw",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 5,
+      "stage": "graph",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 6,
+      "stage": "raw",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 6,
+      "stage": "graph",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 7,
+      "stage": "raw",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 7,
+      "stage": "graph",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 8,
+      "stage": "raw",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 8,
+      "stage": "graph",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 9,
+      "stage": "raw",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    },
+    {
+      "policy": "existence",
+      "repetition": 9,
+      "stage": "graph",
+      "equal": true,
+      "fields": {
+        "contexts": true,
+        "roots": true,
+        "states": true,
+        "transitions": true,
+        "stops": true
+      }
+    }
+  ],
+  "exact_graph_equal": true,
+  "stops": {
+    "capped": 6764,
+    "objective_met": 100
+  },
+  "scope": "Single archived cut, one compute thread per process. Complete native hierarchy, matching and symmetry finalization. No decoding or verification. Both policies use the same bounded complete-fragment cache. Peak RSS is cumulative process residency measured before saving each graph. Repeated-run peak can include earlier serialization. Equality checks include complete ordered compressed records, not expanded atom bijections.",
+  "summary": {
+    "incremental": [
+      {
+        "repetition": 0,
+        "total_cpu_seconds": 306.08498799999995,
+        "total_wall_seconds": 306.2333099588286,
+        "peak_process_gib": 4.1944580078125,
+        "certificate_cache_gib": 3.447043899446726
+      },
+      {
+        "repetition": 1,
+        "total_cpu_seconds": 0.29953199999999924,
+        "total_wall_seconds": 0.29955066717229784,
+        "peak_process_gib": 4.2236328125,
+        "certificate_cache_gib": 3.447043899446726
+      },
+      {
+        "repetition": 2,
+        "total_cpu_seconds": 0.32486699999998336,
+        "total_wall_seconds": 0.3248842488974333,
+        "peak_process_gib": 4.2239532470703125,
+        "certificate_cache_gib": 3.447043899446726
+      }
+    ],
+    "existence": [
+      {
+        "repetition": 0,
+        "total_cpu_seconds": 32.093621,
+        "total_wall_seconds": 32.12210041703656,
+        "peak_process_gib": 0.5650634765625,
+        "certificate_cache_gib": 0.2811975069344044
+      },
+      {
+        "repetition": 1,
+        "total_cpu_seconds": 0.33610400000000595,
+        "total_wall_seconds": 0.3363961260765791,
+        "peak_process_gib": 0.5952301025390625,
+        "certificate_cache_gib": 0.2811975069344044
+      },
+      {
+        "repetition": 2,
+        "total_cpu_seconds": 0.3566860000000034,
+        "total_wall_seconds": 0.3569202492944896,
+        "peak_process_gib": 0.5962371826171875,
+        "certificate_cache_gib": 0.2811975069344044
+      },
+      {
+        "repetition": 3,
+        "total_cpu_seconds": 0.3404900000000026,
+        "total_wall_seconds": 0.34075350034981966,
+        "peak_process_gib": 0.5994110107421875,
+        "certificate_cache_gib": 0.2811975069344044
+      },
+      {
+        "repetition": 4,
+        "total_cpu_seconds": 0.362197000000009,
+        "total_wall_seconds": 0.36254645697772503,
+        "peak_process_gib": 0.6006317138671875,
+        "certificate_cache_gib": 0.2811975069344044
+      },
+      {
+        "repetition": 5,
+        "total_cpu_seconds": 0.3481439999999978,
+        "total_wall_seconds": 0.34843029198236763,
+        "peak_process_gib": 0.600860595703125,
+        "certificate_cache_gib": 0.2811975069344044
+      },
+      {
+        "repetition": 6,
+        "total_cpu_seconds": 0.35732800000000253,
+        "total_wall_seconds": 0.3586036660708487,
+        "peak_process_gib": 0.60089111328125,
+        "certificate_cache_gib": 0.2811975069344044
+      },
+      {
+        "repetition": 7,
+        "total_cpu_seconds": 0.3455859999999973,
+        "total_wall_seconds": 0.34588766703382134,
+        "peak_process_gib": 0.60089111328125,
+        "certificate_cache_gib": 0.2811975069344044
+      },
+      {
+        "repetition": 8,
+        "total_cpu_seconds": 0.3547309999999939,
+        "total_wall_seconds": 0.35509212478064,
+        "peak_process_gib": 0.60089111328125,
+        "certificate_cache_gib": 0.2811975069344044
+      },
+      {
+        "repetition": 9,
+        "total_cpu_seconds": 0.3650949999999966,
+        "total_wall_seconds": 0.36527545819990337,
+        "peak_process_gib": 0.60089111328125,
+        "certificate_cache_gib": 0.2811975069344044
+      }
+    ]
+  },
+  "validation": {
+    "full_suite": "714 passed in 53.44 seconds",
+    "installed_engine_sha256": "f9a0b2cd6fb795703ce464a2cead78a275efbbbff9e7d8be3803016e182ec0e6",
+    "small_cache_tests": "Exact results under forced eviction and oversized-entry rejection; changed cuts, mappings, islands, occupancy and boundaries; RAM/bundle local work-pool stage parity."
+  },
+  "measurement_conditions": "One fresh single-thread process per policy, overlapping on separate cores of the M4 Pro; full test suite also ran during part of the first searches. CPU times are reported; one cold observation per policy. Serialization is outside matching timing. No cluster jobs or cache limits changed.",
+  "aggregates": {
+    "incremental": {
+      "cold_cpu_seconds": 306.08498799999995,
+      "repeated_median_cpu_seconds": 0.3121994999999913,
+      "cold_peak_gib": 4.1944580078125,
+      "lifetime_peak_gib": 4.2239532470703125,
+      "cache_mib": 23.026737213134766,
+      "cache_entries": 1457,
+      "cache_budget_mib": 64.0,
+      "cache_residency_constant": true,
+      "repeats": 3
+    },
+    "existence": {
+      "cold_cpu_seconds": 32.093621,
+      "repeated_median_cpu_seconds": 0.3547309999999939,
+      "cold_peak_gib": 0.5650634765625,
+      "lifetime_peak_gib": 0.60089111328125,
+      "cache_mib": 23.026737213134766,
+      "cache_entries": 1457,
+      "cache_budget_mib": 64.0,
+      "cache_residency_constant": true,
+      "repeats": 10
+    }
+  },
+  "paired_check": {
+    "samples": [
+      {
+        "incremental": 0.3419010000000071,
+        "existence": 0.36525199999999813
+      },
+      {
+        "existence": 0.3457950000000096,
+        "incremental": 0.36732399999999643
+      },
+      {
+        "incremental": 0.3480069999999955,
+        "existence": 0.36972000000002936
+      },
+      {
+        "existence": 0.3492999999999711,
+        "incremental": 0.3685389999999984
+      },
+      {
+        "incremental": 0.34807100000000446,
+        "existence": 0.38094699999999193
+      },
+      {
+        "existence": 0.3493560000000002,
+        "incremental": 0.3732729999999833
+      },
+      {
+        "incremental": 0.34967799999998306,
+        "existence": 0.37332100000003265
+      },
+      {
+        "existence": 0.34931100000000015,
+        "incremental": 0.3722789999999918
+      },
+      {
+        "incremental": 0.36014900000003536,
+        "existence": 0.37362499999994725
+      },
+      {
+        "existence": 0.3596099999999751,
+        "incremental": 0.374670999999978
+      },
+      {
+        "incremental": 0.3489789999999857,
+        "existence": 0.37369300000000294
+      },
+      {
+        "existence": 0.3500590000000443,
+        "incremental": 0.37328200000001743
+      },
+      {
+        "incremental": 0.34909400000003643,
+        "existence": 0.3741590000000201
+      },
+      {
+        "existence": 0.3542500000000359,
+        "incremental": 0.3712189999999964
+      },
+      {
+        "incremental": 0.3511879999999792,
+        "existence": 0.37412499999999227
+      }
+    ],
+    "median_ratio": 1.0374178465021715,
+    "medians": {
+      "incremental": 0.36014900000003536,
+      "existence": 0.36525199999999813
+    },
+    "caches": {
+      "incremental": {
+        "calls": 39616,
+        "full_hits": 38159,
+        "prefix_hits": 0,
+        "history_hits": 16304,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 38191,
+        "mapping_misses": 32,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 379168,
+        "reused_extensions": 357433,
+        "logical_certificates": 816352,
+        "reused_certificates": 766082,
+        "entries": 1457,
+        "resident_bytes": 24145284,
+        "peak_resident_bytes": 24145284,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0
+      },
+      "existence": {
+        "calls": 39616,
+        "full_hits": 38159,
+        "prefix_hits": 0,
+        "history_hits": 16304,
+        "topology_hits": 0,
+        "boundary_rebases": 0,
+        "dependency_checks": 38191,
+        "mapping_misses": 32,
+        "island_misses": 0,
+        "topology_misses": 0,
+        "boundary_misses": 0,
+        "logical_extensions": 379168,
+        "reused_extensions": 357433,
+        "logical_certificates": 73936,
+        "reused_certificates": 69879,
+        "entries": 1457,
+        "resident_bytes": 24145284,
+        "peak_resident_bytes": 24145284,
+        "cache_budget_bytes": 67108864,
+        "evictions": 0,
+        "oversized_results": 0
+      }
+    },
+    "input_sha256": "5ee2540da696f0adbb9a88f8ec4efee4a12ccbb54ebccd6e4b75de76cf6315a9",
+    "engine_sha256": "f9a0b2cd6fb795703ce464a2cead78a275efbbbff9e7d8be3803016e182ec0e6",
+    "identical_complete_graphs": true,
+    "scope": "Same process and thread, independent prepared sessions; alternating warmed policy order. CPU time includes full cut search/export and finalization. Equality checks are outside timing.",
+    "order_mean_cpu_seconds": {
+      "0": {
+        "incremental": 0.34963337500000335,
+        "existence": 0.37310525000000183
+      },
+      "1": {
+        "incremental": 0.37151242857142314,
+        "existence": 0.35109728571429094
+      }
+    },
+    "balanced_cpu_seconds": {
+      "incremental": 0.3605729017857132,
+      "existence": 0.36210126785714636
+    },
+    "balanced_ratio": 1.0042387158432151,
+    "order_sample_counts": [
+      8,
+      7
+    ],
+    "analysis": "All samples retained. Each AB/BA order receives equal weight to control the observed second-operation cost; there are eight incremental-first and seven existence-first samples."
+  }
+}

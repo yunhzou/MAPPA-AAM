@@ -1,5 +1,5 @@
 {
-  "python": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/neural_competitor_env_20260908/bin/python",
+  "python": "private-reference-8d45c524d20936339221",
   "version": "3.10.12 (main, Jul 15 2026, 23:40:17) [GCC 11.4.0]",
   "packages": {
     "typing_extensions": {
@@ -252,45 +252,49 @@
     }
   },
   "artifacts": {
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/neural_competitor_env_20260908/lib/python3.10/site-packages/rxnmapper/models/transformers/albert_heads_8_uspto_all_1310k/config.json": {
+    "private-reference-a4e1293b0952185ab986": {
       "sha256": "ea0f3144af1d13a5d5928cff01abd8e7c14ab831ff7b6d73a14d4162864a876f",
       "bytes": 1219
     },
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/neural_competitor_env_20260908/lib/python3.10/site-packages/rxnmapper/models/transformers/albert_heads_8_uspto_all_1310k/pytorch_model.bin": {
+    "private-reference-01117a519c7519db332a": {
       "sha256": "8541f3f500dae71abe678d546bd035ca946e2d1c819f6b2cf41a97faedd7e6a2",
       "bytes": 3212952
     },
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/neural_competitor_env_20260908/lib/python3.10/site-packages/rxnmapper/models/transformers/albert_heads_8_uspto_all_1310k/special_tokens_map.json": {
+    "private-reference-2f6667bd6d927505aebd": {
       "sha256": "303df45a03609e4ead04bc3dc1536d0ab19b5358db685b6f3da123d05ec200e3",
       "bytes": 112
     },
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/neural_competitor_env_20260908/lib/python3.10/site-packages/rxnmapper/models/transformers/albert_heads_8_uspto_all_1310k/tokenizer_config.json": {
+    "private-reference-8ac473435113d4304497": {
       "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
       "bytes": 2
     },
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/neural_competitor_env_20260908/lib/python3.10/site-packages/rxnmapper/models/transformers/albert_heads_8_uspto_all_1310k/training_args.bin": {
+    "private-reference-4defbea46741165cc125": {
       "sha256": "440fdf4459c2f51c3f042ccad777342b06bf3f491c251b712ab2aada5ff7a2eb",
       "bytes": 1562
     },
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/neural_competitor_env_20260908/lib/python3.10/site-packages/localmapper/data/LocalMapper_202403.pth": {
+    "private-reference-9bb5da6a429913d40af3": {
       "sha256": "640d90926ac994e9adb4d9a22b8ef3453bd6fc2818a107a2229f05684d196cf5",
       "bytes": 18759019
     },
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/neural_competitor_env_20260908/lib/python3.10/site-packages/localmapper/data/LocalMapper_202407.pth": {
+    "private-reference-6cdf32b1fc93ec4654fb": {
       "sha256": "832c55f74c13dcf84d33cb7db71db298745c78e435508300d3b9be005bbacdca",
       "bytes": 18759979
     },
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/neural_competitor_env_20260908/lib/python3.10/site-packages/localmapper/data/default_config.json": {
+    "private-reference-e8543fd361205da28ee2": {
       "sha256": "8b0e01e4d5b6e93565f02856845852c51447900f6d50cc8e2defd1f31d983865",
       "bytes": 142
     },
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/neural_competitor_env_20260908/lib/python3.10/site-packages/localmapper/data/templates_202403.pkl": {
+    "private-reference-32a71ea42d109e2e5fd1": {
       "sha256": "f65f2aeb59f2569172e234974db91d5612c6dcd29f577d326209db99e82bfaef",
       "bytes": 83082
     },
-    "/project/yunhengzou/coordinate_alignment/aam_benchmarks/neural_competitor_env_20260908/lib/python3.10/site-packages/localmapper/data/templates_202407.pkl": {
+    "private-reference-e40255010a84d8a9e3fa": {
       "sha256": "392c0805946e8b81e0747decb51d1a58da0f02523e55f14da0540af226934c8f",
       "bytes": 59735
     }
+  },
+  "privacy_projection": {
+    "original_sha256": "1cc179fb4876e5c686798cb7a665cef5252e5330865824fd4cbed5181f72209c",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

@@ -6,7 +6,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'docs/viewer-validation'
+OUT = ROOT / 'reports/viewer_validation'
 
 
 def check_endpoint_overlays(frame):
@@ -33,8 +33,7 @@ def main():
     libraries = ROOT / 'manuscript/build/browser-libs/root/usr/lib/x86_64-linux-gnu'
     if libraries.exists():
         environment['LD_LIBRARY_PATH'] = str(libraries) + ':' + environment.get('LD_LIBRARY_PATH', '')
-    cached = Path('/h/399/yunhengzou/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome')
-    executable = os.environ.get('MANUSCRIPT_BROWSER', str(cached) if cached.exists() else None)
+    executable = os.environ.get('MANUSCRIPT_BROWSER')
     errors, external, checks, color_checks = [], [], [], []
     with sync_playwright() as pw:
         browser = pw.chromium.launch(executable_path=executable, env=environment, headless=True,
@@ -91,7 +90,6 @@ def main():
         page.set_viewport_size({'width':1440, 'height':950})
         for relative, layout in [
             ('reports/holdout_forward_cap1000_seed1_20260910/viewer.html', 'minimum'),
-            ('reports/eight_case_studies/t02_chloro_quinoline_alcohol/viewer.html', 'catalog'),
             ('reports/pr7_search_trajectory_20260911/algorithm_trajectory.html', 'growth_trace'),
         ]:
             page.goto((ROOT / relative).as_uri())
@@ -99,9 +97,6 @@ def main():
             if layout == 'minimum':
                 page.locator('#case').select_option('64')
                 assert page.locator('#cards .card').count() >= 3
-            elif layout == 'catalog':
-                assert page.locator('canvas').count() >= 2
-                page.screenshot(path=str(OUT / 'catalog.png'))
             else:
                 page.evaluate('searchTrajectory.setFrame(1)')
                 assert page.evaluate('searchTrajectory.getState().frame') == 1

@@ -19,20 +19,19 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=1.23",
+    "scipy>=1.8",
     "ase>=3.22",
     "networkx>=2.8",
     "pynauty>=2.8",
     "sympy>=1.10",
+    "z3-solver>=4.13",
 ]
 
 [project.optional-dependencies]
-notebook = ["rdkit>=2022.9", "z3-solver>=4.13", "py3Dmol>=2.0", "nbformat", "nbclient", "ipykernel", "jupyterlab"]
-postprocessing = ["z3-solver>=4.13"]
-dev = ["pytest", "nbclient", "ipykernel"]
+execution = ["psutil>=5.9"]
+notebook = ["rdkit>=2022.9", "py3Dmol>=2.0", "nbformat", "nbclient", "ipykernel", "jupyterlab"]
+dev = ["pytest", "nbclient", "ipykernel", "pypdf", "Pillow"]
 smiles = ["rdkit>=2022.9"]
-catalog = ["rdkit>=2022.9", "msgspec>=0.21"]
-benchmark = ["rdkit>=2022.9", "z3-solver>=4.13"]
-sessions = ["pymongo>=4.6"]
 
 [project.scripts]
 mappa = "mappa.cli:main"
@@ -45,10 +44,12 @@ Repository = "https://github.com/yunhzou/MAPPA-AAM"
 where = ["src"]
 
 [tool.setuptools.package-data]
-mappa = ["static/*.js", "static/*.html", "static/*.css", "static/LICENSES/*"]
+mappa = ["presentation/static/*.js", "presentation/static/*.html", "presentation/static/*.css", "presentation/static/LICENSES/*", "mappa_core/native/*.cpp", "mappa_core/native/*.h", "mappa_core/native/README.md", "mappa_core/native/third_party/nauty/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "--strict-markers"
+markers = ["smoke: small public-workflow and scientific-contract checks for routine refactoring"]
 
 # Note: xtb (Grimme) is a runtime requirement but not a Python dependency;
 # install it via your system package manager (e.g. conda install -c conda-forge xtb).

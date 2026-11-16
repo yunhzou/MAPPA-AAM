@@ -30,18 +30,9 @@ The 1,760 previously evaluated cases retain their certified results (1,731 recov
 
 ## Saved artifacts
 
-Strict one-sided evaluations, frozen source snapshot, process logs, job status and timings:
+Strict one-sided evaluations, frozen sources, original search archives and
+operational records are retained privately.
 
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_all_records_20260907`
+Only unstarted work was rescheduled after startup failure; no completed calculation was restarted. Each task used one worker, a five-minute process watchdog and a six-minute overall limit.
 
-Original search archives:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_policy_full_20260907`
-
-Corrected complete-reference verification:
-
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_domain_rescore_v2_20260907`
-
-Slurm jobs: 440479 and 440570. Only unstarted array slot 38 was moved off a node stuck in CONFIGURING; no completed calculation was restarted. One worker CPU per task, 24 GiB memory request, five-minute process watchdog and six-minute Slurm limit.
-
-`cases.csv` records every case and its authoritative evaluation path. `witnesses.json` saves the corrected/new positive evaluations and full available mappings. Original cached positive witnesses remain in the original archives. `manifest.json` records source snapshots; `slurm_accounting.psv` retains allocation accounting.
+`cases.csv` records every case and its authoritative evaluation path. `witnesses.json` saves the corrected/new positive evaluations and full available mappings. Original cached positive witnesses remain in the original archives. `manifest.json` records source snapshots; private accounting records retain allocation accounting.

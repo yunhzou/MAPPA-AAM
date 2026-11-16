@@ -90,4 +90,4 @@ and persistence are separate. Compare paired completed reactions to the saved
 ten-seed timings; retain the full denominator and all unknowns for accuracy.
 
 Full artifacts:
-`/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_three_seeds_bidirectional_20260910`
+Full artifacts and raw operational records are retained privately.

@@ -1,65 +1,151 @@
-# MAPPA preprint
+# MAPPA manuscript
 
-The manuscript presents the final algorithm: weighted continuous fragment growth, correlated automorphism actions, conditional saturated-placement branching and cut sweep, unordered final fragment pairs, and symbolic signed-event decoding.
+This directory is the single Overleaf-compatible source project. Edit `main.tex`
+and its `includes/` files here. `mappa_overleaf.zip` is a generated upload copy;
+no separate editable export is maintained.
 
-- `manuscript.pdf`: compiled paper.
-- `preprint.tex`: LaTeX entry point, retaining the supplied author list and preprint style.
-- `includes/paper.tex`: methods, evaluation, and discussion.
-- `includes/supplement.tex`: evaluation scope, completeness argument, and supplementary results.
-- [REPRODUCIBILITY.md](REPRODUCIBILITY.md): full technical settings and links to code, input/source pins, and per-case evidence.
-- `figs/fig1_algorithm.{pdf,svg,png}`: the branching algorithm overview: RDKit vector depictions of alcohol sites and methyl acetate saponification illustrate hydrogen-preserving local matches, three conditional assignment levels, automorphism compression, cut sweep, and event decoding.
-- `evidence/competitors.json`: audited Golden results for RXNMapper, LocalMapper, Chython, Indigo, RDT, and default SLAP configurations; Table 2 combines their returned-output reference recovery and mean CPU call times with all evaluated MAPPA seed/sweep configurations, without assigning a ranking to SLAP alternatives.
-- `evidence/molecule_example.json`: checked SMILES, mappings, and heavy-atom event lists for the constructed illustration.
-- `figs/fig2_golden.{pdf,svg,png}`: Golden reference-family recovery and direction-specific mean CPU cost.
-- `figs/fig3_coordinate.{pdf,svg,png}`: MAPPA and prior-method minimum-event comparisons, minimum-count distributions, and measured stage costs on 140 cases.
-- `figs/fig4_alternatives.{pdf,svg,png}`: Golden case 9, with the recovered reference and two alternatives. Red × marks and green inward arrows identify bond changes; pastel colors identify actual saved fragments. The Methods demonstration motivates multiple event candidates; the Discussion describes potential downstream uses.
-- `evidence/golden_case9.json` and `golden_case9_verification.json`: full witnesses, source fragment groups, source hashes, original-RDF reference verification, and H-event lower bounds for the selected heavy mappings.
-- `evidence/multicandidate_example.json` and `evidence/output_multiplicity.json`: current-API example and archived comparator-output audit for the discussion.
-- `manuscript_bundle.zip`: compact paper, source, figure, and evidence bundle.
+The Methods section opens with the complete workflow: grow a fragment, discover
+its placements, continue conditional branches, reduce repeated fragments and
+compositions, then decode bond events. Explicit Matching Stage and Decoding Stage subsections introduce the two
+scientific stages. Reduction is the final subphase of matching.
+Constraint-discovery philosophy is integrated into growth, sweep and boundary
+interpretation. Detailed matching equations and full pseudocode are in the
+supplement; parallel execution has its own final Methods subsection.
+Reference verification is external evaluation, outside the MAPPA pipeline.
+Growth matching, saturation matching and hierarchical branching have separate
+subsections. A zero/one/many transition table distinguishes the existence decision
+from completed placement construction. Decoding likewise separates local symmetry,
+internal events, connectivity-mismatch handling, ordinary boundaries, sweep
+correction and window selection. Each operation is paired with its inputs,
+decision and molecular example.
+The Introduction develops AAM's purpose and applications, ambiguity, taxonomy
+and prior work, the computational challenge of retaining alternatives, and
+MAPPA's contribution and principal findings. Figure 2 supports the ambiguity
+discussion before the output taxonomy. Alternative-generating solvers and
+single-answer predictors are compared in prose and a concise table; a later
+selector connects their objectives. MAPPA and SLAP belong to the first category.
+Methods introduces base and target as search roles: either endpoint can be the
+base, and reverse search exchanges the roles. The notation and molecular diagrams
+follow this convention.
 
-The manuscript does not include abandoned variants, debugging history, or superseded scoring comparisons. Older research artifacts remain in Git for provenance but are not included in the paper or its compact bundle.
+## Current results
 
-## Results and scope
+| Study | Reference recovery | Not recovered |
+|---|---:|---:|
+| Golden, one seed | 1,833 / 1,851 (99.028%) | 18 |
+| Golden, ten seeds | 1,842 / 1,851 (99.514%) | 9 |
+| EnzymeMap, one seed | 47,796 / 47,974 (99.629%) | 178 |
 
-`evidence/paper_sources.json` records the source commit, snapshot hashes and full report location. The figure and table builder requires complete fresh-campaign evidence; pending outcomes cannot silently enter a final table.
+Coverage refers to verified mappings within the decoded minimum + 5 window.
+The check preserves annotated heavy-atom identities and requires a complete,
+replayed witness and an independent event count. Every reaction has a definitive
+outcome. The paper reports this single coverage measure; the underlying benchmark
+reports retain the full audit evidence. Matching, decoding and their measured
+CPU times are unchanged.
 
-## Build
+Mean compute CPU seconds per reaction for matching (including reduction)
+and decoding are respectively **1.31 / 1.88**, **11.64 / 9.28**, and **4.41 / 8.75**
+for these three studies. Both directions and every cut are included. Publication,
+external evaluation and failed-attempt accounting are separate. These are saved
+stage measurements with their recorded versions and recoveries, not a new
+uninterrupted run or a hardware-normalized speed ranking.
 
-Install Python 3.12, Tectonic, and the packages in `requirements-build.txt` in an isolated environment. Then:
+The event-offset figure subtracts the saved detected minimum from the event count
+of a verified GT-consistent full mapping. It uses the lowest already recorded
+verified count across directions, with no new optimization. Saved anchored
+completions supply the 196 references absent from the original output. Every
+reaction contributes once, using the same all-atom event model on both sides.
+Each dataset uses one color; unoccupied negative ticks are omitted. Independent
+coverage is unchanged.
+
+## Comparator and minimum-choice results
+
+The main Results compare MAPPA, SLAP, LocalMapper, RXNMapper, Chython, RDT and
+Indigo by reference coverage. A single prediction counts as a singleton candidate
+set. Current MAPPA scores, paired SLAP protocols and re-evaluated archived default
+outputs retain their provenance; only the paired study supports speed ratios.
+
+Expanded SLAP covers **1,794/1,851** reactions and standard bidirectional binary
+SLAP covers **1,620/1,851**. Default forward-only SLAP gives **85.95%** inclusion,
+consistent with the original paper's **86.9%** on a different Golden version.
+The original score counts recovery among alternatives, not top-1 selection.
+The paired study supplies the computational-cost comparison; Figure 9 reports
+timing only. MAPPA coverage comes from the completed decoded-output audits above.
+
+On 1,834 reactions completed by all paired protocols, mean search CPU is
+**0.111 s** for standard SLAP, **1.202 s** for MAPPA and **12.475 s** for the
+expanded SLAP sweep. The broader standard-SLAP/MAPPA pair has 1,849 reactions
+and means **0.487/1.259 s**. Speed claims retain their protocol and denominator.
+The expanded wrapper changes weight mode and search scope; it is not a
+sweep-only ablation. All comparator verdicts passed an independent audit.
+
+Reaction-core counting covers all **1,851 Golden reactions**. The saved
+minimum-event mappings give **1,252 reactions with one observed core (67.64%)**,
+a median of **one**, mean **2.97**, 95th percentile **four** and maximum **522**.
+Cores identify signed bond changes, including hydrogen events; equivalent atom
+labels and different fragment partitions with the same pattern count once.
+The complete analysis took **15.66 seconds** on the local Mac with eight processes,
+including loading and replaying the saved choices. No matching, decoding or
+additional symmetry search was performed. The earlier branch-composition count
+is retained only as historical evidence.
+
+The paper reports approximately linear matching cost over the measured one-to-ten
+seed range and omits the cache-control comparison. No new experiments were run.
+
+## Sources and build
+
+For Overleaf, upload `mappa_overleaf.zip` as a new project, select
+`main.tex` as the main document and use **XeLaTeX**. The ZIP includes the
+source, supplement, bibliography, figures, class and custom font; no Python
+processing is needed. The maintained bundle command also creates this archive.
+
+The title, full affiliations, abstract and institutional logos retain their
+separate opening page. Scientific figures do not appear beneath the abstract.
+The molecular overview appears on the first main-text page, in the Introduction.
+Other figures are placed at their first discussion where space permits, or on
+the adjacent page; the final PDF is checked against those citation locations.
+
+- `main.tex`: sole entry point; author list and supplied affiliations are retained.
+- `includes/paper.tex`: main Methods, Evaluation, Results and Discussion.
+- `includes/supplement.tex`: current algorithm details, benchmark settings, measurement definitions and the percentage event-offset figure.
+- `evidence/current_benchmarks.json`: sanitized coverage and stage timing evidence.
+- `evidence/reference_offsets.json.gz`: verified mapping counts, original detected minima, offsets and certificate hashes for every reaction.
+- `evidence/branch_offsets.json.gz`: superseded branch-minimum analysis, retained as historical evidence and the original-baseline source.
+- `evidence/paper_sources.json`: evidence hashes and source-to-claim scopes.
+- [REPRODUCIBILITY.md](REPRODUCIBILITY.md): settings, source pins and evaluation definitions.
+- `figs/fig1_algorithm.*`: molecular overview. The lower panels show both endpoint atom sets for each fragment, then compare both sides of the same fragment under two oxygen assignments. Boundary changes are visible on the full endpoints. Verification remains outside the AAM pipeline.
+- `figs/fig6_current_benchmarks.*`: decoded-output reference coverage and matching/decoding CPU costs.
+- `figs/fig7_reference_offsets.*`: verified GT-consistent mapping counts relative to the saved detected minimum, with one color per dataset.
+- `figs/fig12_reference_percentages.*`: appendix companion with each dataset normalized to 100%, using the same bins and logarithmic axis.
+- `figs/fig11_saturation.*`: one carbon ring, two distinct target ring placements and two branches; internal rotations remain compressed.
+- `figs/fig8_design_examples.*`: molecular drawings of the sweep mask, cyclopropanol/propan-2-ol assignments and acetonitrile/ethylamine boundary events. These are heavy-atom illustrations with hydrogen constraints omitted.
+- `figs/fig9_paired_slap.*`: paired comparator CPU costs.
+- `figs/fig10_minimum_choices.*`: observed reaction cores among saved minimum-event mappings.
+- `figs/fig4_alternatives.*`: accepted EnzymeMap case 13175. Carbon 1 enters the three-carbon molecule in the reference and CO₂ in the alternative. The drawings show four versus two heavy-atom events; exhaustive hydrogen completion of each fixed heavy-atom mapping gives six total events for both. This illustrates ambiguity, not a strict all-atom advantage. All nine heavy atoms are shown, with consistent atom-origin colors and only carbons numbered. Portable mappings and count checks are in `evidence/enzymemap_case13175.json`.
+
+Install the dependencies in `requirements-build.txt`, Tectonic and Poppler. From
+the repository root:
 
 ```sh
-MANUSCRIPT_PYTHON=/path/to/python bash scripts/build.sh
+MANUSCRIPT_PYTHON=/path/to/python bash manuscript/scripts/build.sh
 ```
 
-The build regenerates figures and tables from checked-in evidence, compiles the paper, verifies numerical claims and references, and creates the compact bundle. It performs no mapping searches. The first Tectonic build may download TeX packages. A saved `preprint.bbl` accompanies the source bundle.
+The build regenerates figures and tables, compiles `manuscript.pdf`, validates
+numeric evidence and references, checks publication privacy, and writes
+`mappa_overleaf.zip` directly from the same source project. It performs no matching or decoding. Visual inspection
+is recorded separately against the final PDF checksum.
 
-For visual review, render the PDF with Poppler:
+The decoder's ordinary-boundary model is approximate; its selected starting
+orbits and bounded improvement restrict coverage. Model-window membership is
+not physical event-bin accuracy. Default-comparator coverage is included in the main Results with its recorded
+evaluation scope. Historical MAPPA, cap, direction, coordinate and timing studies are excluded
+from the appendix and Overleaf export. Their evidence remains in repository
+records and Git. The appendix retains only support for the current paper.
 
-```sh
-pdftoppm -scale-to 1400 -png manuscript.pdf build/page
-```
-
-`EDITORIAL_NOTES.md` records the remaining author-supplied metadata and dataset provenance needed for submission. These are not fabricated in the paper. This is an arXiv-oriented manuscript, not a submitted arXiv record.
-
-Paired no-sweep controls are included in the main Golden results table. Evidence: `reports/golden_unswept_20260913/`; MAPPA 1,489/1,851, SLAP 1,661/1,851 (one unresolved). No new mapping searches were run. The molecular figure now checks alcohol-site matches including attached H and shows three conditional assignment levels.
-
-Runtime detail is in Table 3 (paired mean/median/95th-percentile CPU by endpoint-size orientation, paired with recovery), Figure 3, and the unified comparison in Table 2. `timing_comparison.json` retains per-case measurements and matched-cohort identities. Archived default-call CPU times are marked with a superscript in Table 2 because their CPU model is not recorded; no cross-CPU speed ranking is implied.
-
-The 140-reaction coordinate collection compares bond events under unverified mappings; it is not a mapping-accuracy benchmark. The cap control returns complete mappings for 138 reactions at cap 100 and all 140 at cap 2,000; cases 123 and 125 are the two search-completion losses. Table 4 reports the baseline-only bond-event comparison at cap 2,000, Table 5 reports archived stage costs, and Table A4 reports fresh full-pipeline timing. Against SLAP sweep and native SLAP, lower/equal/higher event counts are 4/136/0 and 15/125/0, respectively. Final event-pattern evidence is in `reports/published_baseline_20260915/`; older competition-enabled decoding reports are excluded.
-
-Figure 2 uses Golden case 9: the recovered reference and two alternative mappings. Compact red × marks for losses and paired green inward arrows for gains sit on the affected bonds in Figures 1 and 2, retaining fragment colors and the original black bond lines. Golden labels concern heavy atoms; totals explicitly include unannotated H assignments. The three selected witnesses are not an exhaustive decoded set. Evidence: `golden_case9.json` and `golden_case9_verification.json`.
-
-## 3D research preview
-
-[Grow. Branch. Decode.](animations/mappa_research_preview/index.html) is a 22-second baseline-only 3D film of Golden case 15. Conditional fragment placements grow into a tree and the two shown branches decode to two distinct event classes. The complete baseline catalogue has 44 unordered branches, 96 families and nine classes through six events; two classes are shown. [MP4](animations/mappa_research_preview/mappa-grow-branch-decode.mp4) · [GIF](animations/mappa_research_preview/mappa-grow-branch-decode.gif).
-
-The completed same-CPU Golden cap ablation is in the appendix (`evidence/golden_cap_ablation.json`). It includes cap 100 and cap 2,000 accuracy, unknown outcomes, and search CPU for all four swept seed settings, both uncut controls, and SLAP baselines. All paired timings use the same 1,403 reactions; all-attempt recorded cost is shown separately. Full results are in `reports/golden_controlled_20260915/final/`. The 3D film uses the verified baseline Golden example in `reports/published_baseline_20260915/film/`.
-
-## Published pipeline
-
-The published method uses one-seed cut sweep followed by separate decoding. Competition is excluded. Golden results are unchanged. Baseline-only coordinate evidence and decoding checks are in [the publication report](../reports/published_baseline_20260915/). At cap 2,000, MAPPA recovers 162/168 SLAP-sweep patterns and 151/160 native-SLAP patterns within the fixed windows. At equal minima, the corresponding counts are 158/164 and 138/140. The output has 300 event patterns, including 166 at MAPPA's own minima.
-
-Final end-to-end timing is recorded in `evidence/end_to_end_timing.json` and Table A4: all 140 reactions complete within the five-minute watchdog, preserving all 300 archived event classes and all 120,052 saved families. Mean/median CPU seconds are 1.257/0.300 for search, 4.647/0.288 for decoding, and 6.073/0.812 end to end. These are per-reaction CPU times, not divided by the four workers. Golden timings retain their explicitly labeled search-only scope. The final paper results, evidence, and bundle are ready; no further run is pending for these reported claims.
+The archived [3D research preview](animations/mappa_research_preview/index.html)
+illustrates its saved historical catalogue, not an execution trace of the current
+matcher. [EDITORIAL_NOTES.md](EDITORIAL_NOTES.md) records remaining author metadata
+and dataset-provenance decisions; those have not been invented.
 
 ## Authors
 
@@ -68,16 +154,3 @@ Yunheng Zou; Olalla Nieto Faza; Shifa Hussain; **Varinia Bernales**<sup>†</sup
 assigned to the Department of Biology, University of Toronto Mississauga.
 [Affiliation provenance](evidence/author-affiliations.md) records the supplied
 assignments and official institutional sources. `main` is the publication branch.
-
-## Unified Golden comparison
-
-Table 2 presents all Golden recovery results and mean CPU times in one continuous
-table, without separate default-mapper or timing panels. MAPPA 1/2/3/10 seeds,
-MAPPA no sweep, and bidirectional SLAP use the paired 1,403-reaction AMD EPYC 9J14
-timing cohort. Superscript `a` marks archived default-call times whose CPU model
-was not recorded; these cannot support a cross-hardware speed ranking. The
-default SLAP row uses binary, which had higher recovery than the weighted default.
-The bidirectional SLAP baseline still combines both directions and both modes,
-as stated in the caption. Single-output methods are labeled “One bijection.”
-Detailed archived call counts and wall-time distributions remain in
-`evidence/timing_comparison.json`; the duplicate appendix timing table is removed.

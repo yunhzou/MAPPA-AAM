@@ -31,9 +31,7 @@ this is not a new stereochemical feasibility filter or resonance normalization.
 ## Open the viewer
 
 Full standalone HTML on the cluster:
-
-`/h/399/yunhengzou/coordinate_alignment/reports/golden_pattern_extraction_20260908/case1033/viewer.html`
-
+Full artifacts and raw operational records are retained privately.
 For GitHub/download, `case1033/viewer.html.gz` contains the same HTML. Decompress
 before opening. It retains the clickable rank/event plot, R/P fragment drawings,
 atom correspondence inspector, and explicit-hydrogen toggle. The large plain
@@ -43,7 +41,7 @@ HTML is excluded from Git; mappings and resume checkpoints are committed.
 
 ```sh
 PYTHONPATH=src:bench OPENBLAS_NUM_THREADS=1 .venv/bin/python bench/view_golden_alternatives.py \
-  --source /project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_publication_20260908 \
+  --source /path/to/golden_publication_20260908 \
   --direction P_to_R \
   --audit data/aam_benchmarks/golden_original_20260906/audit.jsonl \
   --indices 1033 --output reports/golden_pattern_extraction_20260908 \

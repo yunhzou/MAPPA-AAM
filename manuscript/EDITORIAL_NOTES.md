@@ -1,48 +1,125 @@
-# Author information remaining before submission
+# Editorial scope and remaining author decisions
 
-The scientific text has been rewritten around the final algorithm and supported results. The following information still requires author input; none has been invented:
+The Introduction follows the agreed narrative: AAM's meaning and applications,
+ambiguity, taxonomy and prior work, computational challenge, and MAPPA's
+contribution and principal findings. The alternatives example precedes the
+taxonomy and motivates retaining different correspondences. The taxonomy
+organizes related work into alternative generation and prediction, connected
+by subsequent selection. Base and target are introduced in Methods as search
+roles; either endpoint can be the base. Algorithm prose, mathematical notation
+and figure labels use this convention.
+Supplied author metadata is retained. The Methods follow the current design in
+separate scientific subsections: constraint discovery, inputs, existence
+growth, compressed completion and symmetry, hierarchy/cut sweep, atom-set
+reduction, local event responses, branch composition/windowing, and reuse/execution.
+Reduction is a subphase of matching; the two scientific stages are Matching and
+Decoding. Their CPU costs use that same grouping. Growth and saturation matching
+have separate subsubsections and a zero/one/many decision table. Multiplicities
+in that table are conceptual target-set counts, not work performed during growth;
+a rejected extension is distinct from a saturated fragment. Decoding is organized
+around local symmetry, internal events, starting correspondence, ordinary
+boundaries, sweep correction and window selection. The verifier appears only in
+Evaluation. The EnzymeMap alternatives figure is introduced early to motivate
+retaining different correspondences.
 
-1. Corresponding-author details, individual contributions, and competing-interest declarations. The existing author order and supplied affiliations have been preserved. Placeholder declarations are omitted from the compiled paper.
-2. Provenance and selection of the 140 coordinate reaction pairs, the electronic-structure method/software used to obtain their cached WBO matrices, and redistribution permissions. The paper calls this a development collection without annotated mappings, not an independent accuracy benchmark.
-3. Permanent data/archive identifiers if required for submission. The code URL points to the existing repository on `main`.
+## Author decisions remaining before submission
 
-Golden and coordinate configurations are reported separately. Golden tests the fragment-search stage; the published coordinate protocol also tests full event-window decoding. Competition is excluded from both published protocols. Resource-limited outcomes are explicitly distinguished from verified misses; excluded or unsearched continuations are not credited.
+1. Corresponding authors, contributions and competing interests.
+2. Permanent data/archive identifiers if required.
+3. Applicability of the expanded acknowledgements and funding statements supplied
+   in `f095f30a00d5e01e5ad79da2f47201123b2463b8`. Preserve that supplied text pending
+   author confirmation; do not invent missing roles or declarations.
 
-The paper's direct signed WBO-change score uses 0.5 for ordinary pairs and 0.3 for metal-involving pairs, including H. Superseded scoring definitions, abandoned reconstruction variants, and experiment diaries are excluded from the manuscript and compact bundle.
+## Results and interpretation
 
+The current paper uses decoded minimum-plus-five coverage only: 1,833/1,851
+Golden reactions with one seed, 1,842/1,851 with ten, and 47,796/47,974 EnzymeMap
+reactions. Every reaction has a conclusive outcome. The full certificate and
+exclusion records remain in the benchmark reports.
+
+The Results follow four topics: dataset/method coverage, computational cost and
+seed scaling, reference-mapping event offsets, and choices at the minimum. Keep
+the method comparison and both Golden seed settings. Secondary timing cohorts,
+run history and detailed audit accounting belong outside the main Results.
+
+The Discussion interprets the value of retained alternatives, the exploration/cost
+trade-off, event-based selection and possible pathway applications. Keep it at
+that level, with a measured tone and a concise explanation of the event model's
+approximation. Detailed implementation restrictions and audit counts belong in
+Methods, supporting material and evidence. State the benchmark input
+representation in Evaluation without a separate continuous-WBO disclaimer.
+
+Figure 7 compares the event count of a verified GT-consistent full mapping with
+the saved detected minimum. Use the lowest recorded verified count across both
+directions; do not minimize a GT-containing branch or insert a lower bound.
+All 49,825 reactions have concrete counts, including saved anchored completions
+of the 196 absent references. Both sides use the same all-atom event model.
+Keep one color per dataset, no separate completion legend and no unoccupied
+negative ticks. A saved hydrogen completion need not minimize the reference's
+events, so this distribution is distinct from minimum-choice membership.
+
+Include reduction in matching time; keep decoding and external verification separate.
+The saved Golden matching measurements predate indexed containment; the manuscript
+reports approximately linear seed scaling and omits the cache-control comparison.
+EnzymeMap timings combine successful original work and recoveries. Do not claim
+a uniform final-version rerun or uninterrupted elapsed time.
+
+The paired SLAP study supplies controlled timing on the same inputs and CPU
+model; its separate MAPPA catalogue score is not a second coverage metric in the
+paper. Minimum-choice analysis counts observed reaction cores in saved witnesses
+for all 1,851 Golden reactions, without additional symmetry enumeration.
+
+The appendix contains current algorithm details and pseudocode, the molecular
+example checks, benchmark settings, timing and event-analysis definitions, and
+the percentage event-offset figure. Superseded benchmarks, old failure analyses,
+extra timing cohorts and operational protocols are excluded. Preserve their
+source records in Git without packaging them as paper content.
+
+## Scientific limits to retain
+
+Binary local symmetry is computed on each fragment, not inherited from the
+whole endpoint. Certified global placement actions have the stronger invariance
+needed to move a later continuation. Reduction keeps one original fragment per
+atom-set pair; it does not union discarded discovery relations. Decoding selects
+one starting orbit after bounded improvement. Ordinary boundaries use the
+accepted fixed model; only the sweep correction retains joint endpoint dependence.
+Model-window coverage is not physical event-bin accuracy. Keep these distinctions
+in the main paper at a readable level, with mechanics in the supplement.
+The sweep, cyclopropanol/propan-2-ol and acetonitrile/ethylamine diagrams illustrate
+constraint discovery and boundary dependence. The latter two are analytically
+checked heavy-atom graph examples without hydrogen constraints; they are not
+new benchmark observations. Greediness helps reduce coupling but does not prove
+fragment independence.
+
+Explain the intended mitigation alongside this limitation: random growth,
+multiple seeds and cut sweeps explore different fragment decompositions. Another
+decomposition can put a problematic attachment inside a fragment and represent
+the same correspondence at its correct count. This does not repair the original
+branch's fixed boundary model. Do not claim a guaranteed correct bin or a measured
+reduction in boundary error without a dedicated comparison.
 
 ## Molecular figure conventions
 
-Reserve molecule colors for fragment membership. Keep original black single/double bond strokes. Mark bond cleavage/weakening with a vivid red × directly on the affected bond, and formation/strengthening with paired bright green inward arrows. Keep the marks compact so fragment colors and black bond lines remain visible. Match fragment colors across mapped endpoints; different candidate partitions may assign colors differently and must say so. The selected discussion example is Golden case 9, with the verified heavy-atom reference labeled. Ground truth refers to the dataset annotation, not a validated mechanism. Count events from the evaluation matrices, including H, while distinguishing heavy-only depictions and unannotated H identities.
+Every matched fragment must be shown as a base/target pair, with corresponding
+atom sets identified by the same color. Keep outside molecular context visibly
+distinct. For a symmetry-event example, show both endpoint assignments and the
+bonds that change; one isolated molecular drawing cannot explain a fragment
+relationship. Figure 1 now follows this rule in its branch and decoding panels.
 
-TS motivation concerns querying jointly allowed reaction-core atom assignments and building mapping-dependent endpoint interpolations. Do not illustrate this as arbitrary rigid translation/rotation of a fragment. Keep these as downstream justifications, not validated TS results, and distinguish illustrative symmetry queries from a demonstrated core shuffle.
+Use chemical structure depictions for molecular examples, with the established vector drawing workflow. The saturation figure shows one carbon ring and two target rings distinguished by F/Cl attachments: two atom-set placements, with internal rotations and reflections retained within each placement. It is a fixed-fragment illustration without hydrogen constraints, not a complete reaction. Direct graph checks accompany the drawing. Do not replace molecular geometry with circles and group names when a chemical depiction can explain the same point.
 
-Describe the default cut sweep as source-edge masking that changes growth routes and relaxes preservation constraints. It counteracts greedy fragment commitment without forcing a final broken bond or a permanent boundary. One seed still means one ordering for every uncut/single-edge subrun; final events always use original matrices.
+Use the same pastel palette, black bond strokes and compact red cleavage/weakening and green formation/strengthening marks throughout. In algorithm figures, colors identify matched fragments. In the introductory alternatives figure, fixed colors track atom origins across both mappings; state this in its legend. The accepted example is EnzymeMap case 13175: the reference assigns the formaldehyde carbon to the three-carbon molecule, whereas an alternative assigns it to CO₂. Both retain the complete C4H6O5 composition. Show all nine heavy atoms, number only the four carbons, and label the displayed four versus two events as heavy-atom counts. Optimizing the unannotated H assignments separately for these fixed heavy-atom maps yields six total events for both. The saved witnesses have eight and six events, but the saved reference H completion is not optimal. Use the example to illustrate ambiguity; do not claim a strict all-atom advantage or global optimality. The independent H-completion check does not establish decoded membership of the new H assignments. Ground truth refers to the dataset annotation, not a validated mechanism. Keep molecular components separated and inspect atom labels at full resolution before accepting the figure.
 
-A single search-edge mask can redirect later growth and produce multiple bond events. Never equate the number of sweep cuts with the number of final events, or imply that multi-event alternatives require enumerating event combinations. Search completeness is a separate issue.
+## Publication policy
 
-Default MAPPA uses one seed ordering and cut sweep, followed by separate decoding. The experimental competition module remains optional and off by default; exclude it from the paper, pseudocode, and film. Use baseline-only coordinate evidence from `reports/published_baseline_20260915/`. Golden already measures this pipeline.
+Report only recorded CPU model names when identifying compute hardware. Exclude
+site names, machine identifiers, addresses, accounts, storage paths, resource
+inventories and scheduling configuration from the manuscript and bundle.
+Author affiliations are separate from hardware disclosure. Build validation
+checks the PDF and every bundle member. Detailed source/configuration hashes
+belong in repository evidence, not the main scientific narrative.
 
-Keep Algorithm1 at the level of branches, fragments, cut conditions, conditioned growth, and separate decoding. Cross-reference Figure1 panels; keep isomorphism and automorphism internals in their own Methods subsections. Search caps preserve truncation status.
-
-Credit the cut-sweep strategy as introduced in this work and integral to default MAPPA. SLAP sweep is our extension to the prior algorithm. Distinguish the original SLAP literature score (86.9% on 1,758 reactions), our strict default binary score (85.95% on 1,851), the paired uncut binary/weighted bidirectional union (89.74%), and that union with our sweep (97.03%). Attribute the sweep benefit to the paired comparison, not the cross-protocol literature difference.
-
-
-## Hardware disclosure for publication
-
-Report only the CPU model when describing compute hardware, including future
-benchmark updates. Do not publish site names, machine identifiers, login or
-network addresses, account names, absolute storage paths, scheduler commands,
-queue or allocation details, system memory, or job-concurrency settings.
-Keep algorithm parameters, measured timings, completion status, and the
-distinction between timing cohorts. Author affiliations are separate from
-compute-hardware disclosure. Check the PDF and every submission-bundle member
-before publication; raw execution manifests are not submission artifacts.
-
-## Reproducibility in the paper
-
-Keep the paper focused on the algorithm, evaluation definitions, essential settings, results, and limitations. Put exact versions, hashes, configuration fields, commands, run bookkeeping, and detailed audit records in the code repository, linked through `manuscript/REPRODUCIBILITY.md`. Do not reproduce an execution manifest in prose. Retain settings that change interpretation (tolerances, seeds, caps, sweep/direction policy), timing scope, denominators, and completeness limits. Apply the CPU-only disclosure policy to the guide and submission bundle as well.
-
-## Branch-cap labeling
-
-Keep cap 100 labeled as the default. Label cap 2,000 as the larger-budget comparison. Do not relabel the earlier coordinate results as cap 100. Count an empty capped search separately from incomplete decoding; a completed empty catalogue does not provide a mapping or a minimum. Report the paired 140-case evidence and link its code report.
+The main Results compare all evaluated methods by coverage, with a single
+prediction treated as a singleton set. Comparator predictions retain their
+recorded re-evaluation scope. The current studies use cap 100; historical
+cap-2,000 and coordinate studies are not evidence for this paper's results.

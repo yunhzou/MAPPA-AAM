@@ -128,12 +128,7 @@ interruptions and is not used as compute time. All mapping work units have a
 
 Full artifacts on the cluster (never rerun mapping just to inspect them):
 
-```text
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/conditioned_reuse_pilot_20260910_KciqQq
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/conditioned_reuse_refined_20260910_QdViEx
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/conditioned_reuse_full_20260910_0o09px
-/project/yunhengzou/coordinate_alignment/aam_benchmarks/public_reuse_20260910_kgCQdQ
-```
+Full artifacts and raw operational records are retained privately.
 
 Drivers: `bench/conditioned_reuse_pilot.py` and `bench/public_reuse_pilot.py`.
 Compact reports and provenance accompany this file; large raw graphs and frozen

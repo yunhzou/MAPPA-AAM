@@ -11130,7 +11130,7 @@
   "seed_policy": "independent_per_cut_blake2b_v1",
   "orientation_policy": "smaller_explicit_endpoint_first",
   "created": 1788798075.2282581,
-  "audit": "/h/399/yunhengzou/coordinate_alignment/data/aam_benchmarks/golden_original_20260906/audit.jsonl",
+  "audit": "private-reference-84ba67af8f41803a2ab9",
   "audit_sha256": "d7c0f678b2a8112a0d96036e5553f0ea9d28959217d082b05772c1213199bd0e",
   "revision": "e8b970eae60560e01979213af02265e7aed9794b",
   "engine_sha256": {
@@ -11225,5 +11225,9 @@
     "src/rxn_core/retrosynthesis/decision_graph.py": "f38061babdf6f436ee8e1d181b9d3510288b2ed05ad0a2320a52ab004f8f0aa9",
     "src/rxn_core/static/LICENSES/JSZip.txt": "566c953c6090b1218ca6217dd7359d45dde46581968586dc607d59a78af6a9c4",
     "src/rxn_core/static/LICENSES/3Dmol.js.txt": "ae3bfc688d0c9687b76e0ecc7fece0b393bcb4acf2aee09e19dda697eaa10b16"
+  },
+  "privacy_projection": {
+    "original_sha256": "640ccde9c580f552b422bb44e9f3937b633c6f2c6fb6d5ffcbb17a84643f5e96",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

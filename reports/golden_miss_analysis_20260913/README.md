@@ -36,6 +36,6 @@ The four cardinality mismatches require explicit decisions about unmatched atoms
 
 ## Scope and execution
 
-The complete saved-family audit used cpu_short jobs, one CPU per task, with a five-minute command watchdog. The successful audits took 178.99 CPU seconds in total and peaked at 221.84 MiB. Eight small sensitivity probes also used cpu_short, with four concurrent tasks at most. Two short causal traces were completed locally with a 60-second subprocess watchdog each. No full benchmark rerun was performed.
+The complete saved-family audit used one worker per task, with a five-minute command watchdog. The successful audits took 178.99 CPU seconds in total and peaked at 221.84 MiB. Eight small sensitivity probes used at most four concurrent workers. Two short causal traces were completed locally with a 60-second subprocess watchdog each. No full benchmark rerun was performed.
 
 Initial diagnostic output-writing errors are recorded in the Slurm accounting and logs; these were analysis-script serialization errors, not AAM failures. Original traces and search archives remain under the dedicated HPC validation project. Compact audit outputs, probe outcomes, current causal traces, independent reference checks, scripts, source identities, and accounting are included here. The summary is validated against all 22 directional audits and the unchanged final list of eleven misses before updating the paper.

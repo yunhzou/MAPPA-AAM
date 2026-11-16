@@ -1,6 +1,5 @@
 {
   "status": "finished_no_retained_mappings",
-  "job": "7572965",
   "branch_limit": 10,
   "iso_tolerance": 1.0,
   "event_threshold": 1.0,
@@ -114,5 +113,9 @@
     "result/cuts/cut_00031.raw.pkl.gz": "2b5fcfadd0131a62129322a525b8949b902d6608ab20620c4beb36eda99c693a",
     "result/cuts/cut_00064.raw.pkl.gz": "462652e4d162d4067b2226b900438c55c019ccd75dd142253d657cbb4d1e9283",
     "result/cuts/cut_00053.raw.pkl.gz": "4084a27b5d449ff5338e176a5185dadebe89deb36010fba8c4bb517cd811fc44"
+  },
+  "privacy_projection": {
+    "original_sha256": "54a7714a15348df3583169c62ef4bca3b439c5bde7fac5c83004413c913b2f76",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

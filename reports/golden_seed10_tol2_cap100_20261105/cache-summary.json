@@ -1,0 +1,535 @@
+{
+  "complete_directions": 384,
+  "paired_catalogue_checks": 192,
+  "all_catalogues_equal": true,
+  "all_repetitions_same_catalogues": true,
+  "source_identity": "0481b8e242049b1f27ece52626f92850b0c2c72ca24b99f8a74d5e813a0ee5e4",
+  "rows": [
+    {
+      "repetition": 1,
+      "seeds": 1,
+      "cache": "on",
+      "cpu_seconds": {
+        "preparation": 0.3759418120000001,
+        "matching": 3.3416529299999977,
+        "reduction": 1.283865982,
+        "audit": 6.262108171000003,
+        "verification": 1.9741402959999996
+      },
+      "cache_stats": {
+        "calls": 189488,
+        "full_hits": 172032,
+        "evictions": 0,
+        "logical_extensions": 98187,
+        "reused_extensions": 29123
+      },
+      "maximum_cache_bytes": 16414853
+    },
+    {
+      "repetition": 1,
+      "seeds": 1,
+      "cache": "off",
+      "cpu_seconds": {
+        "preparation": 0.34350962400000007,
+        "matching": 5.303859736999997,
+        "reduction": 1.3529255549999977,
+        "audit": 6.408353298,
+        "verification": 1.9608346840000006
+      },
+      "cache_stats": {
+        "calls": 189488,
+        "full_hits": 0,
+        "evictions": 0,
+        "logical_extensions": 98187,
+        "reused_extensions": 0
+      },
+      "maximum_cache_bytes": 0
+    },
+    {
+      "repetition": 1,
+      "seeds": 2,
+      "cache": "on",
+      "cpu_seconds": {
+        "preparation": 0.34300241500000006,
+        "matching": 6.471870602000001,
+        "reduction": 2.708854786999998,
+        "audit": 12.167167980999999,
+        "verification": 2.1043245469999996
+      },
+      "cache_stats": {
+        "calls": 382892,
+        "full_hits": 347162,
+        "evictions": 0,
+        "logical_extensions": 216248,
+        "reused_extensions": 77205
+      },
+      "maximum_cache_bytes": 49791789
+    },
+    {
+      "repetition": 1,
+      "seeds": 2,
+      "cache": "off",
+      "cpu_seconds": {
+        "preparation": 0.3494819309999999,
+        "matching": 10.516393734,
+        "reduction": 2.9317194550000014,
+        "audit": 12.518157505000001,
+        "verification": 2.1042923880000015
+      },
+      "cache_stats": {
+        "calls": 382892,
+        "full_hits": 0,
+        "evictions": 0,
+        "logical_extensions": 216248,
+        "reused_extensions": 0
+      },
+      "maximum_cache_bytes": 0
+    },
+    {
+      "repetition": 1,
+      "seeds": 5,
+      "cache": "on",
+      "cpu_seconds": {
+        "preparation": 0.33658105900000024,
+        "matching": 15.881922089999998,
+        "reduction": 6.660313518000003,
+        "audit": 29.300997490999997,
+        "verification": 2.271807972
+      },
+      "cache_stats": {
+        "calls": 1058384,
+        "full_hits": 970702,
+        "evictions": 15138,
+        "logical_extensions": 573941,
+        "reused_extensions": 243973
+      },
+      "maximum_cache_bytes": 67108864
+    },
+    {
+      "repetition": 1,
+      "seeds": 5,
+      "cache": "off",
+      "cpu_seconds": {
+        "preparation": 0.3345811200000002,
+        "matching": 27.106294514,
+        "reduction": 7.180982080000007,
+        "audit": 30.030015323000008,
+        "verification": 2.2576010909999997
+      },
+      "cache_stats": {
+        "calls": 1058384,
+        "full_hits": 0,
+        "evictions": 0,
+        "logical_extensions": 573941,
+        "reused_extensions": 0
+      },
+      "maximum_cache_bytes": 0
+    },
+    {
+      "repetition": 1,
+      "seeds": 10,
+      "cache": "on",
+      "cpu_seconds": {
+        "preparation": 0.3293409189999996,
+        "matching": 31.957814975,
+        "reduction": 13.746433013000003,
+        "audit": 58.10216981900001,
+        "verification": 2.262616127999999
+      },
+      "cache_stats": {
+        "calls": 2292290,
+        "full_hits": 2119995,
+        "evictions": 66376,
+        "logical_extensions": 1153806,
+        "reused_extensions": 518328
+      },
+      "maximum_cache_bytes": 67108864
+    },
+    {
+      "repetition": 1,
+      "seeds": 10,
+      "cache": "off",
+      "cpu_seconds": {
+        "preparation": 0.333582823,
+        "matching": 55.66545551,
+        "reduction": 14.961044295000015,
+        "audit": 58.55465483599998,
+        "verification": 2.213088420999999
+      },
+      "cache_stats": {
+        "calls": 2292290,
+        "full_hits": 0,
+        "evictions": 0,
+        "logical_extensions": 1153806,
+        "reused_extensions": 0
+      },
+      "maximum_cache_bytes": 0
+    },
+    {
+      "repetition": 2,
+      "seeds": 1,
+      "cache": "on",
+      "cpu_seconds": {
+        "preparation": 0.3339395370000001,
+        "matching": 3.2496069960000016,
+        "reduction": 1.248354106999999,
+        "audit": 6.181326958,
+        "verification": 1.897475183999999
+      },
+      "cache_stats": {
+        "calls": 189488,
+        "full_hits": 172032,
+        "evictions": 0,
+        "logical_extensions": 98187,
+        "reused_extensions": 29123
+      },
+      "maximum_cache_bytes": 16414853
+    },
+    {
+      "repetition": 2,
+      "seeds": 1,
+      "cache": "off",
+      "cpu_seconds": {
+        "preparation": 0.32790053999999913,
+        "matching": 5.169410430999998,
+        "reduction": 1.3129498670000004,
+        "audit": 6.343767241999998,
+        "verification": 1.8904439399999997
+      },
+      "cache_stats": {
+        "calls": 189488,
+        "full_hits": 0,
+        "evictions": 0,
+        "logical_extensions": 98187,
+        "reused_extensions": 0
+      },
+      "maximum_cache_bytes": 0
+    },
+    {
+      "repetition": 2,
+      "seeds": 2,
+      "cache": "on",
+      "cpu_seconds": {
+        "preparation": 0.3265973969999997,
+        "matching": 6.3146942510000015,
+        "reduction": 2.6333291969999983,
+        "audit": 11.962055485999995,
+        "verification": 2.0438617019999996
+      },
+      "cache_stats": {
+        "calls": 382892,
+        "full_hits": 347162,
+        "evictions": 0,
+        "logical_extensions": 216248,
+        "reused_extensions": 77205
+      },
+      "maximum_cache_bytes": 49791789
+    },
+    {
+      "repetition": 2,
+      "seeds": 2,
+      "cache": "off",
+      "cpu_seconds": {
+        "preparation": 0.3329072100000001,
+        "matching": 10.30755472,
+        "reduction": 2.859775430000003,
+        "audit": 12.367212995000003,
+        "verification": 2.044064943000001
+      },
+      "cache_stats": {
+        "calls": 382892,
+        "full_hits": 0,
+        "evictions": 0,
+        "logical_extensions": 216248,
+        "reused_extensions": 0
+      },
+      "maximum_cache_bytes": 0
+    },
+    {
+      "repetition": 2,
+      "seeds": 5,
+      "cache": "on",
+      "cpu_seconds": {
+        "preparation": 0.3225790299999999,
+        "matching": 15.679156730999999,
+        "reduction": 6.537851037999998,
+        "audit": 29.07645062600001,
+        "verification": 2.2213670000000016
+      },
+      "cache_stats": {
+        "calls": 1058384,
+        "full_hits": 970702,
+        "evictions": 15138,
+        "logical_extensions": 573941,
+        "reused_extensions": 243973
+      },
+      "maximum_cache_bytes": 67108864
+    },
+    {
+      "repetition": 2,
+      "seeds": 5,
+      "cache": "off",
+      "cpu_seconds": {
+        "preparation": 0.3295410639999995,
+        "matching": 26.904410017,
+        "reduction": 7.113236116000003,
+        "audit": 29.553586416,
+        "verification": 2.2224453299999967
+      },
+      "cache_stats": {
+        "calls": 1058384,
+        "full_hits": 0,
+        "evictions": 0,
+        "logical_extensions": 573941,
+        "reused_extensions": 0
+      },
+      "maximum_cache_bytes": 0
+    },
+    {
+      "repetition": 2,
+      "seeds": 10,
+      "cache": "on",
+      "cpu_seconds": {
+        "preparation": 0.3325928050000002,
+        "matching": 32.01552060599999,
+        "reduction": 13.90275350699999,
+        "audit": 57.894006556,
+        "verification": 2.246720610999997
+      },
+      "cache_stats": {
+        "calls": 2292290,
+        "full_hits": 2119995,
+        "evictions": 66376,
+        "logical_extensions": 1153806,
+        "reused_extensions": 518328
+      },
+      "maximum_cache_bytes": 67108864
+    },
+    {
+      "repetition": 2,
+      "seeds": 10,
+      "cache": "off",
+      "cpu_seconds": {
+        "preparation": 0.36775927500000005,
+        "matching": 56.27804451200001,
+        "reduction": 15.337819968999986,
+        "audit": 58.78438381399999,
+        "verification": 2.232262799999999
+      },
+      "cache_stats": {
+        "calls": 2292290,
+        "full_hits": 0,
+        "evictions": 0,
+        "logical_extensions": 1153806,
+        "reused_extensions": 0
+      },
+      "maximum_cache_bytes": 0
+    },
+    {
+      "repetition": 3,
+      "seeds": 1,
+      "cache": "on",
+      "cpu_seconds": {
+        "preparation": 0.3138796089999999,
+        "matching": 3.257689784999999,
+        "reduction": 1.2501997659999997,
+        "audit": 6.177479917000005,
+        "verification": 1.8954060190000004
+      },
+      "cache_stats": {
+        "calls": 189488,
+        "full_hits": 172032,
+        "evictions": 0,
+        "logical_extensions": 98187,
+        "reused_extensions": 29123
+      },
+      "maximum_cache_bytes": 16414853
+    },
+    {
+      "repetition": 3,
+      "seeds": 1,
+      "cache": "off",
+      "cpu_seconds": {
+        "preparation": 0.31942751,
+        "matching": 5.152213219999997,
+        "reduction": 1.3044900949999971,
+        "audit": 6.302405566999994,
+        "verification": 1.895430945
+      },
+      "cache_stats": {
+        "calls": 189488,
+        "full_hits": 0,
+        "evictions": 0,
+        "logical_extensions": 98187,
+        "reused_extensions": 0
+      },
+      "maximum_cache_bytes": 0
+    },
+    {
+      "repetition": 3,
+      "seeds": 2,
+      "cache": "on",
+      "cpu_seconds": {
+        "preparation": 0.3168645910000001,
+        "matching": 6.314337316,
+        "reduction": 2.6169678009999995,
+        "audit": 11.946015706,
+        "verification": 2.064135237
+      },
+      "cache_stats": {
+        "calls": 382892,
+        "full_hits": 347162,
+        "evictions": 0,
+        "logical_extensions": 216248,
+        "reused_extensions": 77205
+      },
+      "maximum_cache_bytes": 49791789
+    },
+    {
+      "repetition": 3,
+      "seeds": 2,
+      "cache": "off",
+      "cpu_seconds": {
+        "preparation": 0.320634054,
+        "matching": 10.259150770999995,
+        "reduction": 2.8201843659999963,
+        "audit": 12.325651082999997,
+        "verification": 2.046022260000001
+      },
+      "cache_stats": {
+        "calls": 382892,
+        "full_hits": 0,
+        "evictions": 0,
+        "logical_extensions": 216248,
+        "reused_extensions": 0
+      },
+      "maximum_cache_bytes": 0
+    },
+    {
+      "repetition": 3,
+      "seeds": 5,
+      "cache": "on",
+      "cpu_seconds": {
+        "preparation": 0.3188760340000004,
+        "matching": 15.555558755000003,
+        "reduction": 6.528181579000003,
+        "audit": 29.103680247000003,
+        "verification": 2.2099914720000013
+      },
+      "cache_stats": {
+        "calls": 1058384,
+        "full_hits": 970702,
+        "evictions": 15138,
+        "logical_extensions": 573941,
+        "reused_extensions": 243973
+      },
+      "maximum_cache_bytes": 67108864
+    },
+    {
+      "repetition": 3,
+      "seeds": 5,
+      "cache": "off",
+      "cpu_seconds": {
+        "preparation": 0.3161930140000003,
+        "matching": 26.594036495999994,
+        "reduction": 6.964242391000009,
+        "audit": 29.766275154,
+        "verification": 2.2043882370000003
+      },
+      "cache_stats": {
+        "calls": 1058384,
+        "full_hits": 0,
+        "evictions": 0,
+        "logical_extensions": 573941,
+        "reused_extensions": 0
+      },
+      "maximum_cache_bytes": 0
+    },
+    {
+      "repetition": 3,
+      "seeds": 10,
+      "cache": "on",
+      "cpu_seconds": {
+        "preparation": 0.33071131500000017,
+        "matching": 31.270705581000005,
+        "reduction": 13.458222774000003,
+        "audit": 58.24863141199999,
+        "verification": 2.226469075000005
+      },
+      "cache_stats": {
+        "calls": 2292290,
+        "full_hits": 2119995,
+        "evictions": 66376,
+        "logical_extensions": 1153806,
+        "reused_extensions": 518328
+      },
+      "maximum_cache_bytes": 67108864
+    },
+    {
+      "repetition": 3,
+      "seeds": 10,
+      "cache": "off",
+      "cpu_seconds": {
+        "preparation": 0.31612064699999987,
+        "matching": 55.10150257099998,
+        "reduction": 14.572648521000023,
+        "audit": 58.787277420999985,
+        "verification": 2.1801911730000008
+      },
+      "cache_stats": {
+        "calls": 2292290,
+        "full_hits": 0,
+        "evictions": 0,
+        "logical_extensions": 1153806,
+        "reused_extensions": 0
+      },
+      "maximum_cache_bytes": 0
+    }
+  ],
+  "ten_seed_cache_speedup": {
+    "median": 1.7578363071020313,
+    "minimum": 1.7418417233326509,
+    "maximum": 1.762080565411978,
+    "repetitions": [
+      1.7418417233326509,
+      1.7578363071020313,
+      1.762080565411978
+    ]
+  },
+  "ten_vs_one_enabled_matching_cpu": {
+    "median": 9.599043384973507,
+    "minimum": 9.563475215542514,
+    "maximum": 9.852120778115156,
+    "repetitions": [
+      9.563475215542514,
+      9.852120778115156,
+      9.599043384973507
+    ]
+  },
+  "ten_vs_one_disabled_matching_cpu": {
+    "median": 10.694724814009158,
+    "minimum": 10.495272927689799,
+    "maximum": 10.886743326571823,
+    "repetitions": [
+      10.495272927689799,
+      10.886743326571823,
+      10.694724814009158
+    ]
+  },
+  "ten_vs_one_enabled_matching_plus_reduction_cpu": {
+    "median": 9.922365632289651,
+    "minimum": 9.880890956780943,
+    "maximum": 10.208686349549335,
+    "repetitions": [
+      9.880890956780943,
+      10.208686349549335,
+      9.922365632289651
+    ]
+  },
+  "reference_checks": {
+    "recovered": 384,
+    "not_recovered": 0,
+    "unknown": 0
+  },
+  "interpretation": "Median and observed range across three repetitions; not confidence intervals. Controls exclude decoding and shared-file cache transport. Cache-off disables completed-fragment retention only; one-seed cache-on already reuses results across cuts."
+}

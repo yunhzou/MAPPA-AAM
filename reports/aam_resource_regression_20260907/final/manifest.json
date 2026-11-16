@@ -1,7 +1,7 @@
 {
-  "before": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_memoryfix833_20260907/before",
-  "after": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_resource_regression_final_20260907/after",
-  "inputs": "/h/399/yunhengzou/coordinate_alignment/data/retro_runs/aam_memory_boundary_20260905/inputs",
+  "before": "private-reference-cbaf5e242c6d6db35f38",
+  "after": "private-reference-224116ae75dd1ed84355",
+  "inputs": "private-reference-f07275e00685e7555432",
   "config": {
     "cut_floor": 0.2,
     "graph_floor": 0.2,
@@ -461,5 +461,9 @@
   "repeats": 3,
   "before_commit": "c2e7efe",
   "after_commit": "e3e8d2f",
-  "note": "Three repetitions, alternating version order on the same allocation; core inputs are 59 augmented inputs from one prior experiment, not 59 independent reactions. Cold means no saved search intermediates, not a flushed OS page cache."
+  "note": "Three repetitions, alternating version order on the same allocation; core inputs are 59 augmented inputs from one prior experiment, not 59 independent reactions. Cold means no saved search intermediates, not a flushed OS page cache.",
+  "privacy_projection": {
+    "original_sha256": "7ee1aad96c63062a586d8e68fc0af0b4c60409e05d61d0d222819edbaa91695c",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

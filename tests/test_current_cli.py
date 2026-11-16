@@ -18,22 +18,29 @@ def endpoints(tmp_path):
     return ['--reactant-npz', str(paths[0]), '--product-npz', str(paths[1])]
 
 
+@pytest.mark.smoke
 def test_default_cli_decodes_without_any_geometry_selection(tmp_path, monkeypatch):
     assert not hasattr(mappa, 'select_rp_mappings')
     output = tmp_path / 'events'
     main([*endpoints(tmp_path), '--output', str(output)])
     record = json.loads((output / 'events.json').read_text())
-    assert record['schema'] == 'mappa.decoded_events/v1'
-    assert record['complete'] and record['minimum_proven']
-    assert record['observed_minimum'] == 0
-    assert len(record['candidates']) == 1
-    assert record['candidates'][0]['events'] == {'broken': [], 'formed': []}
+    assert record['schema'] == 'mappa.decoded_events/v14'
+    assert record['mapping_space_preserved']
+    assert record['event_counts_approximate']
+    assert record['minimum_events'] == 0
+    assert record['event_slack'] == record['event_window'] == 6
+    assert not record['global_minimum_proven']
+    assert 'representatives' not in record
+    assert record['families'] and record['tables'] and record['fragment_responses']
+    assert all(row['response']['fixed_events'] == 0 and not row['response']['pairs']
+               for row in record['fragment_responses'])
     assert (output / 'aam.json').is_file()
     assert (output / 'search.html').is_file()
     assert not (output / 'rp.json').exists()
     assert not (output / 'reaction.json').exists()
 
 
+@pytest.mark.smoke
 def test_raw_cli_does_not_decode(tmp_path, monkeypatch):
     import mappa.cli as cli
     def forbidden(*args, **kwargs):
@@ -59,7 +66,7 @@ def test_legacy_selector_has_no_import_or_compatibility_alias():
     for name in ('align_reaction', 'select_rp_mappings', 'RPResult',
                  'RPMechanism', 'write_rp_bundle', 'reaction_context_from_rp'):
         assert not hasattr(mappa, name)
-    for name in ('mappa.rp', 'mappa.alignment.index_chirality'):
+    for name in ('mappa.rp', 'mappa.alignment'):
         with pytest.raises(ModuleNotFoundError) as exc:
             importlib.import_module(name)
         assert exc.value.name == name
@@ -67,7 +74,7 @@ def test_legacy_selector_has_no_import_or_compatibility_alias():
 
 def test_ts_cli_requires_and_consumes_explicit_reaction(tmp_path, monkeypatch):
     from mappa import cli, ReactionContext
-    from mappa.domain import TSResult
+    from mappa.mappa_workflow.ts_analytics.records import TSResult
     arguments = endpoints(tmp_path)
     reaction = tmp_path / 'reaction.json'
     reaction.write_text(json.dumps({
@@ -105,3 +112,26 @@ def test_cached_ts_utility_requires_explicit_records():
             '--benchmark-root', 'unused', '--output-root', 'unused',
         ])
     assert exc.value.code == 2
+
+
+def test_retired_alignment_and_geometry_selection_are_not_exported():
+    import mappa.mappa_core.domain as structures
+    for name in ('PostAAMSelectionProblem', 'PostAAMMechanism',
+                 'AffineChiralityConstraint', 'FixedMappingRMSD'):
+        assert not hasattr(structures, name)
+    with pytest.raises(ModuleNotFoundError):
+        importlib.import_module('mappa.alignment')
+
+
+def test_removed_mechanism_pipeline_has_no_api_or_options():
+    from mappa import AAMSearchConfig
+    for name in ('group_mechanisms', 'compile_mechanism_families', 'AAMMechanism',
+                 'MechanismResult', 'AnalyticalMechanism', 'AnalyticalAAMResult'):
+        assert not hasattr(mappa, name)
+    with pytest.raises(ModuleNotFoundError) as exc:
+        importlib.import_module('mappa.mechanisms')
+    assert exc.value.name == 'mappa.mechanisms'
+    for option in ('symmetry_repair', 'symmetry_repair_min_changes',
+                   'symmetry_repair_max_evaluations'):
+        with pytest.raises(TypeError, match=option):
+            AAMSearchConfig(**{option: 1})

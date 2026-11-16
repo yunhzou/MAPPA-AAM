@@ -1,0 +1,169 @@
+{
+  "observed_utc": "2026-11-07T00:40:02.553455+00:00",
+  "original_source_commit": "c437ed6fc5fb252c3ebc37c87048825787150678",
+  "corrected_source_commit": "2a06a15042b29c40c615a1a78ee79984a02de301",
+  "corrected_source_identity": "1f423b6f81d3141e2f6e7c38fb6d642da0370b907642af5c7df8e8591a4a4647",
+  "native_engine_unchanged": true,
+  "drained_prior_queues": 36,
+  "full_disjoint_direction_scope": 95948,
+  "preserved_matching_directions": 73628,
+  "rebalanced_untouched_directions": 22320,
+  "input_rows_exactly_preserved": true,
+  "superseded_unstarted_directions_rebalanced_again": 7932,
+  "active_scope_batches": {
+    "original": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39
+    ],
+    "remaining": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "smaller_remaining": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  "counts": {
+    "matching/complete": 95948,
+    "deduplication/complete": 95948
+  },
+  "memory_guard_bytes": 2147483648,
+  "case_seconds": 600,
+  "decode_window_slack": 5,
+  "decoded_started": true,
+  "global_matching_reduction_barrier": true,
+  "original_memory_failures_pending_recovery": 0,
+  "operational_configuration": "Private launch evidence records exact resource requests, source deployment, cancelled owners, immutable input hashes and scheduling reasons.",
+  "previous_observations": [
+    {
+      "utc": "2026-11-07T00:20:37.921909+00:00",
+      "counts": {
+        "deduplication/complete": 73543,
+        "deduplication/error": 85,
+        "matching/complete": 82930
+      },
+      "registered_workers": 298
+    },
+    {
+      "utc": "2026-11-07T00:25:15.347689+00:00",
+      "counts": {
+        "deduplication/complete": 90617,
+        "deduplication/error": 91,
+        "matching/complete": 92001
+      },
+      "active_allocations": 7,
+      "registered_workers": 214,
+      "running_tasks_in_latest_snapshots": 129,
+      "allocated_cpus": 242
+    }
+  ],
+  "recovery": {
+    "original_memory_failed_directions": 95,
+    "recovered_at_4_gib": 92,
+    "recovered_at_8_gib": 3,
+    "unresolved_reduction_directions": 0,
+    "original_and_retry_failure_rows_preserved": 98,
+    "new_compute_budget_seconds": 0,
+    "elapsed_4_gib_seconds": 290.0417128098197,
+    "elapsed_8_gib_seconds": 45.7700442110654
+  },
+  "finish_handoff": {
+    "cases": 47974,
+    "directions": 95948,
+    "batches": 42,
+    "matching_complete": 95948,
+    "reduction_complete": 95948,
+    "imported_scientific_rows": 191896,
+    "imported_scientific_rows_unchanged": true,
+    "original_inputs_unchanged": true,
+    "original_ledgers_unchanged": true,
+    "global_barrier_verified": true,
+    "decoder_source_commit": "2a06a15042b29c40c615a1a78ee79984a02de301",
+    "decoder_source_identity": "1f423b6f81d3141e2f6e7c38fb6d642da0370b907642af5c7df8e8591a4a4647",
+    "ordinary_directions_at_2_gib": 95853,
+    "exception_directions_at_4_gib": 92,
+    "exception_directions_at_8_gib": 3,
+    "case_seconds": 600,
+    "event_slack": 5,
+    "ordering": "Descending saved catalogue bytes, balanced per worker within each memory tier"
+  },
+  "latest_observation": {
+    "utc": "2026-11-07T00:43:18.021569+00:00",
+    "counts": {
+      "decoding/complete": 1441,
+      "decoding/error": 73,
+      "deduplication/complete": 95948,
+      "matching/complete": 95948
+    },
+    "active_allocations": 10,
+    "allocated_cpus": 308,
+    "registered_active_workers": 267,
+    "running_tasks_in_saved_snapshots": 264,
+    "error_states": {
+      "memory_limit": 73
+    },
+    "snapshot_maximum_age_seconds": 21.392844915390015,
+    "verification_started": false,
+    "decoder_failures_are_unresolved": true
+  },
+  "decoder_failure_sample": {
+    "directions_inspected": 16,
+    "phase": "compute",
+    "guard_gib": [
+      2,
+      4
+    ],
+    "outcome": "Memory guard exceeded; these audits alone do not identify the dominant allocation or establish an algorithm defect"
+  }
+}

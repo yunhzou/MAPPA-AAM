@@ -1,0 +1,999 @@
+"""Golden keeps chemical endpoint symmetry and explicit unmatched-atom semantics."""
+from dataclasses import asdict
+import hashlib
+from itertools import permutations
+import json
+from pathlib import Path
+import sqlite3
+import sys
+
+import numpy as np
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'bench'))
+from golden import REFERENCE_POLICY, endpoint_generators
+from enzymemap import run
+from mappa.mappa_core.core.scheduler.bundles import Blob, read_blob
+from mappa.execution import BundleStore
+from test_enzymemap_campaign import prepared_index
+
+
+def test_decoded_reference_check_does_not_accept_a_different_starting_orbit():
+    from mappa import decode_events
+    from golden import verify_catalogue, verify_decoded
+    from test_event_patterns import problem, saved_path
+    from growth_cases import saved_fragment
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    bonds = [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)]
+    endpoints = problem('CCCC', bonds, bonds)
+    fragment = saved_fragment(endpoints)
+    catalogue = FinalBranchCatalogue(endpoints).add_graph(saved_path(endpoints, (fragment,)).graph)
+    decoded = decode_events(catalogue)
+    reference = dict(mapping=list(enumerate((1, 0, 3, 2))),
+                     features=[dict(heavy=list(range(4)))]*2, generators=[(), ()])
+    assert verify_catalogue(catalogue, reference)['status'] == 'recovered'
+    from mappa.mappa_workflow.mapping_analytics.queries import query_catalogue
+    from decoded_reference import replay_catalogue_witness
+    certificate = query_catalogue(catalogue, dict(reference['mapping']))
+    assert certificate['status'] == 'recovered'
+    assert replay_catalogue_witness(decoded, reference, certificate) is None
+    assert verify_decoded(decoded, reference, preferred_family=0)['status'] == 'not_recovered'
+    assert not decoded._tables
+    reference['mapping'] = list(enumerate(range(4)))
+    assert verify_decoded(decoded, reference)['status'] == 'recovered'
+    assert not decoded._tables
+
+
+def test_decoded_reference_keeps_explicit_unmatched_policy_separate():
+    from mappa import decode_events
+    from decoded_reference import verify_decoded
+    from test_event_patterns import problem, saved_path
+    from growth_cases import saved_fragment
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+
+    value = problem('CC', [(0, 1, 1.)], [(0, 1, 1.)])
+    fragment = saved_fragment(value, accepted_edges=((0, 1),))
+    decoded = decode_events(FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph))
+    reference = dict(mapping=[(0, 0)], features=[dict(heavy=[0, 1])]*2)
+    assert verify_decoded(decoded, reference)['status'] == 'not_recovered'
+    del reference['features']
+    for reverse in (False, True):
+        answer = verify_decoded(decoded, reference, reverse=reverse, unmatched_heavy=False)
+        assert answer['status'] == 'recovered'
+        assert dict(answer['evidence']['mapping']) == {0: 0, 1: 1}
+    reference['mapping'] = [(0, 1), (1, 1)]
+    assert verify_decoded(decoded, reference, unmatched_heavy=False)['status'] == 'not_recovered'
+
+
+@pytest.mark.parametrize('reverse', [False, True])
+def test_equivalent_catalogue_hint_does_not_block_exact_decoded_query(reverse):
+    from mappa import decode_events
+    from decoded_reference import replay_catalogue_witness, verify_decoded
+    from mappa.mappa_workflow.mapping_analytics.queries import query_catalogue
+    from test_event_patterns import problem, saved_path
+    from growth_cases import saved_fragment
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+
+    edges = [(0, 1, 1.), (1, 2, 1.), (0, 2, 1.)]
+    value = problem('CCC', edges, edges)
+    fragment = saved_fragment(value)
+    catalogue = FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph)
+    decoded = decode_events(catalogue, event_slack=0)
+    certificate = query_catalogue(catalogue, dict(enumerate(range(3))))
+    reference = dict(mapping=[(0, 1), (1, 2), (2, 0)], features=[dict(heavy=[0, 1, 2])]*2)
+    assert replay_catalogue_witness(decoded, reference, certificate, reverse=reverse) is None
+    answer = verify_decoded(decoded, reference, reverse=reverse)
+    assert answer['status'] == 'recovered'
+    expected = {b: a for a, b in reference['mapping']} if reverse else dict(reference['mapping'])
+    assert dict(answer['evidence']['mapping']) == expected
+    reference['mapping'] = [(0, 0)]
+    assert replay_catalogue_witness(decoded, reference, certificate, reverse=reverse) is None
+    assert verify_decoded(decoded, reference, reverse=reverse)['status'] == 'not_recovered'
+
+
+def test_catalogue_candidate_can_rebase_on_source_symmetry_for_unequal_connectivity():
+    from mappa import decode_events
+    from decoded_reference import replay_catalogue_witness
+    from mappa.mappa_workflow.mapping_analytics.queries import query_catalogue
+    from test_event_patterns import problem, saved_path
+    from growth_cases import saved_fragment
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+
+    value = problem('CCC', [(0, 1, 1.), (1, 2, 1.), (0, 2, 1.)], [(0, 1, 1.), (1, 2, 1.)])
+    fragment = saved_fragment(value)
+    catalogue = FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph)
+    decoded = decode_events(catalogue, event_slack=0)
+    for mapping in permutations(range(3)):
+        reference = dict(mapping=list(enumerate(mapping)), features=[dict(heavy=[0, 1, 2])]*2)
+        certificate = query_catalogue(catalogue, dict(reference['mapping']))
+        assert certificate['status'] == 'recovered'
+        answer = replay_catalogue_witness(decoded, reference, certificate)
+        assert answer['status'] == 'recovered'
+        assert answer['event_count'] == answer['evidence']['physical_event_count'] == 1
+
+
+@pytest.mark.parametrize('kind', ['ring', 'anchored_ring', 'triangle_tail'])
+@pytest.mark.parametrize('slack', [0, 5])
+def test_decoded_verifier_against_exhaustive_binary_symmetry_oracle(kind, slack):
+    from itertools import combinations
+    from mappa import decode_events
+    from golden import verify_decoded
+    from growth_cases import saved_fragment, self_actions
+    from test_event_patterns import problem, saved_path
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from mappa.mappa_core.utils.io.records import decoded_events_from_record, decoded_events_record
+    from mappa.mappa_workflow.mapping_analytics.queries import query_catalogue
+    from decoded_reference import replay_catalogue_witness
+
+    edges = ([(0, 1, 1.), (1, 2, 2.), (2, 3, 1.), (3, 0, 2.)]
+             if 'ring' in kind else [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)])
+    value = problem('CCCC', edges, edges)
+    fragment = saved_fragment(value, accepted_edges=[(a, b) for a, b, _ in edges],
+                              anchors=((0, 0),) if kind == 'anchored_ring' else ())
+    catalogue = FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph)
+    decoded = decoded_events_from_record(decoded_events_record(decode_events(catalogue, event_slack=slack)))
+    selected = dict(decoded.local.prepare(fragment).optimization.discovery_witness)
+    allowed = set()
+    for alpha in self_actions(fragment.source_symmetry):
+        inverse = {b: a for a, b in alpha.items()}
+        for beta in self_actions(fragment.target_symmetry):
+            mapping = tuple(beta[selected[inverse[a]]] for a in range(4))
+            count = sum(abs(value.reactant.wbo[a, b] - value.product.wbo[mapping[a], mapping[b]]) > .5
+                        for a, b in combinations(range(4), 2))
+            if decoded.minimum_lower_bound <= count <= decoded.event_window:
+                allowed.add(mapping)
+    before = json.dumps(decoded_events_record(decoded), sort_keys=True)
+    limited_queries = 0
+    for mapping in permutations(range(4)):
+        reference = dict(mapping=list(enumerate(mapping)), features=[dict(heavy=list(range(4)))]*2)
+        result = verify_decoded(decoded, reference)
+        assert result['status'] == ('recovered' if mapping in allowed else 'not_recovered')
+        certificate = query_catalogue(catalogue, dict(reference['mapping']))
+        if certificate['status'] == 'recovered':
+            replayed = replay_catalogue_witness(decoded, reference, certificate)
+            if replayed is not None:
+                assert mapping in allowed
+                assert dict(replayed['evidence']['mapping']) == dict(enumerate(mapping))
+            if kind == 'ring' and mapping in allowed:
+                assert replayed is not None
+        bounded = verify_decoded(decoded, reference, max_conflicts=1)
+        if bounded['status'] == 'unknown':
+            assert bounded['event_filter']['solver_limited_queries'] > 0
+            limited_queries += 1
+        else:
+            assert bounded['status'] == result['status']
+        if mapping in allowed:
+            proof = result['evidence']
+            assert dict(proof['mapping']) == dict(enumerate(mapping))
+            assert proof['event_count'] == proof['physical_event_count']
+    assert json.dumps(decoded_events_record(decoded), sort_keys=True) == before
+    assert not decoded._tables
+    reference['mapping'] = [(0, 0), (1, 0), (2, 2), (3, 3)]
+    assert verify_decoded(decoded, reference)['status'] == 'not_recovered'
+    assert verify_decoded(decoded, reference, seconds=0)['status'] == 'unknown'
+
+
+def test_decoded_certificate_rejects_forged_mapping_count_and_start():
+    from dataclasses import replace
+    from mappa import decode_events
+    from golden import audit_decoded_witness
+    from growth_cases import saved_fragment
+    from test_event_patterns import problem, saved_path
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+
+    bonds = [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.), (0, 3, 1.)]
+    value = problem('CCCC', bonds, bonds)
+    fragment = saved_fragment(value)
+    decoded = decode_events(FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph))
+    context = decoded.window.contexts[0]
+    reference = dict(mapping=list(enumerate(range(4))), features=[dict(heavy=list(range(4)))]*2)
+    answer = decoded.select(context[0], 0, 6).find(assignments=dict(reference['mapping']))
+    audit_decoded_witness(decoded, reference, context, answer)
+    for forged, message in [
+        (replace(answer, witness=((0, 1), (1, 0), (2, 2), (3, 3))), 'replay differs'),
+        (replace(answer, event_count=5), 'counts differ'),
+        (replace(answer, choices=(dict(answer.choices[0], discovery=dict(enumerate((1, 0, 3, 2)))),)),
+         'different starting orbit'),
+    ]:
+        with pytest.raises(ValueError, match=message):
+            audit_decoded_witness(decoded, reference, context, forged)
+
+
+@pytest.mark.parametrize('sweep', [False, True])
+def test_decoded_reference_counts_model_and_physical_events_separately(sweep):
+    from dataclasses import replace
+    from mappa import decode_events
+    from golden import verify_decoded
+    from growth_cases import saved_fragment
+    from test_event_patterns import problem, saved_path
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    value = problem('CCO', [(0, 1, 1.), (0, 2, 1.)], [(0, 1, 1.), (1, 2, 1.)])
+    fragments = (saved_fragment(value, source_atoms=(0, 1), accepted_edges=((0, 1),)),
+                 saved_fragment(value, source_atoms=(2,)))
+    catalogue = FinalBranchCatalogue(value).add_graph(saved_path(value, fragments).graph)
+    if sweep:
+        catalogue.families[0] = replace(catalogue.families[0], provenance=[dict(cuts=((0, 2),))])
+    decoded = decode_events(catalogue, event_slack=0)
+    reference = dict(mapping=[(0, 1), (1, 0), (2, 2)], features=[dict(heavy=[0, 1, 2])]*2)
+    result = verify_decoded(decoded, reference)
+    assert result['status'] == 'recovered'
+    assert result['evidence']['physical_event_count'] == 0
+    assert result['event_count'] == (0 if sweep else 2)
+
+
+def test_decoded_reference_rejects_forced_events_before_symmetry_query(monkeypatch):
+    from mappa import decode_events
+    from golden import verify_decoded
+    from growth_cases import saved_fragment
+    from test_event_patterns import problem, saved_path
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+
+    # Two exchangeable H have distinct WBOs. Swapping them forces two events;
+    # leaving their correspondence unspecified permits the zero-event witness.
+    bonds = [(0, 1, 1.), (0, 2, 2.)]
+    value = problem('CHH', bonds, bonds)
+    fragment = saved_fragment(value, accepted_edges=((0, 1), (0, 2)))
+    decoded = decode_events(FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph),
+                            event_slack=0)
+    reference = dict(mapping=[(0, 0)], features=[dict(heavy=[0])]*2)
+    assert verify_decoded(decoded, reference)['status'] == 'recovered'
+    reference['mapping'] = [(0, 0), (1, 2), (2, 1)]
+    reference['features'] = [dict(heavy=[0, 1, 2])]*2
+    def forbidden(*args):
+        pytest.fail('Forced events outside the window require no symmetry table')
+    monkeypatch.setattr(decoded, '_prepare_table', forbidden)
+    result = verify_decoded(decoded, reference)
+    assert result['status'] == 'not_recovered'
+    assert result['event_filter']['rejected'] == 1
+    assert result['event_filter']['symmetry_queries'] == 0
+
+
+def test_decoded_reference_respects_joint_placement_partial_mapping_and_reverse():
+    from mappa import decode_events
+    from golden import verify_decoded
+    from test_final_branches import placed_fragment_path
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    value, path = placed_fragment_path()
+    decoded = decode_events(FinalBranchCatalogue(value).add_graph(path.graph))
+    for target in permutations(range(4), 2):
+        reference = dict(mapping=list(zip((0, 1), target)), features=[dict(heavy=list(range(4)))]*2)
+        result = verify_decoded(decoded, reference)
+        assert result['status'] == ('recovered' if set(target) in ({0, 1}, {2, 3}) else 'not_recovered')
+        reference['mapping'] = [(b, a) for a, b in reference['mapping']]
+        reverse = verify_decoded(decoded, reference, reverse=True)
+        assert reverse['status'] == result['status']
+    reference['mapping'] = [(0, 0)]  # An annotated unmatched heavy atom must stay unmatched.
+    assert verify_decoded(decoded, reference)['status'] == 'not_recovered'
+
+
+@pytest.mark.parametrize('catalogue_state', ['complete', 'error', 'missing'])
+def test_saved_decoding_audit_publishes_replayable_proofs_without_changing_source(tmp_path, catalogue_state):
+    from types import SimpleNamespace
+    from mappa import decode_events
+    from golden import audit_decoding
+    from growth_cases import saved_fragment
+    from test_event_patterns import problem, saved_path, raw_record
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from mappa.mappa_core.utils.io.records import decoded_events_record
+
+    value = problem('CHH', [(0, 1, 1.), (0, 2, 1.)], [(0, 1, 1.), (0, 2, 1.)])
+    fragment = saved_fragment(value, accepted_edges=((0, 1), (0, 2)))
+    decoded = decode_events(FinalBranchCatalogue(value).add_graph(saved_path(value, (fragment,)).graph))
+    source = tmp_path/'campaign'; source.mkdir()
+    (source/'result').mkdir()
+    store = BundleStore(source/'bundles')
+    saved = store.put(SimpleNamespace(record=decoded_events_record(decoded)))
+    input_blob = store.put(dict(raw_record(value), name=value.name))
+    from mappa.mappa_workflow.mapping_analytics.queries import query_catalogue
+    catalogue_check = store.put(query_catalogue(decoded.catalogue, {0: 0}))
+    reference = store.put(dict(mapping=[(0, 0)], features=[dict(heavy=[0])]*2))
+    raw = json.dumps(dict(directions=[dict(case=0, reversed=reverse, reference=asdict(reference), input=asdict(input_blob))
+                                     for reverse in (False, True)]))
+    (source/'index.json').write_text(raw)
+    (source/'result/plan.json').write_text(json.dumps(dict(input_index_sha256=hashlib.sha256(raw.encode()).hexdigest())))
+    with sqlite3.connect(source/'result/ledger.sqlite') as db:
+        db.execute('CREATE TABLE results(case_name TEXT,stage TEXT,state TEXT,reference TEXT)')
+        db.executemany('INSERT INTO results VALUES (?,?,?,?)',
+            [(f'00000/{direction}', 'decoding', 'complete', json.dumps(asdict(saved)))
+             for direction in ('forward', 'reverse')])
+        if catalogue_state != 'missing':
+            db.executemany('INSERT INTO results VALUES (?,?,?,?)',
+                [(f'00000/{direction}', 'verification', catalogue_state,
+                  json.dumps(asdict(catalogue_check)) if catalogue_state == 'complete' else None)
+                 for direction in ('forward', 'reverse')])
+    before = {p: p.read_bytes() for p in source.rglob('*') if p.is_file()}
+    report = audit_decoding(source, tmp_path/'audit', workers=1)
+    assert report['complete'] and report['certificate_failures'] == 0
+    assert report['reaction_counts'] == {'recovered': 1}
+    for row in report['results']:
+        proof = read_blob(Blob(**row['certificate_blob']), None)['evidence']
+        assert len(proof['mapping']) == 3  # Unannotated H still has to fit.
+        assert len(set(dict(proof['mapping']).values())) == 3
+        assert proof['event_count'] == proof['physical_event_count'] == 0
+    assert {p: p.read_bytes() for p in source.rglob('*') if p.is_file()} == before
+    if catalogue_state == 'complete':
+        candidate_only = audit_decoding(source, tmp_path/'candidate-only', workers=1, seconds=0)
+        assert candidate_only['status_counts'] == {'recovered': 2}
+        assert all(row['event_filter']['proof_replays'] == 1 for row in candidate_only['results'])
+    from decoded_reference import audit_inputs
+    rows, files, unmatched = audit_inputs(source)
+    manifest = tmp_path/'manifest.json'
+    manifest.write_text(json.dumps(dict(schema='mappa.decoded_reference_inputs/v1',
+        directions=rows, source_files=files, unmatched_heavy=False)))
+    explicit = audit_decoding(manifest, tmp_path/'explicit', workers=1)
+    assert explicit['complete'] and explicit['reaction_counts'] == {'recovered': 1}
+    assert not explicit['unmatched_heavy']
+    source.joinpath('index.json').write_text('changed')
+    with pytest.raises(ValueError, match='Audit source changed'):
+        audit_inputs(manifest)
+    source.joinpath('index.json').write_bytes(before[source/'index.json'])
+    # A separate bounded pass admits only the prior unresolved direction.
+    prior = dict(report, results=[dict(row, status='unknown' if row['reversed'] else 'recovered')
+                                  for row in report['results']])
+    prior_path = tmp_path/'prior-audit.json'
+    prior_path.write_text(json.dumps(prior))
+    continued = audit_decoding(source, tmp_path/'continuation', workers=1, unknown_from=prior_path)
+    assert continued['expected'] == 1 and continued['results'][0]['reversed']
+    assert continued['results'][0]['status'] == 'recovered'
+    assert {p: p.read_bytes() for p in source.rglob('*') if p.is_file()} == before
+
+
+def test_atom_set_reference_constructs_a_full_injective_proof_without_solver(monkeypatch):
+    import golden
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from test_final_branches import independent_path
+    from test_event_patterns import problem
+    value = problem('HHHH', [], [])
+    catalogue = FinalBranchCatalogue(value).add_graph(independent_path((0, 1)).graph)
+    reference = dict(mapping=[(0, 1), (2, 3)], features=[dict(heavy=[0, 2])]*2, generators=[(), ()])
+    def forbidden(*args, **kwargs):
+        pytest.fail('A validated complete atom-set proof needs no assignment solver')
+    monkeypatch.setattr(golden, 'query_path', forbidden)
+    result = golden.verify_catalogue(catalogue, reference)
+    assert result['status'] == 'recovered'
+    actual = dict(result['evidence']['mapping'])
+    assert actual == {0: 1, 1: 0, 2: 3, 3: 2}
+    assert len(set(actual.values())) == 4
+
+
+def test_atom_set_certificate_does_not_replace_joint_global_placement_query():
+    from golden import verify_catalogue, _atom_set_reference
+    from test_final_branches import placed_fragment_path
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    value, path = placed_fragment_path()
+    catalogue = FinalBranchCatalogue(value).add_graph(path.graph)
+    reference = dict(mapping=[(0, 2), (1, 3)], features=[dict(heavy=[0, 1])]*2, generators=[(), ()])
+    assert _atom_set_reference(catalogue.families[0], value, dict(reference['mapping']), (0, 1)) is None
+    result = verify_catalogue(catalogue, reference)
+    assert result['status'] == 'recovered'
+    assert dict(result['evidence']['mapping']) == {0: 2, 1: 3}
+
+
+def test_reference_view_preserves_selected_native_atoms_and_unmatched_boundaries(tmp_path, monkeypatch):
+    import mappa
+    import golden
+    from mappa.presentation.viewers import comparison_document
+
+    def endpoint(elements, coordinates, bonds):
+        weights = np.zeros((len(elements), len(elements)))
+        for a, b, value in bonds:
+            weights[a, b] = weights[b, a] = value
+        return dict(elements=elements, coordinates=coordinates, wbo=weights.tolist())
+
+    reactant = endpoint(['H', 'C', 'O', 'H', 'N', 'F'],
+        [[-.2, 0., .3], [0., 0., 0.], [1.1, .2, -.1],
+         [2.2, .4, 0.], [.1, 1.2, .9], [1.5, 1.1, -.4]],
+        [(0, 1, 1.), (1, 2, 1.), (2, 3, 1.), (1, 4, 1.), (2, 5, 1.)])
+    product = endpoint(['O', 'H', 'C', 'H', 'Cl', 'N'],
+        [[5., 1.3, .5], [2., -.4, .1], [3., .2, .4],
+         [6., 1., -.2], [4., 1.2, 1.5], [2.3, 1.1, -.6]],
+        [(1, 2, 1.), (0, 3, 1.), (2, 4, 1.), (2, 5, 2.), (0, 4, 1.)])
+    source = tmp_path/'prepared'
+    store = BundleStore(source)
+    input_blob = store.put(dict(reactant=reactant, product=product))
+    reference_blob = store.put(dict(mapping=[(1, 2), (4, 5)],
+        features=[dict(heavy=[1, 2, 4, 5]), dict(heavy=[0, 2, 4, 5])]))
+    unreadable = dict(path=str(source/'not-selected.bundle'), offset=0, size=1, sha256='a'*64)
+    index = source/'index.json'
+    index.write_text(json.dumps(dict(directions=[
+        dict(case=99, reversed=False, input=unreadable, reference=unreadable),
+        dict(case=17, reversed=True, input=unreadable, reference=unreadable),
+        dict(case=17, reversed=False, input=asdict(input_blob), reference=asdict(reference_blob))])))
+    original = {p: p.read_bytes() for p in source.rglob('*') if p.is_file()}
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError('Viewing a saved reference must not run mapping, decoding or verification')
+
+    monkeypatch.setattr(mappa, 'search_aam', forbidden)
+    monkeypatch.setattr(mappa, 'decode_events', forbidden)
+    monkeypatch.setattr(golden, 'query_path', forbidden)
+    cases = golden.reference_view_cases(index, [17], geometry_cache=tmp_path/'geometry')
+    assert [case['index'] for case in cases] == [17]
+    case = cases[0]
+    for shown, native, heavy in zip(case['endpoints'], (reactant, product),
+                                    ([1, 2, 4, 5], [0, 2, 4, 5])):
+        assert shown['atom_indices'] == heavy
+        assert shown['elements'] == [native['elements'][i] for i in heavy]
+        assert shown['coordinates'] == [native['coordinates'][i] for i in heavy]
+        assert shown['wbo'] == np.asarray(native['wbo'])[np.ix_(heavy, heavy)].tolist()
+    record, = case['records']
+    assert dict(record['mapping']) == {0: 1, 2: 3}
+    assert {e['kind']: (e['r'], e['p'], e['wbo']) for e in record['events']} == {
+        'broken': ([0, 1], [1], [1., None]),
+        'formed': ([0], [1, 2], [None, 1.]),
+        'strengthened': ([0, 2], [1, 3], [1., 2.]),
+    }
+    assert len(record['events']) == 3  # Wholly unmatched bonds create no correspondence.
+    assert record['provenance']['input_sha256'] == input_blob.sha256
+    assert record['provenance']['reference_sha256'] == reference_blob.sha256
+    assert record['provenance']['geometry'] == [dict(source='native', display_only=False)]*2
+    shown = comparison_document(case)
+    assert shown['reactant']['atom_indices'] == [1, 2, 4, 5]
+    assert shown['product']['atom_indices'] == [0, 2, 4, 5]
+    assert shown['mechanisms'][0]['product_xyz_in_R_aligned'] is None
+    assert shown['mechanisms'][0]['broken_bonds_R'] == [[0, 1]]
+    assert shown['mechanisms'][0]['formed_bonds_P'] == [[1, 2]]
+    from tools.render_mapping_comparison import render
+
+    case['note'] = 'Saved reference note; no inferred search settings.'
+    case['recovery'] = [dict(seeds=10, status='represented')]
+    comparison = tmp_path/'comparison.json'
+    comparison.write_text(json.dumps(cases))
+    html = tmp_path/'view.html'
+    assert render(comparison, html) == 1
+    assert case['note'] in html.read_text()
+    assert {p: p.read_bytes() for p in source.rglob('*') if p.is_file()} == original
+
+
+def decoding_campaign(tmp_path):
+    """Archived stage metadata; catalogue files deliberately do not exist."""
+    from prepare_batches import prepare_fresh
+    from mappa import AAMSearchConfig
+
+    config = asdict(AAMSearchConfig(seed_count=1, branch_limit=2000))
+    rows = [dict(case=case, reversed=reverse,
+                 input=dict(path=str(tmp_path/'unopened-input.bundle'), offset=case*20,
+                            size=10, sha256='a'*64),
+                 reference=dict(path=str(tmp_path/'unopened-reference.bundle'), offset=0,
+                                size=10, sha256='b'*64))
+            for case in range(3) for reverse in (False, True)]
+    index = tmp_path/'original-index.json'
+    index.write_text(json.dumps(dict(config=config, directions=rows)))
+    source = tmp_path/'source'
+    prepare_fresh([index], source, workers=[1, 1])
+    (source/'launch.json').write_text(json.dumps(dict(source_commit='a'*40, source_identity='c'*64)))
+    for batch in range(2):
+        folder = source/str(batch)
+        data = json.loads((folder/'index.json').read_text())
+        output = folder/'result'; output.mkdir()
+        store = BundleStore(output/'bundles')
+        (output/'bundles/cache').mkdir()
+        (output/'bundles/cache/.owner.lock').touch()
+        with sqlite3.connect(output/'bundles/queue.sqlite') as queue:
+            queue.execute('CREATE TABLE tasks (key TEXT)')
+            queue.execute('CREATE TABLE attempts (key TEXT)')
+        plan = dict(input_index=str(folder/'index.json'),
+            input_index_sha256=hashlib.sha256((folder/'index.json').read_bytes()).hexdigest(),
+            config=config, cases=len({r['case'] for r in data['directions']}),
+            directions=len(data['directions']))
+        (output/'plan.json').write_text(json.dumps(plan))
+        (output/'progress.json').write_text(json.dumps(dict(source='c'*64)))
+        with sqlite3.connect(output/'ledger.sqlite') as ledger:
+            ledger.execute('CREATE TABLE results (case_name TEXT,stage TEXT,state TEXT,reference TEXT,audit TEXT,error TEXT,PRIMARY KEY(case_name,stage))')
+            ledger.execute('CREATE TABLE retries (utc REAL,reason TEXT,case_name TEXT,stage TEXT,state TEXT,reference TEXT,audit TEXT,error TEXT)')
+            for row in data['directions']:
+                name = f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}"
+                catalogue = dict(path=str(tmp_path/'unopened-catalogue.bundle'),
+                    offset=100*row['case']+int(row['reversed']), size=100+row['case'], sha256='d'*64)
+                for stage in ('matching', 'deduplication'):
+                    ledger.execute('INSERT INTO results VALUES (?,?,?,?,?,?)',
+                                   (name, stage, 'complete', json.dumps(catalogue), None, None))
+                state = 'memory_limit' if name == '00000/forward' else 'complete'
+                attempts = [(None, None, None, None, None, state)]
+                if name == '00002/reverse':
+                    attempts.insert(0, (None, None, None, None, None, 'memory_limit'))
+                audit = store.put(dict(tasks=[(name, None, None, None, state)], attempts=attempts))
+                ledger.execute('INSERT INTO results VALUES (?,?,?,?,?,?)',
+                    (name, 'decoding', 'error' if state == 'memory_limit' else 'complete',
+                     None if state == 'memory_limit' else json.dumps(catalogue),
+                     json.dumps(asdict(audit)), json.dumps({name: state}) if state == 'memory_limit' else None))
+                if name == '00001/reverse':
+                    previous = store.put(dict(tasks=[(name, None, None, None, 'memory_limit')], attempts=[]))
+                    ledger.execute('INSERT INTO retries VALUES (?,?,?,?,?,?,?,?)',
+                        (1., 'resource retry', name, 'decoding', 'error', None,
+                         json.dumps(asdict(previous)), json.dumps({name: 'memory_limit'})))
+    return source
+
+
+def test_fresh_decoding_batches_preserve_full_scope_and_prior_memory_failures(tmp_path):
+    from prepare_batches import prepare_decoding
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+
+    source = decoding_campaign(tmp_path)
+    before = {str(p): hashlib.sha256(p.read_bytes()).hexdigest()
+              for p in source.rglob('*') if p.is_file()}
+    output = tmp_path/'decoded'
+    manifest = prepare_decoding(source, output, [2, 1], memory_failures_workers=[1],
+                                decode_config=EventDecodeConfig(.7, .4))
+    assert manifest['cases'] == 3 and manifest['directions'] == 6
+    assert manifest['imported_stage_results'] == 0 and manifest['reused_catalogues'] == 6
+    assert manifest['prior_memory_failure_directions'] == ['00000/forward', '00001/reverse', '00002/reverse']
+    assert manifest['decode_config'] == dict(threshold=.7, metal_threshold=.4, event_slack=6, fragment_seconds=5.)
+    assert manifest['decoding_source']['source_commit'] == 'a'*40
+    assert manifest['decoding_source']['source_identity'] == 'c'*64
+    batches = [json.loads((output/str(i)/'index.json').read_text()) for i in range(3)]
+    rows = [row for batch in batches for row in batch['directions']]
+    assert {(r['case'], r['reversed']) for r in rows} == {(i, r) for i in range(3) for r in (False, True)}
+    assert len(rows) == 6
+    assert {(r['case'], r['reversed']) for r in batches[2]['directions']} == {(0, False), (1, True), (2, True)}
+    assert [r['resource_group'] for r in manifest['batches']] == ['ordinary', 'ordinary', 'memory_failures']
+    original = { (r['case'],r['reversed']):r for r in json.loads((tmp_path/'original-index.json').read_text())['directions'] }
+    for row in rows:
+        assert {key: value for key, value in row.items() if key != 'catalogue'} == original[row['case'],row['reversed']]
+        assert row['catalogue']['sha256'] == 'd'*64
+    for batch in manifest['batches']:
+        raw = (output/str(batch['batch'])/'index.json').read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == batch['index_sha256']
+    assert not list(output.rglob('*.sqlite')) and not list(output.rglob('*.bundle'))
+    assert {str(p): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in source.rglob('*') if p.is_file()} == before
+    with pytest.raises(FileExistsError):
+        prepare_decoding(source, output, [1])
+    with pytest.raises(ValueError, match='separate output'):
+        prepare_decoding(source, source/'nested', [1])
+
+
+@pytest.mark.parametrize('corruption', ['matching', 'deduplication', 'source_index', 'batch_index',
+                                        'config', 'identity', 'missing_batch', 'retry_scope'])
+def test_fresh_decoding_rejects_changed_or_incomplete_source_before_output(tmp_path, corruption):
+    from prepare_batches import prepare_decoding
+
+    source = decoding_campaign(tmp_path)
+    result = source/'0/result'
+    if corruption in ('matching', 'deduplication'):
+        with sqlite3.connect(result/'ledger.sqlite') as db:
+            db.execute("UPDATE results SET state='error' WHERE stage=?", (corruption,))
+    elif corruption == 'source_index':
+        with (tmp_path/'original-index.json').open('a') as stream:
+            stream.write(' ')
+    elif corruption == 'batch_index':
+        with (source/'0/index.json').open('a') as stream:
+            stream.write(' ')
+    elif corruption == 'config':
+        path = result/'plan.json'; value = json.loads(path.read_text())
+        value['config']['seed_count'] = 10; path.write_text(json.dumps(value))
+    elif corruption == 'identity':
+        (result/'progress.json').write_text(json.dumps(dict(source='wrong')))
+    elif corruption == 'missing_batch':
+        path = source/'manifest.json'; value = json.loads(path.read_text())
+        value['batches'].pop(); path.write_text(json.dumps(value))
+    elif corruption == 'retry_scope':
+        with sqlite3.connect(result/'ledger.sqlite') as db:
+            db.execute('INSERT INTO retries VALUES (?,?,?,?,?,?,?,?)',
+                       (1., 'invalid', '99999/forward', 'decoding', 'error', None, None, None))
+    output = tmp_path/'decoded'
+    with pytest.raises(ValueError):
+        prepare_decoding(source, output, [1])
+    assert not output.exists()
+
+
+@pytest.mark.parametrize('ownership', ['lock', 'tasks', 'attempts'])
+def test_fresh_decoding_rejects_active_or_unarchived_source(tmp_path, ownership):
+    import fcntl
+    from prepare_batches import prepare_decoding
+
+    source = decoding_campaign(tmp_path)
+    result = source/'0/result/bundles'
+    with (result/'cache/.owner.lock').open('rb') as owner:
+        if ownership == 'lock':
+            fcntl.flock(owner, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        else:
+            with sqlite3.connect(result/'queue.sqlite') as queue:
+                queue.execute(f'INSERT INTO {ownership} VALUES (?)', ('unarchived',))
+        with pytest.raises((RuntimeError, ValueError), match='active coordinator|drained saved queue'):
+            prepare_decoding(source, tmp_path/'decoded', [1])
+    assert not (tmp_path/'decoded').exists()
+
+
+def comparison_index(tmp_path):
+    from mappa.mappa_core.utils.io.records import endpoint_record
+    from test_fragment_conversion import endpoint
+
+    store = BundleStore(tmp_path/'prepared')
+    left = endpoint('CO', [(0, 1, 3.)])
+    right = endpoint('CO', [(0, 1, 1.)])
+    reference = store.put(dict(mapping=[(0, 0), (1, 1)],
+        features=[dict(heavy=[0, 1])]*2, generators=[(), ()]))
+    rows = []
+    for reverse in (False, True):
+        source, target = (right, left) if reverse else (left, right)
+        original = store.put(dict(name='triple-to-single',
+            reactant=endpoint_record(source), product=endpoint_record(target)))
+        row = dict(case=0, reversed=reverse, input=asdict(original), reference=asdict(reference))
+        rows.append(row)
+    index = tmp_path/'index.json'
+    index.write_text(json.dumps(dict(directions=rows, verification='golden:verify',
+                                    reference_policy=REFERENCE_POLICY)))
+    return index
+
+
+def test_binary_comparison_uses_the_matching_floor_without_mutating_original_weights():
+    from golden import comparison_problem
+    from mappa import AAMProblem
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from test_fragment_conversion import endpoint
+
+    below, above = np.nextafter(.2, 0.), np.nextafter(.2, 1.)
+    source = endpoint('CONH', [(0, 1, below), (0, 2, .2), (1, 2, above), (2, 3, 3.)])
+    target = endpoint('CONH', [(0, 1, 3.), (0, 2, above), (1, 2, .2), (2, 3, below)])
+    original = AAMProblem(source, target)
+    original_hash = FinalBranchCatalogue(original).problem_sha256
+    before = [ep.wbo.copy() for ep in (source, target)]
+    binary = comparison_problem(original, 'binary_iso1')
+    weighted = comparison_problem(original, 'weighted_iso10')
+    expected_source = np.asarray([[0, 0, 1, 0], [0, 0, 1, 0], [1, 1, 0, 1], [0, 0, 1, 0]])
+    expected_target = np.asarray([[0, 1, 1, 0], [1, 0, 1, 0], [1, 1, 0, 0], [0, 0, 0, 0]])
+    assert np.array_equal(binary.reactant.wbo, expected_source)
+    assert np.array_equal(binary.product.wbo, expected_target)
+    for raw, transformed, unchanged, weights in zip(
+            (source, target), (binary.reactant, binary.product),
+            (weighted.reactant, weighted.product), before):
+        assert transformed.elements == raw.elements
+        assert np.array_equal(transformed.coordinates, raw.coordinates)
+        assert np.array_equal(raw.wbo, weights)
+        assert np.array_equal(unchanged.wbo, weights)
+    assert FinalBranchCatalogue(original).problem_sha256 == original_hash
+    assert FinalBranchCatalogue(weighted).problem_sha256 == original_hash
+    assert FinalBranchCatalogue(binary).problem_sha256 != original_hash
+
+
+def test_two_arm_pipeline_preserves_event_weights_barrier_and_terminal_failure_budgets(tmp_path):
+    from golden import COMPARISON_ARMS, compare
+    from mappa.mappa_core.post_processing.decoder.events import EVENT_CATEGORIES
+    from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue
+    from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+    from mappa.mappa_core.utils.io.records import problem_from_record
+
+    index = comparison_index(tmp_path)
+    inputs = json.loads(index.read_text())['directions']
+    input_files = {Path(row[field]['path']) for row in inputs for field in ('input', 'reference')}
+    original_hashes = {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in input_files}
+    output = tmp_path/'comparison'
+    options = dict(workers=2, window=2, memory_bytes=2*2**30, stage_seconds=60., cases=[0])
+    report = compare(index, output, **options)
+    assert report['complete']
+    assert report['terminal_stage_rows'] == report['expected_stage_rows'] == 12
+    assert report['case_outcomes'] == {arm: {'recovered': 1} for arm in COMPARISON_ARMS}
+    store = BundleStore(output/'bundles')
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        rows = {(name, stage): (state, reference, audit) for name, stage, state, reference, audit
+                in db.execute('SELECT case_name,stage,state,reference,audit FROM results')}
+    attempts = {stage: [] for stage in ('matching', 'decoding', 'verification')}
+    for (name, stage), (state, _, raw_audit) in rows.items():
+        assert state == 'complete'
+        audit = store.load(Blob(**json.loads(raw_audit)))
+        assert len(audit['attempts']) == 1
+        attempt, = audit['attempts']
+        assert attempt[3] <= attempt[4] and attempt[5] == 'complete'
+        attempts[stage].append(attempt)
+        task, = audit['tasks']
+        specification = _loads_checkpoint(task[1])
+        assert specification.memory_bytes == options['memory_bytes']
+        assert specification.case_seconds == options['stage_seconds']
+    assert max(row[4] for row in attempts['matching']) <= min(row[3] for row in attempts['decoding'])
+    assert max(row[4] for row in attempts['decoding']) <= min(row[3] for row in attempts['verification'])
+
+    for row in inputs:
+        reverse = row['reversed']
+        original = problem_from_record(read_blob(Blob(**row['input']), None))
+        event_hash = FinalBranchCatalogue(original).problem_sha256
+        direction = 'reverse' if reverse else 'forward'
+        category = 'strengthening' if reverse else 'weakening'
+        for arm in COMPARISON_ARMS:
+            name = f'{arm}/00000/{direction}'
+            def stage_value(stage):
+                return store.load(Blob(**json.loads(rows[name, stage][1])))
+            matched, decoded, verified = (stage_value(stage) for stage in attempts)
+            saved = store.load(Blob(**matched['catalogue']))
+            assert matched['original_input'] == row['input']
+            assert saved.search_config.seed_count == 1
+            assert saved.search_config.branch_limit == 2000
+            assert saved.search_config.iso_tolerance == (1. if arm == 'binary_iso1' else 10.)
+            assert saved.scope and all(cut.seeds == (0,) for cut in saved.scope)
+            assert verified['verification']['status'] == 'recovered'
+            assert verified['verification']['policy'] == REFERENCE_POLICY
+            record = store.load(Blob(**decoded['decoded'])).record
+            assert decoded['event_problem_sha256'] == event_hash
+            assert decoded['matching_problem_sha256'] == saved.catalogue.problem_sha256
+            assert record['schema'] == 'mappa.decoded_events/v14'
+            assert record['event_counts_approximate']
+            assert record['minimum_events'] == 1
+            assert record['event_slack'] == 6 and record['event_window'] == 7
+            event_record = record['event_problem'] if arm == 'binary_iso1' else record['problem']
+            assert np.array_equal(event_record['reactant']['wbo'], original.reactant.wbo)
+            assert np.array_equal(event_record['product']['wbo'], original.product.wbo)
+            assert record['catalogue'] == saved.catalogue.to_record()
+            family = verified['verification']['family']
+            # Restore the saved shared response; this is not another decode.
+            from mappa.mappa_core.utils.io.records import decoded_events_from_record
+            restored = decoded_events_from_record(record)
+            for fid, partition, cut in restored.window.contexts:
+                if fid != family:
+                    continue
+                detail = restored.contributions(fid, partition=partition, cut=cut, include_events=True)
+                assert detail['total'] == 1
+                assert detail['events'][0]['category'] == category
+                assert tuple(detail['events'][0]['reactant_pair']) == (0, 1)
+    assert {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in input_files} == original_hashes
+
+    # An empty checkpoint may predate admitted work. Only a deliberate drain
+    # permits resume; refusal must leave the saved queue and ledger untouched.
+    progress_path = output/'progress.json'
+    progress = json.loads(progress_path.read_text())
+    assert progress['drained']
+    progress_path.write_text(json.dumps(dict(progress, drained=False)))
+    before_refusal = {path: path.read_bytes() for path in
+                      (output/'ledger.sqlite', output/'bundles/queue.sqlite', progress_path)}
+    with pytest.raises(ValueError, match='drain'):
+        compare(index, output, resume=True, **options)
+    assert {path: path.read_bytes() for path in before_refusal} == before_refusal
+    progress_path.write_text(json.dumps(progress))
+
+    # Seed terminal failures in archived evidence instead of exhausting real
+    # memory or time. Resume must retain their attempts and spent budgets.
+    failures = [('binary_iso1/00000/forward', 'decoding', 'memory_limit', 17.),
+                ('weighted_iso10/00000/reverse', 'verification', 'timeout', 60.)]
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        for name, stage, failure, spent in failures:
+            audit = store.load(Blob(**json.loads(rows[name, stage][2])))
+            audit['tasks'] = [tuple(failure if i == 4 else v for i, v in enumerate(task))
+                              for task in audit['tasks']]
+            audit['attempts'] = [tuple(failure if i == 5 else v for i, v in enumerate(attempt))
+                                 for attempt in audit['attempts']]
+            budget = list(audit['case']); budget[3] = spent
+            audit['case'] = tuple(budget)
+            db.execute("UPDATE results SET state='error',reference=NULL,audit=?,error=? WHERE case_name=? AND stage=?",
+                       (json.dumps(asdict(store.put(audit))), json.dumps({'state': failure}), name, stage))
+        db.execute("DELETE FROM results WHERE case_name='binary_iso1/00000/forward' AND stage='verification'")
+        before = {(row[0], row[1]): row for row in db.execute('SELECT * FROM results')}
+    resumed = compare(index, output, resume=True, **options)
+    assert not resumed['complete'] and resumed['terminal_stage_rows'] == 12
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        after = {(row[0], row[1]): row for row in db.execute('SELECT * FROM results')}
+        assert db.execute('SELECT count(*) FROM retries').fetchone()[0] == 0
+    assert {key: after[key] for key in before} == before
+    assert set(after)-set(before) == {('binary_iso1/00000/forward', 'verification')}
+    verified = store.load(Blob(**json.loads(after['binary_iso1/00000/forward', 'verification'][3])))
+    assert verified['verification']['status'] == 'recovered'
+    for name, stage, failure, spent in failures:
+        audit = store.load(Blob(**json.loads(after[name, stage][4])))
+        assert audit['case'][3] == spent
+        assert len(audit['attempts']) == 1 and audit['attempts'][0][5] == failure
+    with sqlite3.connect(output/'bundles/queue.sqlite') as db:
+        assert db.execute('SELECT count(*) FROM tasks').fetchone()[0] == 0
+        assert db.execute('SELECT count(*) FROM attempts').fetchone()[0] == 0
+
+
+def test_endpoint_group_matches_independent_colored_graph_permutations():
+    heavy = [0, 2, 4, 5]
+    feature = dict(heavy=heavy, colors=[['C'], ['O'], ['C'], ['O']],
+        bonds=[[0, 1, [1]], [1, 2, [1]], [2, 3, [1]], [3, 0, [1]]])
+    generators = endpoint_generators(feature, 6)
+    identity = tuple(range(6))
+    group, pending = {identity}, [identity]
+    while pending:
+        current = pending.pop()
+        for generator in generators:
+            moved = tuple(generator[a] for a in current)
+            if moved not in group:
+                group.add(moved); pending.append(moved)
+    edges = {frozenset((a, b)) for a, b, _ in feature['bonds']}
+    expected = set()
+    for permutation in permutations(range(4)):
+        if any(feature['colors'][a] != feature['colors'][permutation[a]] for a in range(4)):
+            continue
+        if {frozenset((permutation[a], permutation[b])) for a, b, _ in feature['bonds']} != edges:
+            continue
+        lifted = list(identity)
+        for a, b in enumerate(permutation):
+            lifted[heavy[a]] = heavy[b]
+        expected.add(tuple(lifted))
+    assert group == expected
+    assert all(g[1] == 1 and g[3] == 3 for g in group)
+
+
+@pytest.mark.parametrize('omit_atom', [False, True])
+def test_direct_inputs_and_golden_unmatched_policy_across_complete_pipeline(tmp_path, omit_atom):
+    index = prepared_index(tmp_path)
+    data = json.loads(index.read_text())
+    store = BundleStore(tmp_path/'prepared')
+    mapping = [(i, i) for i in range(1 if omit_atom else 0, 4)]
+    reference = store.put(dict(mapping=mapping, features=[dict(heavy=list(range(4)))]*2,
+                              generators=[(), ()]))
+    for row in data['directions']:
+        preparation = read_blob(Blob(**row.pop('blob')), None)
+        row['input'] = asdict(preparation[0].payload['input'])
+        row['reference'] = asdict(reference)
+    data.update(verification='golden:verify', reference_policy=REFERENCE_POLICY)
+    index.write_text(json.dumps(data))
+    output = tmp_path/'result'
+    assert run(index, output, local=True, workers=2, memory_bytes=2*2**30)['finished']
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        rows = db.execute("SELECT reference FROM results WHERE stage='verification'").fetchall()
+    for raw, in rows:
+        result = store.load(Blob(**json.loads(raw)))
+        assert result['status'] == ('not_recovered' if omit_atom else 'recovered')
+        assert result['policy'] == REFERENCE_POLICY
+
+
+@pytest.mark.parametrize('change,expected', [
+    (None, 'equal'), ('record', 'different'), ('metadata', 'different'),
+    ('missing_baseline', 'previously_missing'), ('missing_candidate', 'candidate_error')])
+def test_decoding_audit_hashes_complete_records_and_releases_old_before_loading_new(change, expected):
+    import weakref
+    import performance
+    from mappa import AAMSearchConfig
+    from mappa.mappa_core.core.scheduler.results import CutScope, DecodingResult, MatchingResult
+    from mappa.mappa_core.post_processing.decoder.records import EventDecodeConfig
+
+    references = {name: Blob('unused.bundle', i, 1, str(i)*64)
+                  for i, name in enumerate(('matching', 'baseline', 'candidate'))}
+    scope = (CutScope(0, (), (0, 1)),)
+    config = AAMSearchConfig(seed_count=2)
+    record = dict(schema='audit-test', tables=[dict(boundary=[[0, 1, .5], [2, 3, .7]])])
+    payload = dict(case='00000/forward', matching=asdict(references['matching']),
+        search_config=json.loads(json.dumps(asdict(config))), decode_config=asdict(EventDecodeConfig()),
+        runner_sha256=hashlib.sha256(Path(performance.__file__).read_bytes()).hexdigest())
+    for arm in ('baseline', 'candidate'):
+        missing = change == 'missing_'+arm
+        payload[arm] = None if missing else asdict(references[arm])
+        payload[arm+'_state'] = 'error' if missing else 'complete'
+
+    class Workspace:
+        old = None
+        def load(self, reference):
+            if reference == references['matching']:
+                return MatchingResult(payload['case'], reference, scope, ())
+            candidate = reference == references['candidate']
+            if candidate and self.old is not None:
+                assert self.old() is None, 'Old decoded artifact is still resident'
+            value = json.loads(json.dumps(record))
+            if candidate and change == 'record':
+                value['tables'][0]['boundary'][1][2] = .8
+            stops = (('capped', 1),) if candidate and change == 'metadata' else ()
+            saved = DecodingResult(payload['case'], EventDecodeConfig(), scope, stops,
+                                   value, config, 'reused_native')
+            if not candidate:
+                self.old = weakref.ref(saved)
+            return saved
+
+    result = performance.audit_decoding_direction(payload, Workspace())
+    assert result['status'] == expected
+    if result['baseline']:
+        canonical = json.dumps(record, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()
+        assert result['baseline']['record_sha256'] == hashlib.sha256(canonical).hexdigest()
+        assert result['baseline']['canonical_record_bytes'] == len(canonical)
+    if change == 'metadata':
+        assert result['baseline']['record_sha256'] == result['candidate']['record_sha256']
+        assert result['baseline']['metadata_sha256'] != result['candidate']['metadata_sha256']
+
+
+def test_decoding_audit_hashes_arrays_and_lists_identically():
+    import numpy as np
+    from performance import canonical_digest
+    matrix = np.array([[0., 1.25], [1.25, 0.]])
+    expected = canonical_digest(dict(weights=matrix.tolist()))
+    assert canonical_digest(dict(weights=matrix)) == expected
+    matrix[0, 1] = 1.5
+    assert canonical_digest(dict(weights=matrix)) != expected
+
+
+def test_decoding_audit_real_stage_outputs_resume_and_changed_source_rejection(tmp_path):
+    from performance import audit_decoding, decoding_timings
+    from prepare_batches import prepare_decoding, prepare_fresh
+    from mappa.execution.identity import code_identity
+
+    index = prepared_index(tmp_path)
+    data = json.loads(index.read_text())
+    data['decode_config'] = dict(threshold=.5, metal_threshold=.3, event_slack=5, fragment_seconds=5.)
+    index.write_text(json.dumps(data))
+    baseline = tmp_path/'baseline'
+    prepare_fresh([index], baseline, [1])
+    (baseline/'launch.json').write_text(json.dumps(dict(source_commit='a'*40, source_identity=code_identity())))
+    assert run(baseline/'0/index.json', baseline/'0/result', local=True, workers=1,
+               memory_bytes=2**30, stop_after='decoding')['pass_finished'] == 'decoding'
+    candidate = tmp_path/'candidate'
+    manifest = prepare_decoding(baseline, candidate, [1])
+    assert manifest['decode_config'] == data['decode_config']
+    (candidate/'launch.json').write_text(json.dumps(dict(source_commit='b'*40, source_identity=code_identity())))
+    assert run(candidate/'0/index.json', candidate/'0/result', local=True, workers=1,
+               memory_bytes=2**30, decode_only=True)['pass_finished'] == 'decoding'
+    timings = decoding_timings(candidate)
+    assert timings['terminal_directions'] == 2
+    assert timings['status_counts'] == {'complete': 2}
+    assert timings['successful_reactions'] == 1
+    assert timings['direction']['compute_seconds']['maximum'] == max(
+        row['compute_seconds'] for row in timings['records'])
+    assert timings['reaction']['cpu_seconds']['total'] == sum(
+        row['cpu_seconds'] for row in timings['records'])
+    frozen = {path: hashlib.sha256(path.read_bytes()).hexdigest()
+              for source in (baseline, candidate) for path in source.rglob('*') if path.is_file()}
+    output = tmp_path/'audit'
+    report = audit_decoding(baseline, candidate, output, workers=1,
+                            memory_bytes=2**30, task_seconds=60.)
+    assert report['complete'] and report['terminal_complete']
+    assert report['status_counts'] == {'equal': 2}
+    assert report['sources']['candidate'] == dict(source_commit='b'*40, source_identity=code_identity())
+    assert report['baseline_states'] == report['candidate_states'] == {'complete': 2}
+    assert {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in frozen} == frozen
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        rows = db.execute('SELECT * FROM results').fetchall()
+    bundles = {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in (output/'bundles').glob('*.bundle')}
+    assert audit_decoding(baseline, candidate, output, workers=1, memory_bytes=2**30,
+                          task_seconds=60., resume=True)['complete']
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        assert db.execute('SELECT * FROM results').fetchall() == rows
+    assert {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in bundles} == bundles
+    with (candidate/'0/result/ledger.sqlite').open('ab') as stream:
+        stream.write(b'changed-after-audit')
+    with pytest.raises(ValueError, match='sources, implementation or budgets changed'):
+        audit_decoding(baseline, candidate, output, memory_bytes=2**30, task_seconds=60., resume=True)
+
+
+def test_decoding_audit_plans_missing_baseline_outputs_and_rejects_incomplete_candidate(tmp_path):
+    from performance import decoding_audit_plan
+    from prepare_batches import prepare_decoding
+
+    source = decoding_campaign(tmp_path)
+    target = tmp_path/'target'
+    manifest = prepare_decoding(source, target, [1])
+    (target/'launch.json').write_text(json.dumps(dict(source_commit='b'*40, source_identity='e'*64)))
+    folder = target/'0'; index = json.loads((folder/'index.json').read_text())
+    output = folder/'result'; output.mkdir(); (output/'bundles').mkdir()
+    with sqlite3.connect(output/'bundles/queue.sqlite') as queue:
+        queue.execute('CREATE TABLE tasks (key TEXT)'); queue.execute('CREATE TABLE attempts (key TEXT)')
+    (output/'plan.json').write_text(json.dumps(dict(mode='decode_only', config=index['config'],
+        decoder_source='e'*64, decode_config=manifest['decode_config'],
+        decoding_source=manifest['decoding_source'],
+        input_index_sha256=manifest['batches'][0]['index_sha256'])))
+    (output/'progress.json').write_text(json.dumps(dict(source='e'*64)))
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        db.execute('CREATE TABLE results (case_name TEXT,stage TEXT,state TEXT,reference TEXT,audit TEXT,error TEXT)')
+        for row in index['directions']:
+            name = f"{row['case']:05d}/{'reverse' if row['reversed'] else 'forward'}"
+            db.execute('INSERT INTO results VALUES (?,?,?,?,?,?)',
+                       (name, 'decoding', 'complete', json.dumps(row['catalogue']), None, None))
+    plan = decoding_audit_plan(source, target, memory_bytes=2**30, task_seconds=60.)
+    assert plan['directions'] == 6
+    assert plan['baseline_states'] == {'complete': 5, 'error': 1}
+    assert plan['candidate_states'] == {'complete': 6}
+    assert sum(row['baseline'] is None for row in plan['rows']) == 1
+    original_index = (folder/'index.json').read_text()
+    original_manifest = (target/'manifest.json').read_text()
+    original_plan = (output/'plan.json').read_text()
+    for field, value, message in (
+            ('decoder_source', 'f'*64, 'decoder identities differ'),
+            ('decode_config', dict(threshold=.7, metal_threshold=.4, event_slack=6, fragment_seconds=5.), 'decoding policies differ'),
+            ('decode_config', dict(threshold=.5, metal_threshold=.3, event_slack=3, fragment_seconds=5.), 'decoding policies differ'),
+            ('decode_config', dict(threshold=.5, metal_threshold=.3), 'decoding policies differ')):
+        changed_plan = json.loads(original_plan); changed_plan[field] = value
+        (output/'plan.json').write_text(json.dumps(changed_plan))
+        with pytest.raises(ValueError, match=message):
+            decoding_audit_plan(source, target, memory_bytes=2**30, task_seconds=60.)
+    (output/'plan.json').write_text(original_plan)
+    index['directions'][0]['catalogue']['offset'] += 1
+    (folder/'index.json').write_text(json.dumps(index))
+    digest = hashlib.sha256((folder/'index.json').read_bytes()).hexdigest()
+    manifest['batches'][0]['index_sha256'] = digest
+    (target/'manifest.json').write_text(json.dumps(manifest))
+    changed_plan = json.loads(original_plan); changed_plan['input_index_sha256'] = digest
+    (output/'plan.json').write_text(json.dumps(changed_plan))
+    with pytest.raises(ValueError, match='catalogue or original input lineage differs'):
+        decoding_audit_plan(source, target, memory_bytes=2**30, task_seconds=60.)
+    (folder/'index.json').write_text(original_index)
+    (target/'manifest.json').write_text(original_manifest)
+    (output/'plan.json').write_text(original_plan)
+    with sqlite3.connect(output/'ledger.sqlite') as db:
+        db.execute("DELETE FROM results WHERE case_name='00000/forward'")
+    with pytest.raises(ValueError, match='duplicate or missing decoding directions'):
+        decoding_audit_plan(source, target, memory_bytes=2**30, task_seconds=60.)

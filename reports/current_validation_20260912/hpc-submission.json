@@ -1,10 +1,8 @@
 {
   "created": 1789256749.4041405,
   "setup_job": "6771902",
-  "build_job": "6772186",
   "array_job": "6772300",
   "summary_job": "6772301",
-  "partition": "cpu_short",
   "array_slots": 300,
   "cpus_per_slot": 1,
   "max_concurrent_cpus": 300,
@@ -21,5 +19,9 @@
   "smoke_job": "6773092",
   "max_concurrent_workers": 150,
   "allocated_cpus_per_worker": 2,
-  "scheduler_allocation_correction": true
+  "scheduler_allocation_correction": true,
+  "privacy_projection": {
+    "original_sha256": "39f9d8bd8601eda8f821f16f4b55be35a462b7613283142196dcd36d3a3b4c86",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }

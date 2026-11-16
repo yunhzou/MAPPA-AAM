@@ -1,0 +1,3357 @@
+{
+  "platform": "macOS-26.7.1-arm64-arm-64bit",
+  "python": "3.12.14",
+  "production_commit": "3b43327462d11b587a51e61305436fd71374207d",
+  "native_source_sha256": "2c23ff2246d5019a9bc971733ac6b5bae81203e045c9096eae27896ae2310bb7",
+  "checks": [
+    {
+      "cut": 104,
+      "full_finalized_graph_equal": true,
+      "states": 53485,
+      "terminals": 100,
+      "baseline_peak_rss": 2446966784,
+      "experiment_peak_rss": 1008107520
+    },
+    {
+      "cut": 147,
+      "full_finalized_graph_equal": true,
+      "states": 61756,
+      "terminals": 100,
+      "baseline_peak_rss": 3366912000,
+      "experiment_peak_rss": 1115832320
+    },
+    {
+      "cut": 228,
+      "full_finalized_graph_equal": true,
+      "states": 56375,
+      "terminals": 100,
+      "baseline_peak_rss": 2725969920,
+      "experiment_peak_rss": 1133821952
+    },
+    {
+      "cut": 321,
+      "full_finalized_graph_equal": true,
+      "states": 42739,
+      "terminals": 100,
+      "baseline_peak_rss": 2485551104,
+      "experiment_peak_rss": 1093910528
+    },
+    {
+      "cut": 335,
+      "full_finalized_graph_equal": true,
+      "states": 48626,
+      "terminals": 100,
+      "baseline_peak_rss": 3048521728,
+      "experiment_peak_rss": 1137541120
+    },
+    {
+      "cut": 147,
+      "experiment": "cache retention only",
+      "full_finalized_graph_equal": true
+    }
+  ],
+  "records": {
+    "fresh147": {
+      "cuts": [
+        147
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 78282752,
+          "time": 1332939.689627666
+        },
+        {
+          "phase": "cut_start",
+          "cut": 147,
+          "rss": 78282752,
+          "time": 1332939.689663708
+        },
+        {
+          "phase": "native_start",
+          "cut": 147,
+          "rss": 103366656,
+          "time": 1332939.821964625
+        },
+        {
+          "phase": "native_finished",
+          "cut": 147,
+          "rss": 2802335744,
+          "time": 1332962.846334791,
+          "states": 61756,
+          "transitions": 61755
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 147,
+          "rss": 2833121280,
+          "time": 1332963.769111666
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 147,
+          "rss": 2835169280,
+          "time": 1332964.028142041
+        },
+        {
+          "phase": "publication_start",
+          "cut": 147,
+          "rss": 2835169280,
+          "time": 1332964.028331333,
+          "repair": {
+            "calls": 6479,
+            "full_hits": 1849,
+            "prefix_hits": 0,
+            "history_hits": 1849,
+            "topology_hits": 0,
+            "boundary_rebases": 8,
+            "dependency_checks": 1861,
+            "mapping_misses": 12,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 18830,
+            "reused_extensions": 3901,
+            "logical_certificates": 17342,
+            "reused_certificates": 171,
+            "entries": 2368,
+            "resident_bytes": 67108716,
+            "peak_resident_bytes": 67108852,
+            "cache_budget_bytes": 67108864,
+            "evictions": 2262
+          },
+          "symmetry": {
+            "calls": 383,
+            "partition_hits": 100,
+            "group_solves": 283,
+            "color_hits": 147815,
+            "cache_clears": 0,
+            "resident_bytes": 3228652,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 383,
+          "generators": 68,
+          "groups": 33
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 147,
+          "rss": 3367682048,
+          "time": 1332964.988034083,
+          "bundle_bytes": 1741597
+        },
+        {
+          "phase": "output_released",
+          "cut": 147,
+          "rss": 2909454336,
+          "time": 1332965.069302125
+        },
+        {
+          "phase": "before_collect",
+          "cut": 147,
+          "rss": 2909454336,
+          "time": 1332965.069337458
+        },
+        {
+          "phase": "after_collect",
+          "cut": 147,
+          "rss": 2868559872,
+          "time": 1332965.075471041,
+          "collected": 398
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 147,
+          "rss": 2745876480,
+          "time": 1332965.082394125
+        },
+        {
+          "phase": "session_released",
+          "cut": 147,
+          "rss": 2206711808,
+          "time": 1332965.126171916
+        },
+        {
+          "phase": "complete",
+          "cut": 147,
+          "rss": 2206711808,
+          "time": 1332965.12619425
+        }
+      ],
+      "peaks": {
+        "startup": 78282752,
+        "None:prepared": 78282752,
+        "147:cut_start": 102727680,
+        "147:native_start": 2806202368,
+        "147:native_finished": 2833121280,
+        "147:finalization_start": 2835070976,
+        "147:finalization_finished": 2835169280,
+        "147:publication_start": 3367682048,
+        "147:publication_finished": 3367682048,
+        "147:output_released": 2909454336,
+        "147:before_collect": 2909454336,
+        "147:after_collect": 2868559872,
+        "147:symmetry_released": 2745876480,
+        "147:session_released": 2206711808,
+        "147:complete": 2206711808
+      },
+      "guard_gib": 8.0,
+      "exitcode": 0
+    },
+    "fresh104": {
+      "cuts": [
+        104
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 78168064,
+          "time": 1332970.483784291
+        },
+        {
+          "phase": "cut_start",
+          "cut": 104,
+          "rss": 78168064,
+          "time": 1332970.48381775
+        },
+        {
+          "phase": "native_start",
+          "cut": 104,
+          "rss": 104022016,
+          "time": 1332970.599501666
+        },
+        {
+          "phase": "native_finished",
+          "cut": 104,
+          "rss": 2160476160,
+          "time": 1332982.531434,
+          "states": 53485,
+          "transitions": 53484
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 104,
+          "rss": 2186952704,
+          "time": 1332983.306878083
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 104,
+          "rss": 2188689408,
+          "time": 1332983.528275875
+        },
+        {
+          "phase": "publication_start",
+          "cut": 104,
+          "rss": 2188689408,
+          "time": 1332983.528467166,
+          "repair": {
+            "calls": 5778,
+            "full_hits": 1554,
+            "prefix_hits": 0,
+            "history_hits": 1554,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1554,
+            "mapping_misses": 0,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 13848,
+            "reused_extensions": 3044,
+            "logical_certificates": 15833,
+            "reused_certificates": 4552,
+            "entries": 2205,
+            "resident_bytes": 67100192,
+            "peak_resident_bytes": 67108852,
+            "cache_budget_bytes": 67108864,
+            "evictions": 2019
+          },
+          "symmetry": {
+            "calls": 371,
+            "partition_hits": 180,
+            "group_solves": 191,
+            "color_hits": 143172,
+            "cache_clears": 0,
+            "resident_bytes": 2727882,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 371,
+          "generators": 68,
+          "groups": 36
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 104,
+          "rss": 2451243008,
+          "time": 1332984.278039,
+          "bundle_bytes": 1513106
+        },
+        {
+          "phase": "output_released",
+          "cut": 104,
+          "rss": 2055929856,
+          "time": 1332984.352157791
+        },
+        {
+          "phase": "before_collect",
+          "cut": 104,
+          "rss": 2055929856,
+          "time": 1332984.352194291
+        },
+        {
+          "phase": "after_collect",
+          "cut": 104,
+          "rss": 2006646784,
+          "time": 1332984.35779025,
+          "collected": 398
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 104,
+          "rss": 1895186432,
+          "time": 1332984.363950083
+        },
+        {
+          "phase": "session_released",
+          "cut": 104,
+          "rss": 1624752128,
+          "time": 1332984.389660583
+        },
+        {
+          "phase": "complete",
+          "cut": 104,
+          "rss": 1624752128,
+          "time": 1332984.389689458
+        }
+      ],
+      "peaks": {
+        "startup": 78118912,
+        "None:prepared": 78168064,
+        "104:cut_start": 101253120,
+        "104:native_start": 2172846080,
+        "104:native_finished": 2181808128,
+        "104:finalization_start": 2188574720,
+        "104:finalization_finished": 2188689408,
+        "104:publication_start": 2451243008,
+        "104:publication_finished": 2451243008,
+        "104:output_released": 2055929856,
+        "104:before_collect": 2055929856,
+        "104:after_collect": 2006646784,
+        "104:symmetry_released": 1895186432,
+        "104:session_released": 1624752128,
+        "104:complete": 1624752128
+      },
+      "guard_gib": 8.0,
+      "exitcode": 0
+    },
+    "phases147": {
+      "cuts": [
+        147
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 78200832,
+          "time": 1333030.931417666
+        },
+        {
+          "phase": "cut_start",
+          "cut": 147,
+          "rss": 78200832,
+          "time": 1333030.931453541
+        },
+        {
+          "phase": "native_start",
+          "cut": 147,
+          "rss": 108199936,
+          "time": 1333031.057896541
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 147,
+          "rss": 2163720192,
+          "time": 1333053.985956916
+        },
+        {
+          "phase": "states_exported",
+          "cut": 147,
+          "rss": 2202484736,
+          "time": 1333054.696831291
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 147,
+          "rss": 2787737600,
+          "time": 1333054.887519041
+        },
+        {
+          "phase": "native_finished",
+          "cut": 147,
+          "rss": 2799271936,
+          "time": 1333054.944472625,
+          "states": 61756,
+          "transitions": 61755
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 147,
+          "rss": 2799534080,
+          "time": 1333055.27294075,
+          "matches": 61755,
+          "fragments": 79644,
+          "witness_entries": 79644,
+          "deferred_pairs": 3745341,
+          "deferred_list_bytes": 366543968,
+          "unique_deferred_values": 37
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 147,
+          "rss": 2830139392,
+          "time": 1333056.145438583
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 147,
+          "rss": 2832990208,
+          "time": 1333056.415095541
+        },
+        {
+          "phase": "publication_start",
+          "cut": 147,
+          "rss": 2832990208,
+          "time": 1333056.415271416,
+          "repair": {
+            "calls": 6479,
+            "full_hits": 1849,
+            "prefix_hits": 0,
+            "history_hits": 1849,
+            "topology_hits": 0,
+            "boundary_rebases": 8,
+            "dependency_checks": 1861,
+            "mapping_misses": 12,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 18830,
+            "reused_extensions": 3901,
+            "logical_certificates": 17342,
+            "reused_certificates": 171,
+            "entries": 2368,
+            "resident_bytes": 67108716,
+            "peak_resident_bytes": 67108852,
+            "cache_budget_bytes": 67108864,
+            "evictions": 2262
+          },
+          "symmetry": {
+            "calls": 383,
+            "partition_hits": 100,
+            "group_solves": 283,
+            "color_hits": 147815,
+            "cache_clears": 0,
+            "resident_bytes": 3228652,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 383,
+          "generators": 68,
+          "groups": 33
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 147,
+          "rss": 3367321600,
+          "time": 1333057.373664583,
+          "bundle_bytes": 1741596
+        },
+        {
+          "phase": "output_released",
+          "cut": 147,
+          "rss": 2936356864,
+          "time": 1333057.455217166
+        },
+        {
+          "phase": "before_collect",
+          "cut": 147,
+          "rss": 2936356864,
+          "time": 1333057.4552615
+        },
+        {
+          "phase": "after_collect",
+          "cut": 147,
+          "rss": 2877636608,
+          "time": 1333057.461750166,
+          "collected": 398
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 147,
+          "rss": 2746564608,
+          "time": 1333057.468111333
+        },
+        {
+          "phase": "session_released",
+          "cut": 147,
+          "rss": 2207399936,
+          "time": 1333057.503866958
+        },
+        {
+          "phase": "complete",
+          "cut": 147,
+          "rss": 2207399936,
+          "time": 1333057.503890416
+        }
+      ],
+      "peaks": {
+        "startup": 78168064,
+        "None:prepared": 78200832,
+        "147:cut_start": 106987520,
+        "147:native_start": 2159312896,
+        "147:growth_finished": 2201534464,
+        "147:states_exported": 2724937728,
+        "147:transitions_exported": 2807545856,
+        "147:native_finished": 2799501312,
+        "147:graph_fields": 2828320768,
+        "147:finalization_start": 2832941056,
+        "147:finalization_finished": 2832990208,
+        "147:publication_start": 3365502976,
+        "147:publication_finished": 3367321600,
+        "147:output_released": 2936356864,
+        "147:before_collect": 2936356864,
+        "147:after_collect": 2877636608,
+        "147:symmetry_released": 2746630144,
+        "147:session_released": 2207399936,
+        "147:complete": 2207399936
+      },
+      "guard_gib": 8.0,
+      "exitcode": 0
+    },
+    "reused": {
+      "cuts": [
+        111,
+        104,
+        147
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 78643200,
+          "time": 1333030.932732083
+        },
+        {
+          "phase": "cut_start",
+          "cut": 111,
+          "rss": 78643200,
+          "time": 1333030.932758125
+        },
+        {
+          "phase": "native_start",
+          "cut": 111,
+          "rss": 109412352,
+          "time": 1333031.057681208
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 111,
+          "rss": 554188800,
+          "time": 1333032.965549958
+        },
+        {
+          "phase": "states_exported",
+          "cut": 111,
+          "rss": 567672832,
+          "time": 1333033.239854958
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 111,
+          "rss": 751910912,
+          "time": 1333033.29779325
+        },
+        {
+          "phase": "native_finished",
+          "cut": 111,
+          "rss": 758038528,
+          "time": 1333033.321116041,
+          "states": 24758,
+          "transitions": 24757
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 111,
+          "rss": 758153216,
+          "time": 1333033.415546083,
+          "matches": 24757,
+          "fragments": 30176,
+          "witness_entries": 30176,
+          "deferred_pairs": 1090376,
+          "deferred_list_bytes": 107313880,
+          "unique_deferred_values": 21
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 111,
+          "rss": 768557056,
+          "time": 1333033.695604125
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 111,
+          "rss": 772374528,
+          "time": 1333033.964061166
+        },
+        {
+          "phase": "publication_start",
+          "cut": 111,
+          "rss": 772374528,
+          "time": 1333033.964184333,
+          "repair": {
+            "calls": 3487,
+            "full_hits": 1617,
+            "prefix_hits": 0,
+            "history_hits": 1617,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1617,
+            "mapping_misses": 0,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 7457,
+            "reused_extensions": 3022,
+            "logical_certificates": 4879,
+            "reused_certificates": 2497,
+            "entries": 1870,
+            "resident_bytes": 48834908,
+            "peak_resident_bytes": 48834908,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0
+          },
+          "symmetry": {
+            "calls": 433,
+            "partition_hits": 100,
+            "group_solves": 333,
+            "color_hits": 167162,
+            "cache_clears": 0,
+            "resident_bytes": 2504738,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 433,
+          "generators": 68,
+          "groups": 22
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 111,
+          "rss": 903168000,
+          "time": 1333034.200631166,
+          "bundle_bytes": 642481
+        },
+        {
+          "phase": "output_released",
+          "cut": 111,
+          "rss": 795164672,
+          "time": 1333034.225400625
+        },
+        {
+          "phase": "cut_start",
+          "cut": 104,
+          "rss": 795164672,
+          "time": 1333034.225425125
+        },
+        {
+          "phase": "native_start",
+          "cut": 104,
+          "rss": 796098560,
+          "time": 1333034.25953225
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 104,
+          "rss": 2062041088,
+          "time": 1333045.811014583
+        },
+        {
+          "phase": "states_exported",
+          "cut": 104,
+          "rss": 2071117824,
+          "time": 1333046.417092541
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 104,
+          "rss": 2520809472,
+          "time": 1333046.57448875
+        },
+        {
+          "phase": "native_finished",
+          "cut": 104,
+          "rss": 2410151936,
+          "time": 1333046.622956958,
+          "states": 53485,
+          "transitions": 53484
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 104,
+          "rss": 2410348544,
+          "time": 1333046.9244655,
+          "matches": 53484,
+          "fragments": 66304,
+          "witness_entries": 66304,
+          "deferred_pairs": 3499390,
+          "deferred_list_bytes": 341625424,
+          "unique_deferred_values": 27
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 104,
+          "rss": 2438479872,
+          "time": 1333047.694350125
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 104,
+          "rss": 2439610368,
+          "time": 1333047.879437708
+        },
+        {
+          "phase": "publication_start",
+          "cut": 104,
+          "rss": 2439610368,
+          "time": 1333047.879608458,
+          "repair": {
+            "calls": 9265,
+            "full_hits": 3171,
+            "prefix_hits": 0,
+            "history_hits": 3171,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 3171,
+            "mapping_misses": 0,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 21305,
+            "reused_extensions": 6066,
+            "logical_certificates": 20712,
+            "reused_certificates": 7049,
+            "entries": 2205,
+            "resident_bytes": 67100192,
+            "peak_resident_bytes": 67108864,
+            "cache_budget_bytes": 67108864,
+            "evictions": 3889
+          },
+          "symmetry": {
+            "calls": 804,
+            "partition_hits": 281,
+            "group_solves": 523,
+            "color_hits": 310667,
+            "cache_clears": 0,
+            "resident_bytes": 5010436,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 804,
+          "generators": 68,
+          "groups": 55
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 104,
+          "rss": 2695380992,
+          "time": 1333048.647103541,
+          "bundle_bytes": 1513104
+        },
+        {
+          "phase": "output_released",
+          "cut": 104,
+          "rss": 2310029312,
+          "time": 1333048.724047708
+        },
+        {
+          "phase": "cut_start",
+          "cut": 147,
+          "rss": 2310029312,
+          "time": 1333048.724081708
+        },
+        {
+          "phase": "native_start",
+          "cut": 147,
+          "rss": 2310275072,
+          "time": 1333048.758887291
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 147,
+          "rss": 3626795008,
+          "time": 1333072.1235115
+        },
+        {
+          "phase": "states_exported",
+          "cut": 147,
+          "rss": 3630432256,
+          "time": 1333072.790126
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 147,
+          "rss": 4029186048,
+          "time": 1333072.963190708
+        },
+        {
+          "phase": "native_finished",
+          "cut": 147,
+          "rss": 4049125376,
+          "time": 1333073.009517125,
+          "states": 61756,
+          "transitions": 61755
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 147,
+          "rss": 4049256448,
+          "time": 1333073.317490166,
+          "matches": 61755,
+          "fragments": 79644,
+          "witness_entries": 79644,
+          "deferred_pairs": 3745341,
+          "deferred_list_bytes": 366543968,
+          "unique_deferred_values": 37
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 147,
+          "rss": 4081975296,
+          "time": 1333074.219688083
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 147,
+          "rss": 4083630080,
+          "time": 1333074.448966333
+        },
+        {
+          "phase": "publication_start",
+          "cut": 147,
+          "rss": 4083630080,
+          "time": 1333074.449147125,
+          "repair": {
+            "calls": 15744,
+            "full_hits": 5020,
+            "prefix_hits": 0,
+            "history_hits": 5020,
+            "topology_hits": 0,
+            "boundary_rebases": 8,
+            "dependency_checks": 5032,
+            "mapping_misses": 12,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 40135,
+            "reused_extensions": 9967,
+            "logical_certificates": 38054,
+            "reused_certificates": 7220,
+            "entries": 2368,
+            "resident_bytes": 67108716,
+            "peak_resident_bytes": 67108864,
+            "cache_budget_bytes": 67108864,
+            "evictions": 8356
+          },
+          "symmetry": {
+            "calls": 1187,
+            "partition_hits": 382,
+            "group_solves": 805,
+            "color_hits": 458855,
+            "cache_clears": 0,
+            "resident_bytes": 8003356,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 1187,
+          "generators": 68,
+          "groups": 86
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 147,
+          "rss": 4616257536,
+          "time": 1333075.359028708,
+          "bundle_bytes": 1741593
+        },
+        {
+          "phase": "output_released",
+          "cut": 147,
+          "rss": 4243947520,
+          "time": 1333075.440485916
+        },
+        {
+          "phase": "before_collect",
+          "cut": 147,
+          "rss": 4243947520,
+          "time": 1333075.440521541
+        },
+        {
+          "phase": "after_collect",
+          "cut": 147,
+          "rss": 4238704640,
+          "time": 1333075.445832291,
+          "collected": 398
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 147,
+          "rss": 3998580736,
+          "time": 1333075.454407208
+        },
+        {
+          "phase": "session_released",
+          "cut": 147,
+          "rss": 3446898688,
+          "time": 1333075.498619458
+        },
+        {
+          "phase": "complete",
+          "cut": 147,
+          "rss": 3446898688,
+          "time": 1333075.498639875
+        }
+      ],
+      "peaks": {
+        "startup": 78610432,
+        "None:prepared": 78643200,
+        "111:cut_start": 108806144,
+        "111:native_start": 542834688,
+        "111:growth_finished": 566640640,
+        "111:states_exported": 677593088,
+        "111:transitions_exported": 753500160,
+        "111:native_finished": 758136832,
+        "111:graph_fields": 761823232,
+        "111:finalization_start": 772259840,
+        "111:finalization_finished": 772374528,
+        "111:publication_start": 903168000,
+        "111:publication_finished": 903168000,
+        "111:output_released": 795164672,
+        "104:cut_start": 795164672,
+        "104:native_start": 2059976704,
+        "104:growth_finished": 2070921216,
+        "104:states_exported": 2468282368,
+        "104:transitions_exported": 2538143744,
+        "104:native_finished": 2410332160,
+        "104:graph_fields": 2436743168,
+        "104:finalization_start": 2439610368,
+        "104:finalization_finished": 2439610368,
+        "104:publication_start": 2695380992,
+        "104:publication_finished": 2695380992,
+        "104:output_released": 2310029312,
+        "147:cut_start": 2310144000,
+        "147:native_start": 3619127296,
+        "147:growth_finished": 3630284800,
+        "147:states_exported": 4014964736,
+        "147:transitions_exported": 4049108992,
+        "147:native_finished": 4049240064,
+        "147:graph_fields": 4081041408,
+        "147:finalization_start": 4083482624,
+        "147:finalization_finished": 4083630080,
+        "147:publication_start": 4614651904,
+        "147:publication_finished": 4616257536,
+        "147:output_released": 4243947520,
+        "147:before_collect": 4243947520,
+        "147:after_collect": 4238704640,
+        "147:symmetry_released": 3998580736,
+        "147:session_released": 3446898688,
+        "147:complete": 3446898688
+      },
+      "guard_gib": 8.0,
+      "exitcode": 0
+    },
+    "memo147": {
+      "cuts": [
+        147
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 78626816,
+          "time": 1333179.197997833
+        },
+        {
+          "phase": "cut_start",
+          "cut": 147,
+          "rss": 78626816,
+          "time": 1333179.198022041
+        },
+        {
+          "phase": "native_start",
+          "cut": 147,
+          "rss": 107560960,
+          "time": 1333179.315628083
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 147,
+          "rss": 2169667584,
+          "time": 1333201.735115875,
+          "memo": [
+            0,
+            17171,
+            17171
+          ]
+        },
+        {
+          "phase": "states_exported",
+          "cut": 147,
+          "rss": 2208694272,
+          "time": 1333202.389631541,
+          "memo": [
+            0,
+            17171,
+            17171
+          ]
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 147,
+          "rss": 2793799680,
+          "time": 1333202.563679916,
+          "memo": [
+            0,
+            17171,
+            17171
+          ]
+        },
+        {
+          "phase": "native_finished",
+          "cut": 147,
+          "rss": 2800107520,
+          "time": 1333202.62068275,
+          "states": 61756,
+          "transitions": 61755
+        },
+        {
+          "phase": "target_memory",
+          "cut": 147,
+          "rss": 2800156672,
+          "time": 1333202.776299458,
+          "vertices": 776,
+          "certificate_bytes": 80704,
+          "memo_entries": 17171,
+          "memo_key_bytes": 72813248,
+          "memo_value_bytes": 1385905752,
+          "unique_certificate_values": 7359,
+          "unique_certificate_bytes": 593900736,
+          "roles": 382,
+          "colours": 471
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 147,
+          "rss": 2800746496,
+          "time": 1333203.085031,
+          "matches": 61755,
+          "fragments": 79644,
+          "witness_entries": 79644,
+          "deferred_pairs": 3745341,
+          "deferred_list_bytes": 366543968,
+          "unique_deferred_values": 37
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 147,
+          "rss": 2831122432,
+          "time": 1333203.949117916
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 147,
+          "rss": 2835922944,
+          "time": 1333204.21002575
+        },
+        {
+          "phase": "publication_start",
+          "cut": 147,
+          "rss": 2835922944,
+          "time": 1333204.21020375,
+          "repair": {
+            "calls": 6479,
+            "full_hits": 1849,
+            "prefix_hits": 0,
+            "history_hits": 1849,
+            "topology_hits": 0,
+            "boundary_rebases": 8,
+            "dependency_checks": 1861,
+            "mapping_misses": 12,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 18830,
+            "reused_extensions": 3901,
+            "logical_certificates": 17342,
+            "reused_certificates": 171,
+            "entries": 2368,
+            "resident_bytes": 67108716,
+            "peak_resident_bytes": 67108852,
+            "cache_budget_bytes": 67108864,
+            "evictions": 2262
+          },
+          "symmetry": {
+            "calls": 383,
+            "partition_hits": 100,
+            "group_solves": 283,
+            "color_hits": 147815,
+            "cache_clears": 0,
+            "resident_bytes": 3228652,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 383,
+          "generators": 68,
+          "groups": 33
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 147,
+          "rss": 3366912000,
+          "time": 1333205.129362416,
+          "bundle_bytes": 1741597,
+          "reference": {
+            "path": "/private/tmp/mappa-memory-followup/memo147/bundles/dc0217187fd24ec5a957c4578e93caa9-00000.bundle",
+            "offset": 22128,
+            "size": 1741597,
+            "sha256": "396966034ac7adbac2860d3eae9f389dacfcd5275bb2aa91a0597e7898648616"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 147,
+          "rss": 2934849536,
+          "time": 1333205.2106015
+        },
+        {
+          "phase": "before_collect",
+          "cut": 147,
+          "rss": 2934849536,
+          "time": 1333205.210633875
+        },
+        {
+          "phase": "after_collect",
+          "cut": 147,
+          "rss": 2877177856,
+          "time": 1333205.216082666,
+          "collected": 398
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 147,
+          "rss": 2746122240,
+          "time": 1333205.221452208
+        },
+        {
+          "phase": "session_released",
+          "cut": 147,
+          "rss": 2206973952,
+          "time": 1333205.252388666
+        },
+        {
+          "phase": "complete",
+          "cut": 147,
+          "rss": 2206973952,
+          "time": 1333205.252414541
+        }
+      ],
+      "peaks": {
+        "startup": 78528512,
+        "None:prepared": 78626816,
+        "147:cut_start": 105758720,
+        "147:native_start": 2167193600,
+        "147:growth_finished": 2207776768,
+        "147:states_exported": 2748940288,
+        "147:transitions_exported": 2803957760,
+        "147:native_finished": 2800140288,
+        "147:target_memory": 2800730112,
+        "147:graph_fields": 2827010048,
+        "147:finalization_start": 2835742720,
+        "147:finalization_finished": 2835922944,
+        "147:publication_start": 3365306368,
+        "147:publication_finished": 3366912000,
+        "147:output_released": 2934849536,
+        "147:before_collect": 2934849536,
+        "147:after_collect": 2877177856,
+        "147:symmetry_released": 2746122240,
+        "147:session_released": 2206973952,
+        "147:complete": 2206973952
+      },
+      "guard_gib": 8.0,
+      "exitcode": 0
+    },
+    "memo104": {
+      "cuts": [
+        104
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 78790656,
+          "time": 1333179.1971115
+        },
+        {
+          "phase": "cut_start",
+          "cut": 104,
+          "rss": 78790656,
+          "time": 1333179.197145583
+        },
+        {
+          "phase": "native_start",
+          "cut": 104,
+          "rss": 105283584,
+          "time": 1333179.315908375
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 104,
+          "rss": 1583890432,
+          "time": 1333190.608258416,
+          "memo": [
+            102,
+            11179,
+            11179
+          ]
+        },
+        {
+          "phase": "states_exported",
+          "cut": 104,
+          "rss": 1617821696,
+          "time": 1333191.208447166,
+          "memo": [
+            102,
+            11179,
+            11179
+          ]
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 104,
+          "rss": 2151612416,
+          "time": 1333191.366712916,
+          "memo": [
+            102,
+            11179,
+            11179
+          ]
+        },
+        {
+          "phase": "native_finished",
+          "cut": 104,
+          "rss": 2156511232,
+          "time": 1333191.41609775,
+          "states": 53485,
+          "transitions": 53484
+        },
+        {
+          "phase": "target_memory",
+          "cut": 104,
+          "rss": 2156576768,
+          "time": 1333191.513995791,
+          "vertices": 776,
+          "certificate_bytes": 80704,
+          "memo_entries": 11179,
+          "memo_key_bytes": 49151128,
+          "memo_value_bytes": 902279448,
+          "unique_certificate_values": 5192,
+          "unique_certificate_bytes": 419015168,
+          "roles": 380,
+          "colours": 538
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 104,
+          "rss": 2156773376,
+          "time": 1333191.800584166,
+          "matches": 53484,
+          "fragments": 66304,
+          "witness_entries": 66304,
+          "deferred_pairs": 3499390,
+          "deferred_list_bytes": 341625424,
+          "unique_deferred_values": 27
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 104,
+          "rss": 2182840320,
+          "time": 1333192.552298875
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 104,
+          "rss": 2186313728,
+          "time": 1333192.776071583
+        },
+        {
+          "phase": "publication_start",
+          "cut": 104,
+          "rss": 2186313728,
+          "time": 1333192.776339083,
+          "repair": {
+            "calls": 5778,
+            "full_hits": 1554,
+            "prefix_hits": 0,
+            "history_hits": 1554,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1554,
+            "mapping_misses": 0,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 13848,
+            "reused_extensions": 3044,
+            "logical_certificates": 15833,
+            "reused_certificates": 4552,
+            "entries": 2205,
+            "resident_bytes": 67100192,
+            "peak_resident_bytes": 67108852,
+            "cache_budget_bytes": 67108864,
+            "evictions": 2019
+          },
+          "symmetry": {
+            "calls": 371,
+            "partition_hits": 180,
+            "group_solves": 191,
+            "color_hits": 143172,
+            "cache_clears": 0,
+            "resident_bytes": 2727882,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 371,
+          "generators": 68,
+          "groups": 36
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 104,
+          "rss": 2446966784,
+          "time": 1333193.548270166,
+          "bundle_bytes": 1513104,
+          "reference": {
+            "path": "/private/tmp/mappa-memory-followup/memo104/bundles/5af6299d71db46808f303069e961456d-00000.bundle",
+            "offset": 22128,
+            "size": 1513104,
+            "sha256": "08457ed99e1c6a842da8963177c5e5a44cb4f533d21a10be7328d29a599d3e49"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 104,
+          "rss": 2041167872,
+          "time": 1333193.633099708
+        },
+        {
+          "phase": "before_collect",
+          "cut": 104,
+          "rss": 2041167872,
+          "time": 1333193.633136958
+        },
+        {
+          "phase": "after_collect",
+          "cut": 104,
+          "rss": 2003419136,
+          "time": 1333193.638980875,
+          "collected": 398
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 104,
+          "rss": 1888796672,
+          "time": 1333193.6450335
+        },
+        {
+          "phase": "session_released",
+          "cut": 104,
+          "rss": 1618362368,
+          "time": 1333193.670841
+        },
+        {
+          "phase": "complete",
+          "cut": 104,
+          "rss": 1618362368,
+          "time": 1333193.670866041
+        }
+      ],
+      "peaks": {
+        "startup": 78708736,
+        "None:prepared": 78790656,
+        "104:cut_start": 104071168,
+        "104:native_start": 1568899072,
+        "104:growth_finished": 1616248832,
+        "104:states_exported": 2121482240,
+        "104:transitions_exported": 2164211712,
+        "104:native_finished": 2156576768,
+        "104:target_memory": 2156773376,
+        "104:graph_fields": 2182840320,
+        "104:finalization_start": 2185822208,
+        "104:finalization_finished": 2186313728,
+        "104:publication_start": 2446966784,
+        "104:publication_finished": 2446966784,
+        "104:output_released": 2041167872,
+        "104:before_collect": 2041167872,
+        "104:after_collect": 2003419136,
+        "104:symmetry_released": 1888796672,
+        "104:session_released": 1618362368,
+        "104:complete": 1618362368
+      },
+      "guard_gib": 8.0,
+      "exitcode": 0
+    },
+    "memo228": {
+      "cuts": [
+        228
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 78446592,
+          "time": 1333358.518736541
+        },
+        {
+          "phase": "cut_start",
+          "cut": 228,
+          "rss": 78446592,
+          "time": 1333358.518775375
+        },
+        {
+          "phase": "native_start",
+          "cut": 228,
+          "rss": 105529344,
+          "time": 1333358.642682666
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 228,
+          "rss": 1837105152,
+          "time": 1333373.267793541,
+          "memo": [
+            180,
+            13749,
+            13749
+          ]
+        },
+        {
+          "phase": "states_exported",
+          "cut": 228,
+          "rss": 1873166336,
+          "time": 1333373.994249458,
+          "memo": [
+            180,
+            13749,
+            13749
+          ]
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 228,
+          "rss": 2422702080,
+          "time": 1333374.164161666,
+          "memo": [
+            180,
+            13749,
+            13749
+          ]
+        },
+        {
+          "phase": "native_finished",
+          "cut": 228,
+          "rss": 2433236992,
+          "time": 1333374.216654208,
+          "states": 56375,
+          "transitions": 56374
+        },
+        {
+          "phase": "target_memory",
+          "cut": 228,
+          "rss": 2433236992,
+          "time": 1333374.35156525,
+          "vertices": 776,
+          "certificate_bytes": 80704,
+          "memo_entries": 13749,
+          "memo_key_bytes": 59260888,
+          "memo_value_bytes": 1109709288,
+          "unique_certificate_values": 5798,
+          "unique_certificate_bytes": 467921792,
+          "roles": 391,
+          "colours": 474
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 228,
+          "rss": 2433679360,
+          "time": 1333374.6712715,
+          "matches": 56374,
+          "fragments": 69493,
+          "witness_entries": 69493,
+          "deferred_pairs": 3669686,
+          "deferred_list_bytes": 357702432,
+          "unique_deferred_values": 38
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 228,
+          "rss": 2460581888,
+          "time": 1333375.471579708
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 228,
+          "rss": 2463318016,
+          "time": 1333375.78891775
+        },
+        {
+          "phase": "publication_start",
+          "cut": 228,
+          "rss": 2463318016,
+          "time": 1333375.789150291,
+          "repair": {
+            "calls": 6178,
+            "full_hits": 1846,
+            "prefix_hits": 0,
+            "history_hits": 1846,
+            "topology_hits": 0,
+            "boundary_rebases": 1,
+            "dependency_checks": 1888,
+            "mapping_misses": 42,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 15612,
+            "reused_extensions": 3961,
+            "logical_certificates": 15524,
+            "reused_certificates": 1595,
+            "entries": 2289,
+            "resident_bytes": 67059492,
+            "peak_resident_bytes": 67108856,
+            "cache_budget_bytes": 67108864,
+            "evictions": 2043
+          },
+          "symmetry": {
+            "calls": 444,
+            "partition_hits": 100,
+            "group_solves": 344,
+            "color_hits": 171423,
+            "cache_clears": 0,
+            "resident_bytes": 2931118,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 444,
+          "generators": 68,
+          "groups": 27
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 228,
+          "rss": 2725969920,
+          "time": 1333376.665034958,
+          "bundle_bytes": 1581179,
+          "reference": {
+            "path": "/private/tmp/mappa-memory-followup/memo228/bundles/883c6c09dc7d4f909d3883f6cd4c0e17-00000.bundle",
+            "offset": 22128,
+            "size": 1581179,
+            "sha256": "a9903222a0844d878a0889adcc1a74df7abc7686c8cf26a6d73e1ea9212cbda7"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 228,
+          "rss": 2319745024,
+          "time": 1333376.746977541
+        },
+        {
+          "phase": "before_collect",
+          "cut": 228,
+          "rss": 2319745024,
+          "time": 1333376.747016333
+        },
+        {
+          "phase": "after_collect",
+          "cut": 228,
+          "rss": 2268364800,
+          "time": 1333376.754644583,
+          "collected": 397
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 228,
+          "rss": 2143584256,
+          "time": 1333376.762359541
+        },
+        {
+          "phase": "session_released",
+          "cut": 228,
+          "rss": 1873149952,
+          "time": 1333376.797459791
+        },
+        {
+          "phase": "complete",
+          "cut": 228,
+          "rss": 1873149952,
+          "time": 1333376.797490916
+        }
+      ],
+      "peaks": {
+        "startup": 78331904,
+        "None:prepared": 78446592,
+        "228:cut_start": 106332160,
+        "228:native_start": 1832517632,
+        "228:growth_finished": 1872723968,
+        "228:states_exported": 2387197952,
+        "228:transitions_exported": 2436792320,
+        "228:native_finished": 2433236992,
+        "228:target_memory": 2433662976,
+        "228:graph_fields": 2460581888,
+        "228:finalization_start": 2463186944,
+        "228:finalization_finished": 2463318016,
+        "228:publication_start": 2725969920,
+        "228:publication_finished": 2725969920,
+        "228:output_released": 2319745024,
+        "228:before_collect": 2319745024,
+        "228:after_collect": 2268364800,
+        "228:symmetry_released": 2143584256,
+        "228:session_released": 1873149952,
+        "228:complete": 1873149952
+      },
+      "guard_gib": 8.0,
+      "memo_entries": null,
+      "share_deferred": false,
+      "exitcode": 0
+    },
+    "memo321": {
+      "cuts": [
+        321
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 78135296,
+          "time": 1333358.515006333
+        },
+        {
+          "phase": "cut_start",
+          "cut": 321,
+          "rss": 78135296,
+          "time": 1333358.515038166
+        },
+        {
+          "phase": "native_start",
+          "cut": 321,
+          "rss": 107872256,
+          "time": 1333358.63920575
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 321,
+          "rss": 1815445504,
+          "time": 1333374.968793833,
+          "memo": [
+            0,
+            14878,
+            14878
+          ]
+        },
+        {
+          "phase": "states_exported",
+          "cut": 321,
+          "rss": 1843593216,
+          "time": 1333375.514110458,
+          "memo": [
+            0,
+            14878,
+            14878
+          ]
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 321,
+          "rss": 2197159936,
+          "time": 1333375.635753833,
+          "memo": [
+            0,
+            14878,
+            14878
+          ]
+        },
+        {
+          "phase": "native_finished",
+          "cut": 321,
+          "rss": 2200010752,
+          "time": 1333375.679863666,
+          "states": 42739,
+          "transitions": 42738
+        },
+        {
+          "phase": "target_memory",
+          "cut": 321,
+          "rss": 2200010752,
+          "time": 1333375.856493,
+          "vertices": 776,
+          "certificate_bytes": 80704,
+          "memo_entries": 14878,
+          "memo_key_bytes": 64574928,
+          "memo_value_bytes": 1200833136,
+          "unique_certificate_values": 4968,
+          "unique_certificate_bytes": 400937472,
+          "roles": 417,
+          "colours": 502
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 321,
+          "rss": 2200403968,
+          "time": 1333376.066888041,
+          "matches": 42738,
+          "fragments": 55573,
+          "witness_entries": 55573,
+          "deferred_pairs": 2242762,
+          "deferred_list_bytes": 219621056,
+          "unique_deferred_values": 65
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 321,
+          "rss": 2219720704,
+          "time": 1333376.648961791
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 321,
+          "rss": 2223194112,
+          "time": 1333376.89482575
+        },
+        {
+          "phase": "publication_start",
+          "cut": 321,
+          "rss": 2223194112,
+          "time": 1333376.894994125,
+          "repair": {
+            "calls": 5107,
+            "full_hits": 1526,
+            "prefix_hits": 0,
+            "history_hits": 1526,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1531,
+            "mapping_misses": 5,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 14648,
+            "reused_extensions": 2330,
+            "logical_certificates": 14951,
+            "reused_certificates": 73,
+            "entries": 2419,
+            "resident_bytes": 67066452,
+            "peak_resident_bytes": 67108848,
+            "cache_budget_bytes": 67108864,
+            "evictions": 1162
+          },
+          "symmetry": {
+            "calls": 328,
+            "partition_hits": 100,
+            "group_solves": 228,
+            "color_hits": 126531,
+            "cache_clears": 0,
+            "resident_bytes": 2478986,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 328,
+          "generators": 68,
+          "groups": 30
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 321,
+          "rss": 2485551104,
+          "time": 1333377.442376083,
+          "bundle_bytes": 1156798,
+          "reference": {
+            "path": "/private/tmp/mappa-memory-followup/memo321/bundles/a8efcdb86ee34346b81f0da747e82517-00000.bundle",
+            "offset": 22128,
+            "size": 1156798,
+            "sha256": "8bdafa1b654bb22e82c1b90d0f04f4976b8834fec11f3e5ecffca2b42413d324"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 321,
+          "rss": 2228092928,
+          "time": 1333377.493755125
+        },
+        {
+          "phase": "before_collect",
+          "cut": 321,
+          "rss": 2228092928,
+          "time": 1333377.4937905
+        },
+        {
+          "phase": "after_collect",
+          "cut": 321,
+          "rss": 2180907008,
+          "time": 1333377.499990041,
+          "collected": 398
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 321,
+          "rss": 2092826624,
+          "time": 1333377.506306958
+        },
+        {
+          "phase": "session_released",
+          "cut": 321,
+          "rss": 2091843584,
+          "time": 1333377.524348416
+        },
+        {
+          "phase": "complete",
+          "cut": 321,
+          "rss": 2091843584,
+          "time": 1333377.524376166
+        }
+      ],
+      "peaks": {
+        "startup": 78020608,
+        "None:prepared": 78135296,
+        "321:cut_start": 101154816,
+        "321:native_start": 1811349504,
+        "321:growth_finished": 1843183616,
+        "321:states_exported": 2181758976,
+        "321:transitions_exported": 2205646848,
+        "321:native_finished": 2200010752,
+        "321:target_memory": 2200403968,
+        "321:graph_fields": 2219655168,
+        "321:finalization_start": 2223194112,
+        "321:finalization_finished": 2223194112,
+        "321:publication_start": 2485551104,
+        "321:publication_finished": 2485551104,
+        "321:output_released": 2228092928,
+        "321:before_collect": 2228092928,
+        "321:after_collect": 2180907008,
+        "321:symmetry_released": 2092826624,
+        "321:session_released": 2091843584,
+        "321:complete": 2091843584
+      },
+      "guard_gib": 8.0,
+      "memo_entries": null,
+      "share_deferred": false,
+      "exitcode": 0
+    },
+    "memo335": {
+      "cuts": [
+        335
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 78315520,
+          "time": 1333358.520797333
+        },
+        {
+          "phase": "cut_start",
+          "cut": 335,
+          "rss": 78315520,
+          "time": 1333358.520823083
+        },
+        {
+          "phase": "native_start",
+          "cut": 335,
+          "rss": 103432192,
+          "time": 1333358.645571041
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 335,
+          "rss": 2243084288,
+          "time": 1333393.575606583,
+          "memo": [
+            0,
+            19075,
+            19075
+          ]
+        },
+        {
+          "phase": "states_exported",
+          "cut": 335,
+          "rss": 2272968704,
+          "time": 1333394.153925583,
+          "memo": [
+            0,
+            19075,
+            19075
+          ]
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 335,
+          "rss": 2754035712,
+          "time": 1333394.302608833,
+          "memo": [
+            0,
+            19075,
+            19075
+          ]
+        },
+        {
+          "phase": "native_finished",
+          "cut": 335,
+          "rss": 2760441856,
+          "time": 1333394.350711875,
+          "states": 48626,
+          "transitions": 48625
+        },
+        {
+          "phase": "target_memory",
+          "cut": 335,
+          "rss": 2760523776,
+          "time": 1333394.576596208,
+          "vertices": 776,
+          "certificate_bytes": 80704,
+          "memo_entries": 19075,
+          "memo_key_bytes": 80993960,
+          "memo_value_bytes": 1539581400,
+          "unique_certificate_values": 7325,
+          "unique_certificate_bytes": 591156800,
+          "roles": 424,
+          "colours": 521
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 335,
+          "rss": 2761129984,
+          "time": 1333394.849774041,
+          "matches": 48625,
+          "fragments": 73866,
+          "witness_entries": 73866,
+          "deferred_pairs": 3121164,
+          "deferred_list_bytes": 305592920,
+          "unique_deferred_values": 135
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 335,
+          "rss": 2783035392,
+          "time": 1333395.569531875
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 335,
+          "rss": 2786131968,
+          "time": 1333395.838971125
+        },
+        {
+          "phase": "publication_start",
+          "cut": 335,
+          "rss": 2786131968,
+          "time": 1333395.839163208,
+          "repair": {
+            "calls": 6047,
+            "full_hits": 1382,
+            "prefix_hits": 0,
+            "history_hits": 1382,
+            "topology_hits": 0,
+            "boundary_rebases": 50,
+            "dependency_checks": 1453,
+            "mapping_misses": 31,
+            "island_misses": 40,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 23604,
+            "reused_extensions": 1998,
+            "logical_certificates": 19612,
+            "reused_certificates": 537,
+            "entries": 2285,
+            "resident_bytes": 67093544,
+            "peak_resident_bytes": 67108864,
+            "cache_budget_bytes": 67108864,
+            "evictions": 2380
+          },
+          "symmetry": {
+            "calls": 350,
+            "partition_hits": 101,
+            "group_solves": 249,
+            "color_hits": 135045,
+            "cache_clears": 0,
+            "resident_bytes": 3027722,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 350,
+          "generators": 68,
+          "groups": 36
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 335,
+          "rss": 3048521728,
+          "time": 1333396.581855666,
+          "bundle_bytes": 1418844,
+          "reference": {
+            "path": "/private/tmp/mappa-memory-followup/memo335/bundles/0970a488a6134ad29c5db7cdba75163b-00000.bundle",
+            "offset": 22128,
+            "size": 1418844,
+            "sha256": "d79c5629a6adc5c7ba4cab840969f364450706dedd2cdf8dbbecacdbb528c505"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 335,
+          "rss": 2684944384,
+          "time": 1333396.649349125
+        },
+        {
+          "phase": "before_collect",
+          "cut": 335,
+          "rss": 2684944384,
+          "time": 1333396.649386083
+        },
+        {
+          "phase": "after_collect",
+          "cut": 335,
+          "rss": 2657681408,
+          "time": 1333396.65516825,
+          "collected": 397
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 335,
+          "rss": 2546532352,
+          "time": 1333396.660816125
+        },
+        {
+          "phase": "session_released",
+          "cut": 335,
+          "rss": 2276098048,
+          "time": 1333396.69730925
+        },
+        {
+          "phase": "complete",
+          "cut": 335,
+          "rss": 2276098048,
+          "time": 1333396.697332541
+        }
+      ],
+      "peaks": {
+        "startup": 78299136,
+        "None:prepared": 78315520,
+        "335:cut_start": 102301696,
+        "335:native_start": 2231336960,
+        "335:growth_finished": 2272067584,
+        "335:states_exported": 2718613504,
+        "335:transitions_exported": 2768388096,
+        "335:native_finished": 2760507392,
+        "335:target_memory": 2761129984,
+        "335:graph_fields": 2778071040,
+        "335:finalization_start": 2786131968,
+        "335:finalization_finished": 2786131968,
+        "335:publication_start": 3048030208,
+        "335:publication_finished": 3048521728,
+        "335:output_released": 2684944384,
+        "335:before_collect": 2684944384,
+        "335:after_collect": 2657681408,
+        "335:symmetry_released": 2546532352,
+        "335:session_released": 2276098048,
+        "335:complete": 2276098048
+      },
+      "guard_gib": 8.0,
+      "memo_entries": null,
+      "share_deferred": false,
+      "exitcode": 0
+    },
+    "bounded147": {
+      "cuts": [
+        147
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 78200832,
+          "time": 1333289.254994
+        },
+        {
+          "phase": "cut_start",
+          "cut": 147,
+          "rss": 78200832,
+          "time": 1333289.255022083
+        },
+        {
+          "phase": "native_start",
+          "cut": 147,
+          "rss": 106037248,
+          "time": 1333289.372378333
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 147,
+          "rss": 722747392,
+          "time": 1333312.183568833,
+          "memo": [
+            0,
+            17171,
+            512
+          ]
+        },
+        {
+          "phase": "states_exported",
+          "cut": 147,
+          "rss": 760102912,
+          "time": 1333312.866650583,
+          "memo": [
+            0,
+            17171,
+            512
+          ]
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 147,
+          "rss": 1345290240,
+          "time": 1333313.045599916,
+          "memo": [
+            0,
+            17171,
+            512
+          ]
+        },
+        {
+          "phase": "native_finished",
+          "cut": 147,
+          "rss": 1351598080,
+          "time": 1333313.101425375,
+          "states": 61756,
+          "transitions": 61755
+        },
+        {
+          "phase": "target_memory",
+          "cut": 147,
+          "rss": 1351614464,
+          "time": 1333313.106355791,
+          "vertices": 776,
+          "certificate_bytes": 80704,
+          "memo_entries": 512,
+          "memo_key_bytes": 2071808,
+          "memo_value_bytes": 41324544,
+          "unique_certificate_values": 335,
+          "unique_certificate_bytes": 27035840,
+          "roles": 382,
+          "colours": 471
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 147,
+          "rss": 1351827456,
+          "time": 1333313.417150708,
+          "matches": 61755,
+          "fragments": 79644,
+          "witness_entries": 79644,
+          "deferred_pairs": 3745341,
+          "deferred_list_bytes": 366543968,
+          "unique_deferred_values": 37
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 147,
+          "rss": 1380892672,
+          "time": 1333314.299657375
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 147,
+          "rss": 1385447424,
+          "time": 1333314.566822375
+        },
+        {
+          "phase": "publication_start",
+          "cut": 147,
+          "rss": 1385447424,
+          "time": 1333314.567007125,
+          "repair": {
+            "calls": 6479,
+            "full_hits": 1849,
+            "prefix_hits": 0,
+            "history_hits": 1849,
+            "topology_hits": 0,
+            "boundary_rebases": 8,
+            "dependency_checks": 1861,
+            "mapping_misses": 12,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 18830,
+            "reused_extensions": 3901,
+            "logical_certificates": 17342,
+            "reused_certificates": 171,
+            "entries": 2368,
+            "resident_bytes": 67108716,
+            "peak_resident_bytes": 67108852,
+            "cache_budget_bytes": 67108864,
+            "evictions": 2262
+          },
+          "symmetry": {
+            "calls": 383,
+            "partition_hits": 100,
+            "group_solves": 283,
+            "color_hits": 147815,
+            "cache_clears": 0,
+            "resident_bytes": 3228652,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 383,
+          "generators": 68,
+          "groups": 33
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 147,
+          "rss": 1916452864,
+          "time": 1333315.498788791,
+          "bundle_bytes": 1741595,
+          "reference": {
+            "path": "/private/tmp/mappa-memory-followup/bounded147/bundles/010e3c3de49a4f028b7c3c4aa4b6729f-00000.bundle",
+            "offset": 22128,
+            "size": 1741595,
+            "sha256": "e08c5d7c80b88be06c5511ef442dea08d39f194232b1eb2d8b9c412795649751"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 147,
+          "rss": 1460305920,
+          "time": 1333315.580891791
+        },
+        {
+          "phase": "before_collect",
+          "cut": 147,
+          "rss": 1460305920,
+          "time": 1333315.580924166
+        },
+        {
+          "phase": "after_collect",
+          "cut": 147,
+          "rss": 1424654336,
+          "time": 1333315.586184208,
+          "collected": 398
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 147,
+          "rss": 1295679488,
+          "time": 1333315.591307083
+        },
+        {
+          "phase": "session_released",
+          "cut": 147,
+          "rss": 756514816,
+          "time": 1333315.614196708
+        },
+        {
+          "phase": "complete",
+          "cut": 147,
+          "rss": 756514816,
+          "time": 1333315.614223625
+        }
+      ],
+      "peaks": {
+        "startup": 78086144,
+        "None:prepared": 78200832,
+        "147:cut_start": 100614144,
+        "147:native_start": 714522624,
+        "147:growth_finished": 759447552,
+        "147:states_exported": 1315831808,
+        "147:transitions_exported": 1355923456,
+        "147:native_finished": 1351598080,
+        "147:target_memory": 1351811072,
+        "147:graph_fields": 1376452608,
+        "147:finalization_start": 1385332736,
+        "147:finalization_finished": 1385447424,
+        "147:publication_start": 1915371520,
+        "147:publication_finished": 1916452864,
+        "147:output_released": 1460305920,
+        "147:before_collect": 1460305920,
+        "147:after_collect": 1424654336,
+        "147:symmetry_released": 1295712256,
+        "147:session_released": 756514816,
+        "147:complete": 756514816
+      },
+      "guard_gib": 8.0,
+      "memo_entries": 512,
+      "share_deferred": false,
+      "exitcode": 0
+    },
+    "bounded-shared": {
+      "cuts": [
+        111,
+        104,
+        147,
+        228,
+        321,
+        335
+      ],
+      "events": [
+        {
+          "phase": "prepared",
+          "cut": null,
+          "rss": 78938112,
+          "time": 1333289.25266375
+        },
+        {
+          "phase": "cut_start",
+          "cut": 111,
+          "rss": 78938112,
+          "time": 1333289.252720541
+        },
+        {
+          "phase": "native_start",
+          "cut": 111,
+          "rss": 104185856,
+          "time": 1333289.372284958
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 111,
+          "rss": 384974848,
+          "time": 1333291.225554083,
+          "memo": [
+            0,
+            2382,
+            512
+          ]
+        },
+        {
+          "phase": "states_exported",
+          "cut": 111,
+          "rss": 398540800,
+          "time": 1333291.508658875,
+          "memo": [
+            0,
+            2382,
+            512
+          ]
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 111,
+          "rss": 453656576,
+          "time": 1333291.596416291,
+          "memo": [
+            0,
+            2382,
+            512
+          ]
+        },
+        {
+          "phase": "native_finished",
+          "cut": 111,
+          "rss": 459767808,
+          "time": 1333291.617954041,
+          "states": 24758,
+          "transitions": 24757
+        },
+        {
+          "phase": "target_memory",
+          "cut": 111,
+          "rss": 459767808,
+          "time": 1333291.622380041,
+          "vertices": 776,
+          "certificate_bytes": 80704,
+          "memo_entries": 512,
+          "memo_key_bytes": 2280576,
+          "memo_value_bytes": 41324544,
+          "unique_certificate_values": 139,
+          "unique_certificate_bytes": 11217856,
+          "roles": 379,
+          "colours": 589
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 111,
+          "rss": 459898880,
+          "time": 1333291.70895275,
+          "matches": 24757,
+          "fragments": 30176,
+          "witness_entries": 30176,
+          "deferred_pairs": 1090376,
+          "deferred_list_bytes": 107313880,
+          "unique_deferred_values": 21
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 111,
+          "rss": 470319104,
+          "time": 1333291.852601416
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 111,
+          "rss": 475627520,
+          "time": 1333292.122233791
+        },
+        {
+          "phase": "publication_start",
+          "cut": 111,
+          "rss": 475627520,
+          "time": 1333292.122352375,
+          "repair": {
+            "calls": 3487,
+            "full_hits": 1617,
+            "prefix_hits": 0,
+            "history_hits": 1617,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 1617,
+            "mapping_misses": 0,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 7457,
+            "reused_extensions": 3022,
+            "logical_certificates": 4879,
+            "reused_certificates": 2497,
+            "entries": 1870,
+            "resident_bytes": 48834908,
+            "peak_resident_bytes": 48834908,
+            "cache_budget_bytes": 67108864,
+            "evictions": 0
+          },
+          "symmetry": {
+            "calls": 433,
+            "partition_hits": 100,
+            "group_solves": 333,
+            "color_hits": 167162,
+            "cache_clears": 0,
+            "resident_bytes": 2504738,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 433,
+          "generators": 68,
+          "groups": 22
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 111,
+          "rss": 541818880,
+          "time": 1333292.291757833,
+          "bundle_bytes": 529435,
+          "reference": {
+            "path": "/private/tmp/mappa-memory-followup/bounded-shared/bundles/767077d3cc5745b4b8f3ae50a5bb4969-00000.bundle",
+            "offset": 22128,
+            "size": 529435,
+            "sha256": "e66a5e83a97760a86b309fd1bd39a379e87527d32c6014accf70c2307e7f0c10"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 111,
+          "rss": 521895936,
+          "time": 1333292.30182975
+        },
+        {
+          "phase": "cut_start",
+          "cut": 104,
+          "rss": 521895936,
+          "time": 1333292.301870083
+        },
+        {
+          "phase": "native_start",
+          "cut": 104,
+          "rss": 522616832,
+          "time": 1333292.338840708
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 104,
+          "rss": 816889856,
+          "time": 1333304.00345725,
+          "memo": [
+            0,
+            13663,
+            512
+          ]
+        },
+        {
+          "phase": "states_exported",
+          "cut": 104,
+          "rss": 824377344,
+          "time": 1333304.612190875,
+          "memo": [
+            0,
+            13663,
+            512
+          ]
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 104,
+          "rss": 905068544,
+          "time": 1333304.864136875,
+          "memo": [
+            0,
+            13663,
+            512
+          ]
+        },
+        {
+          "phase": "native_finished",
+          "cut": 104,
+          "rss": 858079232,
+          "time": 1333304.911102833,
+          "states": 53485,
+          "transitions": 53484
+        },
+        {
+          "phase": "target_memory",
+          "cut": 104,
+          "rss": 858095616,
+          "time": 1333304.914994666,
+          "vertices": 776,
+          "certificate_bytes": 80704,
+          "memo_entries": 512,
+          "memo_key_bytes": 2280576,
+          "memo_value_bytes": 41324544,
+          "unique_certificate_values": 139,
+          "unique_certificate_bytes": 11217856,
+          "roles": 536,
+          "colours": 793
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 104,
+          "rss": 858210304,
+          "time": 1333305.18725375,
+          "matches": 53484,
+          "fragments": 66304,
+          "witness_entries": 66304,
+          "deferred_pairs": 3499390,
+          "deferred_list_bytes": 341625424,
+          "unique_deferred_values": 27
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 104,
+          "rss": 885325824,
+          "time": 1333305.616763541
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 104,
+          "rss": 886472704,
+          "time": 1333305.798315166
+        },
+        {
+          "phase": "publication_start",
+          "cut": 104,
+          "rss": 886472704,
+          "time": 1333305.798503083,
+          "repair": {
+            "calls": 9265,
+            "full_hits": 3171,
+            "prefix_hits": 0,
+            "history_hits": 3171,
+            "topology_hits": 0,
+            "boundary_rebases": 0,
+            "dependency_checks": 3171,
+            "mapping_misses": 0,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 21305,
+            "reused_extensions": 6066,
+            "logical_certificates": 20712,
+            "reused_certificates": 7049,
+            "entries": 2205,
+            "resident_bytes": 67100192,
+            "peak_resident_bytes": 67108864,
+            "cache_budget_bytes": 67108864,
+            "evictions": 3889
+          },
+          "symmetry": {
+            "calls": 804,
+            "partition_hits": 281,
+            "group_solves": 523,
+            "color_hits": 310667,
+            "cache_clears": 0,
+            "resident_bytes": 5010436,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 804,
+          "generators": 68,
+          "groups": 55
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 104,
+          "rss": 1008107520,
+          "time": 1333306.230274041,
+          "bundle_bytes": 1119738,
+          "reference": {
+            "path": "/private/tmp/mappa-memory-followup/bounded-shared/bundles/767077d3cc5745b4b8f3ae50a5bb4969-00000.bundle",
+            "offset": 551563,
+            "size": 1119738,
+            "sha256": "74e87640b42a2571d4b1d5e75f5f32adceaf36d06f0e8c8158c514b3bdf4ae00"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 104,
+          "rss": 924893184,
+          "time": 1333306.253351416
+        },
+        {
+          "phase": "cut_start",
+          "cut": 147,
+          "rss": 924893184,
+          "time": 1333306.253389375
+        },
+        {
+          "phase": "native_start",
+          "cut": 147,
+          "rss": 925040640,
+          "time": 1333306.289687916
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 147,
+          "rss": 1002848256,
+          "time": 1333329.721213791,
+          "memo": [
+            0,
+            30834,
+            512
+          ]
+        },
+        {
+          "phase": "states_exported",
+          "cut": 147,
+          "rss": 1004994560,
+          "time": 1333330.391650291,
+          "memo": [
+            0,
+            30834,
+            512
+          ]
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 147,
+          "rss": 1067941888,
+          "time": 1333330.662372458,
+          "memo": [
+            0,
+            30834,
+            512
+          ]
+        },
+        {
+          "phase": "native_finished",
+          "cut": 147,
+          "rss": 959021056,
+          "time": 1333330.719320166,
+          "states": 61756,
+          "transitions": 61755
+        },
+        {
+          "phase": "target_memory",
+          "cut": 147,
+          "rss": 959021056,
+          "time": 1333330.723222875,
+          "vertices": 776,
+          "certificate_bytes": 80704,
+          "memo_entries": 512,
+          "memo_key_bytes": 2280576,
+          "memo_value_bytes": 41324544,
+          "unique_certificate_values": 139,
+          "unique_certificate_bytes": 11217856,
+          "roles": 598,
+          "colours": 866
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 147,
+          "rss": 959184896,
+          "time": 1333331.012043166,
+          "matches": 61755,
+          "fragments": 79644,
+          "witness_entries": 79644,
+          "deferred_pairs": 3745341,
+          "deferred_list_bytes": 366543968,
+          "unique_deferred_values": 37
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 147,
+          "rss": 990363648,
+          "time": 1333331.54723575
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 147,
+          "rss": 992051200,
+          "time": 1333331.77222325
+        },
+        {
+          "phase": "publication_start",
+          "cut": 147,
+          "rss": 992051200,
+          "time": 1333331.772385125,
+          "repair": {
+            "calls": 15744,
+            "full_hits": 5020,
+            "prefix_hits": 0,
+            "history_hits": 5020,
+            "topology_hits": 0,
+            "boundary_rebases": 8,
+            "dependency_checks": 5032,
+            "mapping_misses": 12,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 40135,
+            "reused_extensions": 9967,
+            "logical_certificates": 38054,
+            "reused_certificates": 7220,
+            "entries": 2368,
+            "resident_bytes": 67108716,
+            "peak_resident_bytes": 67108864,
+            "cache_budget_bytes": 67108864,
+            "evictions": 8356
+          },
+          "symmetry": {
+            "calls": 1187,
+            "partition_hits": 382,
+            "group_solves": 805,
+            "color_hits": 458855,
+            "cache_clears": 0,
+            "resident_bytes": 8003356,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 1187,
+          "generators": 68,
+          "groups": 86
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 147,
+          "rss": 1115832320,
+          "time": 1333332.293852916,
+          "bundle_bytes": 1277060,
+          "reference": {
+            "path": "/private/tmp/mappa-memory-followup/bounded-shared/bundles/767077d3cc5745b4b8f3ae50a5bb4969-00000.bundle",
+            "offset": 1671301,
+            "size": 1277060,
+            "sha256": "12179d54178f9d8bfc773eaa365f353d5bccbd4a07bc3da41d85fde76d3df0f2"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 147,
+          "rss": 1038598144,
+          "time": 1333332.319172458
+        },
+        {
+          "phase": "cut_start",
+          "cut": 228,
+          "rss": 1038598144,
+          "time": 1333332.319206333
+        },
+        {
+          "phase": "native_start",
+          "cut": 228,
+          "rss": 1038614528,
+          "time": 1333332.355447625
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 228,
+          "rss": 1080344576,
+          "time": 1333346.596873583,
+          "memo": [
+            0,
+            44763,
+            512
+          ]
+        },
+        {
+          "phase": "states_exported",
+          "cut": 228,
+          "rss": 1080475648,
+          "time": 1333347.233217375,
+          "memo": [
+            0,
+            44763,
+            512
+          ]
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 228,
+          "rss": 1084801024,
+          "time": 1333347.486938958,
+          "memo": [
+            0,
+            44763,
+            512
+          ]
+        },
+        {
+          "phase": "native_finished",
+          "cut": 228,
+          "rss": 1103085568,
+          "time": 1333347.529771125,
+          "states": 56375,
+          "transitions": 56374
+        },
+        {
+          "phase": "target_memory",
+          "cut": 228,
+          "rss": 1103085568,
+          "time": 1333347.533626833,
+          "vertices": 776,
+          "certificate_bytes": 80704,
+          "memo_entries": 512,
+          "memo_key_bytes": 2280576,
+          "memo_value_bytes": 41324544,
+          "unique_certificate_values": 139,
+          "unique_certificate_bytes": 11217856,
+          "roles": 632,
+          "colours": 945
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 228,
+          "rss": 1103249408,
+          "time": 1333347.811086916,
+          "matches": 56374,
+          "fragments": 69493,
+          "witness_entries": 69493,
+          "deferred_pairs": 3669686,
+          "deferred_list_bytes": 357702432,
+          "unique_deferred_values": 38
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 228,
+          "rss": 1131757568,
+          "time": 1333348.239653333
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 228,
+          "rss": 1133821952,
+          "time": 1333348.493251041
+        },
+        {
+          "phase": "publication_start",
+          "cut": 228,
+          "rss": 1133821952,
+          "time": 1333348.493441583,
+          "repair": {
+            "calls": 21922,
+            "full_hits": 6866,
+            "prefix_hits": 0,
+            "history_hits": 6866,
+            "topology_hits": 0,
+            "boundary_rebases": 9,
+            "dependency_checks": 6920,
+            "mapping_misses": 54,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 55747,
+            "reused_extensions": 13928,
+            "logical_certificates": 53578,
+            "reused_certificates": 8815,
+            "entries": 2289,
+            "resident_bytes": 67059492,
+            "peak_resident_bytes": 67108864,
+            "cache_budget_bytes": 67108864,
+            "evictions": 12767
+          },
+          "symmetry": {
+            "calls": 1631,
+            "partition_hits": 483,
+            "group_solves": 1148,
+            "color_hits": 630640,
+            "cache_clears": 0,
+            "resident_bytes": 10702500,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 1631,
+          "generators": 68,
+          "groups": 111
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 228,
+          "rss": 1133821952,
+          "time": 1333348.90997725,
+          "bundle_bytes": 1159970,
+          "reference": {
+            "path": "/private/tmp/mappa-memory-followup/bounded-shared/bundles/767077d3cc5745b4b8f3ae50a5bb4969-00000.bundle",
+            "offset": 2948361,
+            "size": 1159970,
+            "sha256": "a28d0cfa1bc4ad70ece78c5ab4d5ed7df01923d8d73eb174aaaae4b8811c83a1"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 228,
+          "rss": 1093222400,
+          "time": 1333348.93239
+        },
+        {
+          "phase": "cut_start",
+          "cut": 321,
+          "rss": 1093222400,
+          "time": 1333348.932426625
+        },
+        {
+          "phase": "native_start",
+          "cut": 321,
+          "rss": 1093386240,
+          "time": 1333348.968491458
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 321,
+          "rss": 977223680,
+          "time": 1333364.6188095,
+          "memo": [
+            0,
+            59641,
+            512
+          ]
+        },
+        {
+          "phase": "states_exported",
+          "cut": 321,
+          "rss": 977944576,
+          "time": 1333365.138052958,
+          "memo": [
+            0,
+            59641,
+            512
+          ]
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 321,
+          "rss": 977944576,
+          "time": 1333365.302117875,
+          "memo": [
+            0,
+            59641,
+            512
+          ]
+        },
+        {
+          "phase": "native_finished",
+          "cut": 321,
+          "rss": 977944576,
+          "time": 1333365.334164458,
+          "states": 42739,
+          "transitions": 42738
+        },
+        {
+          "phase": "target_memory",
+          "cut": 321,
+          "rss": 977944576,
+          "time": 1333365.338400875,
+          "vertices": 776,
+          "certificate_bytes": 80704,
+          "memo_entries": 512,
+          "memo_key_bytes": 2280576,
+          "memo_value_bytes": 41324544,
+          "unique_certificate_values": 139,
+          "unique_certificate_bytes": 11217856,
+          "roles": 696,
+          "colours": 976
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 321,
+          "rss": 977944576,
+          "time": 1333365.516814208,
+          "matches": 42738,
+          "fragments": 55573,
+          "witness_entries": 55573,
+          "deferred_pairs": 2242762,
+          "deferred_list_bytes": 219621056,
+          "unique_deferred_values": 65
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 321,
+          "rss": 977944576,
+          "time": 1333365.859037333
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 321,
+          "rss": 979271680,
+          "time": 1333366.059108
+        },
+        {
+          "phase": "publication_start",
+          "cut": 321,
+          "rss": 979271680,
+          "time": 1333366.059255958,
+          "repair": {
+            "calls": 27029,
+            "full_hits": 8392,
+            "prefix_hits": 0,
+            "history_hits": 8392,
+            "topology_hits": 0,
+            "boundary_rebases": 9,
+            "dependency_checks": 8451,
+            "mapping_misses": 59,
+            "island_misses": 0,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 70395,
+            "reused_extensions": 16258,
+            "logical_certificates": 68529,
+            "reused_certificates": 8888,
+            "entries": 2419,
+            "resident_bytes": 67066452,
+            "peak_resident_bytes": 67108864,
+            "cache_budget_bytes": 67108864,
+            "evictions": 16218
+          },
+          "symmetry": {
+            "calls": 1959,
+            "partition_hits": 584,
+            "group_solves": 1375,
+            "color_hits": 757571,
+            "cache_clears": 0,
+            "resident_bytes": 12936546,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 1959,
+          "generators": 68,
+          "groups": 139
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 321,
+          "rss": 1038057472,
+          "time": 1333366.392031541,
+          "bundle_bytes": 906887,
+          "reference": {
+            "path": "/private/tmp/mappa-memory-followup/bounded-shared/bundles/767077d3cc5745b4b8f3ae50a5bb4969-00000.bundle",
+            "offset": 4108331,
+            "size": 906887,
+            "sha256": "c7f341d63715d44e075dd5605b557f8f267cb0a756e8ffc8ebab2addc591fe9e"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 321,
+          "rss": 1035960320,
+          "time": 1333366.41087425
+        },
+        {
+          "phase": "cut_start",
+          "cut": 335,
+          "rss": 1035960320,
+          "time": 1333366.410909375
+        },
+        {
+          "phase": "native_start",
+          "cut": 335,
+          "rss": 1035976704,
+          "time": 1333366.449489541
+        },
+        {
+          "phase": "growth_finished",
+          "cut": 335,
+          "rss": 1042366464,
+          "time": 1333401.35822025,
+          "memo": [
+            0,
+            78716,
+            512
+          ]
+        },
+        {
+          "phase": "states_exported",
+          "cut": 335,
+          "rss": 1042563072,
+          "time": 1333401.918874833,
+          "memo": [
+            0,
+            78716,
+            512
+          ]
+        },
+        {
+          "phase": "transitions_exported",
+          "cut": 335,
+          "rss": 1042907136,
+          "time": 1333402.142827375,
+          "memo": [
+            0,
+            78716,
+            512
+          ]
+        },
+        {
+          "phase": "native_finished",
+          "cut": 335,
+          "rss": 1043529728,
+          "time": 1333402.17961125,
+          "states": 48626,
+          "transitions": 48625
+        },
+        {
+          "phase": "target_memory",
+          "cut": 335,
+          "rss": 1043529728,
+          "time": 1333402.184801916,
+          "vertices": 776,
+          "certificate_bytes": 80704,
+          "memo_entries": 512,
+          "memo_key_bytes": 2280576,
+          "memo_value_bytes": 41324544,
+          "unique_certificate_values": 139,
+          "unique_certificate_bytes": 11217856,
+          "roles": 737,
+          "colours": 1034
+        },
+        {
+          "phase": "graph_fields",
+          "cut": 335,
+          "rss": 1044004864,
+          "time": 1333402.426002875,
+          "matches": 48625,
+          "fragments": 73866,
+          "witness_entries": 73866,
+          "deferred_pairs": 3121164,
+          "deferred_list_bytes": 305592920,
+          "unique_deferred_values": 135
+        },
+        {
+          "phase": "finalization_start",
+          "cut": 335,
+          "rss": 1067843584,
+          "time": 1333402.863834083
+        },
+        {
+          "phase": "finalization_finished",
+          "cut": 335,
+          "rss": 1069350912,
+          "time": 1333403.074850625
+        },
+        {
+          "phase": "publication_start",
+          "cut": 335,
+          "rss": 1069350912,
+          "time": 1333403.074989583,
+          "repair": {
+            "calls": 33076,
+            "full_hits": 9774,
+            "prefix_hits": 0,
+            "history_hits": 9774,
+            "topology_hits": 0,
+            "boundary_rebases": 59,
+            "dependency_checks": 9904,
+            "mapping_misses": 90,
+            "island_misses": 40,
+            "topology_misses": 0,
+            "boundary_misses": 0,
+            "logical_extensions": 93999,
+            "reused_extensions": 18256,
+            "logical_certificates": 88141,
+            "reused_certificates": 9425,
+            "entries": 2285,
+            "resident_bytes": 67093544,
+            "peak_resident_bytes": 67108864,
+            "cache_budget_bytes": 67108864,
+            "evictions": 21017
+          },
+          "symmetry": {
+            "calls": 2309,
+            "partition_hits": 686,
+            "group_solves": 1623,
+            "color_hits": 893013,
+            "cache_clears": 0,
+            "resident_bytes": 15720348,
+            "cache_budget_bytes": 22369621,
+            "identity_shortcuts": 0
+          },
+          "cache_entries": 2309,
+          "generators": 68,
+          "groups": 172
+        },
+        {
+          "phase": "publication_finished",
+          "cut": 335,
+          "rss": 1137541120,
+          "time": 1333403.502661375,
+          "bundle_bytes": 1058010,
+          "reference": {
+            "path": "/private/tmp/mappa-memory-followup/bounded-shared/bundles/767077d3cc5745b4b8f3ae50a5bb4969-00000.bundle",
+            "offset": 5015218,
+            "size": 1058010,
+            "sha256": "f689539220a861ce16279be003f87e5abd99c17ea51c6f6f6a3283413ff67092"
+          }
+        },
+        {
+          "phase": "output_released",
+          "cut": 335,
+          "rss": 1114701824,
+          "time": 1333403.523884375
+        },
+        {
+          "phase": "before_collect",
+          "cut": 335,
+          "rss": 1114701824,
+          "time": 1333403.523912958
+        },
+        {
+          "phase": "after_collect",
+          "cut": 335,
+          "rss": 1112604672,
+          "time": 1333403.52957175,
+          "collected": 0
+        },
+        {
+          "phase": "symmetry_released",
+          "cut": 335,
+          "rss": 988872704,
+          "time": 1333403.537908541
+        },
+        {
+          "phase": "session_released",
+          "cut": 335,
+          "rss": 987824128,
+          "time": 1333403.547675333
+        },
+        {
+          "phase": "complete",
+          "cut": 335,
+          "rss": 987824128,
+          "time": 1333403.547698166
+        }
+      ],
+      "peaks": {
+        "startup": 78807040,
+        "None:prepared": 78938112,
+        "111:cut_start": 101449728,
+        "111:native_start": 380108800,
+        "111:growth_finished": 398376960,
+        "111:states_exported": 451198976,
+        "111:transitions_exported": 459718656,
+        "111:native_finished": 459767808,
+        "111:target_memory": 459898880,
+        "111:graph_fields": 465666048,
+        "111:finalization_start": 475529216,
+        "111:finalization_finished": 475627520,
+        "111:publication_start": 541245440,
+        "111:publication_finished": 541818880,
+        "111:output_released": 521895936,
+        "104:cut_start": 522551296,
+        "104:native_start": 811663360,
+        "104:growth_finished": 824197120,
+        "104:states_exported": 900743168,
+        "104:transitions_exported": 917684224,
+        "104:native_finished": 858079232,
+        "104:target_memory": 858193920,
+        "104:graph_fields": 877527040,
+        "104:finalization_start": 886358016,
+        "104:finalization_finished": 886472704,
+        "104:publication_start": 1008107520,
+        "104:publication_finished": 1008107520,
+        "104:output_released": 924893184,
+        "147:cut_start": 924893184,
+        "147:native_start": 994394112,
+        "147:growth_finished": 1004699648,
+        "147:states_exported": 1059373056,
+        "147:transitions_exported": 1087750144,
+        "147:native_finished": 959021056,
+        "147:target_memory": 959184896,
+        "147:graph_fields": 988430336,
+        "147:finalization_start": 991936512,
+        "147:finalization_finished": 992051200,
+        "147:publication_start": 1115832320,
+        "147:publication_finished": 1115832320,
+        "147:output_released": 1038598144,
+        "228:cut_start": 1038598144,
+        "228:native_start": 1080328192,
+        "228:growth_finished": 1080475648,
+        "228:states_exported": 1084588032,
+        "228:transitions_exported": 1102888960,
+        "228:native_finished": 1103085568,
+        "228:target_memory": 1103233024,
+        "228:graph_fields": 1131757568,
+        "228:finalization_start": 1133821952,
+        "228:finalization_finished": 1133821952,
+        "228:publication_start": 1133821952,
+        "228:publication_finished": 1133821952,
+        "228:output_released": 1093222400,
+        "321:cut_start": 1093222400,
+        "321:native_start": 1093910528,
+        "321:growth_finished": 977944576,
+        "321:states_exported": 977944576,
+        "321:transitions_exported": 977944576,
+        "321:native_finished": 977944576,
+        "321:target_memory": 977944576,
+        "321:graph_fields": 977944576,
+        "321:finalization_start": 979271680,
+        "321:finalization_finished": 979271680,
+        "321:publication_start": 1038057472,
+        "321:publication_finished": 1038057472,
+        "321:output_released": 1035960320,
+        "335:cut_start": 1035960320,
+        "335:native_start": 1042186240,
+        "335:growth_finished": 1042546688,
+        "335:states_exported": 1042907136,
+        "335:transitions_exported": 1043529728,
+        "335:native_finished": 1043529728,
+        "335:target_memory": 1044004864,
+        "335:graph_fields": 1067843584,
+        "335:finalization_start": 1069203456,
+        "335:finalization_finished": 1069350912,
+        "335:publication_start": 1137541120,
+        "335:publication_finished": 1137541120,
+        "335:output_released": 1114701824,
+        "335:before_collect": 1114701824,
+        "335:after_collect": 1112604672,
+        "335:symmetry_released": 988872704,
+        "335:session_released": 987824128,
+        "335:complete": 987824128
+      },
+      "guard_gib": 8.0,
+      "memo_entries": 512,
+      "share_deferred": true,
+      "exitcode": 0
+    }
+  }
+}

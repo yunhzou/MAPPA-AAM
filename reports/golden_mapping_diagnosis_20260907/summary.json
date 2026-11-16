@@ -1,5 +1,5 @@
 {
-  "run": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907",
+  "run": "private-reference-cb520bd0f9a62577ac68",
   "audited_nonempty_misses": 137,
   "uncapped": 15,
   "capped": 122,
@@ -28,7 +28,7 @@
       "capped": true,
       "seconds": 69.42000653035939,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/empty1405_seeds30_cap100/cuts/aam.pkl.gz"
+      "archive": "private-reference-fce29e4b6d52bc98556a"
     },
     {
       "experiment": "empty1654_seeds30_cap100",
@@ -37,7 +37,7 @@
       "capped": true,
       "seconds": 23.56181714963168,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/empty1654_seeds30_cap100/cuts/aam.pkl.gz"
+      "archive": "private-reference-2c5ea29677080a76d9a4"
     },
     {
       "experiment": "empty1665_seeds100_cap100",
@@ -46,7 +46,7 @@
       "capped": true,
       "seconds": 62.507197842001915,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/empty1665_seeds100_cap100/cuts/aam.pkl.gz"
+      "archive": "private-reference-ea3e8ed40f11aa7157da"
     },
     {
       "experiment": "empty1665_seeds30_cap100",
@@ -55,7 +55,7 @@
       "capped": true,
       "seconds": 27.701457905117422,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/empty1665_seeds30_cap100/cuts/aam.pkl.gz"
+      "archive": "private-reference-f21a151d7109604b2c0c"
     },
     {
       "experiment": "empty745_seeds30_cap100",
@@ -64,7 +64,7 @@
       "capped": true,
       "seconds": 4.117720638867468,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/empty745_seeds30_cap100/cuts/aam.pkl.gz"
+      "archive": "private-reference-608498a13a730751292e"
     },
     {
       "experiment": "empty745_seeds3_cap1000",
@@ -73,7 +73,7 @@
       "capped": false,
       "seconds": 0.470678404904902,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/empty745_seeds3_cap1000/cuts/aam.pkl.gz"
+      "archive": "private-reference-8c2f940689214bd9a3f8"
     },
     {
       "experiment": "empty853_seeds30_cap100",
@@ -82,7 +82,7 @@
       "capped": true,
       "seconds": 17.35063941963017,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/empty853_seeds30_cap100/cuts/aam.pkl.gz"
+      "archive": "private-reference-5f2e42dd8bbae6c0e8e1"
     },
     {
       "experiment": "empty853_seeds3_cap1000",
@@ -91,7 +91,7 @@
       "capped": false,
       "seconds": 1.6581468433141708,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/empty853_seeds3_cap1000/cuts/aam.pkl.gz"
+      "archive": "private-reference-2bf2b3c4994cd548725f"
     },
     {
       "experiment": "probe1083_seeds30",
@@ -100,7 +100,7 @@
       "capped": true,
       "seconds": 79.25630657374859,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1083_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-447818adbfacafca9731"
     },
     {
       "experiment": "probe11_seeds30_cap100",
@@ -109,7 +109,7 @@
       "capped": true,
       "seconds": 22.289735957048833,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe11_seeds30_cap100/cuts/aam.pkl.gz"
+      "archive": "private-reference-1c130398729b12cd2079"
     },
     {
       "experiment": "probe11_seeds3_cap1000",
@@ -118,7 +118,7 @@
       "capped": true,
       "seconds": 4.7371976263821125,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe11_seeds3_cap1000/cuts/aam.pkl.gz"
+      "archive": "private-reference-8e40d3b49ff31af86317"
     },
     {
       "experiment": "probe1285_seeds3_cap1000",
@@ -127,7 +127,7 @@
       "capped": false,
       "seconds": 1.2608723882585764,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1285_seeds3_cap1000/cuts/aam.pkl.gz"
+      "archive": "private-reference-f22afdb5cf1eca5bb4e9"
     },
     {
       "experiment": "probe1314_seeds30",
@@ -136,7 +136,7 @@
       "capped": true,
       "seconds": 55.42345356289297,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1314_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-479fad69cb5628f6c715"
     },
     {
       "experiment": "probe1574_seeds30",
@@ -145,7 +145,7 @@
       "capped": true,
       "seconds": 36.4190249000676,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1574_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-f5a4e5ee828aac07639e"
     },
     {
       "experiment": "probe1609_seeds30",
@@ -154,7 +154,7 @@
       "capped": true,
       "seconds": 20.760088544804603,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1609_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-c20657baeb403e576a64"
     },
     {
       "experiment": "probe1641_seeds30",
@@ -163,7 +163,7 @@
       "capped": false,
       "seconds": 10.182023068191484,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1641_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-e340cbdafa0816abfee0"
     },
     {
       "experiment": "probe1673_seeds30",
@@ -172,7 +172,7 @@
       "capped": true,
       "seconds": 9.752372005023062,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1673_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-687f975559127c80f617"
     },
     {
       "experiment": "probe1684_seeds30",
@@ -181,7 +181,7 @@
       "capped": true,
       "seconds": 38.559522797120735,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1684_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-5148308bfdc6da8add23"
     },
     {
       "experiment": "probe1739_seeds100_tol1",
@@ -190,7 +190,7 @@
       "capped": true,
       "seconds": 33.340589532628655,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1739_seeds100_tol1/cuts/aam.pkl.gz"
+      "archive": "private-reference-32201a31e22b58a610a6"
     },
     {
       "experiment": "probe1739_seeds30",
@@ -199,7 +199,7 @@
       "capped": true,
       "seconds": 17.94278210401535,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1739_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-7bf1450d941c2cb9152b"
     },
     {
       "experiment": "probe1739_seeds30_tol2",
@@ -208,7 +208,7 @@
       "capped": true,
       "seconds": 30.144217683002353,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1739_seeds30_tol2/cuts/aam.pkl.gz"
+      "archive": "private-reference-74cb0cda37bb201261f3"
     },
     {
       "experiment": "probe1739_seeds3_tol2",
@@ -217,7 +217,7 @@
       "capped": true,
       "seconds": 5.490315611008555,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1739_seeds3_tol2/cuts/aam.pkl.gz"
+      "archive": "private-reference-43c50b32ed0689f97666"
     },
     {
       "experiment": "probe1740_directed_order_tol1",
@@ -226,7 +226,7 @@
       "capped": false,
       "seconds": 0.031485540792346,
       "reference_directed": true,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1740_directed_order_tol1/cuts/aam.pkl.gz"
+      "archive": "private-reference-e440cffcff1b5121976d"
     },
     {
       "experiment": "probe1740_explicit_two_cuts_seeds3",
@@ -235,7 +235,7 @@
       "capped": false,
       "seconds": 0.5015842448920012,
       "reference_directed": true,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1740_explicit_two_cuts_seeds3/cuts/aam.pkl.gz"
+      "archive": "private-reference-4e3ae4ae3eaa5519a312"
     },
     {
       "experiment": "probe1740_seeds100_tol1",
@@ -244,7 +244,7 @@
       "capped": true,
       "seconds": 103.893966215197,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1740_seeds100_tol1/cuts/aam.pkl.gz"
+      "archive": "private-reference-0783afc475ef06467b37"
     },
     {
       "experiment": "probe1740_seeds30",
@@ -253,7 +253,7 @@
       "capped": true,
       "seconds": 29.000725614838302,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1740_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-d5914792cda249e90c8a"
     },
     {
       "experiment": "probe1740_seeds30_tol2",
@@ -262,7 +262,7 @@
       "capped": true,
       "seconds": 54.872211072128266,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1740_seeds30_tol2/cuts/aam.pkl.gz"
+      "archive": "private-reference-5e38eb9a32a92e42124a"
     },
     {
       "experiment": "probe1740_seeds3_tol2",
@@ -271,7 +271,7 @@
       "capped": false,
       "seconds": 3.219568911008537,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1740_seeds3_tol2/cuts/aam.pkl.gz"
+      "archive": "private-reference-b94e93bf145ed7d5648a"
     },
     {
       "experiment": "probe1741_seeds30",
@@ -280,7 +280,7 @@
       "capped": true,
       "seconds": 17.090113257989287,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1741_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-9ebfe1509c2fc20f9f08"
     },
     {
       "experiment": "probe1788_seeds30",
@@ -289,7 +289,7 @@
       "capped": true,
       "seconds": 12.898797332774848,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1788_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-9e26b65d1fa86674b746"
     },
     {
       "experiment": "probe1803_seeds30",
@@ -298,7 +298,7 @@
       "capped": true,
       "seconds": 30.815767996944487,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1803_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-359e76cea6e1ad771f0f"
     },
     {
       "experiment": "probe1821_seeds30",
@@ -307,7 +307,7 @@
       "capped": true,
       "seconds": 101.4718974228017,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1821_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-36ecaadcdd62690bb9b8"
     },
     {
       "experiment": "probe1822_seeds30",
@@ -316,7 +316,7 @@
       "capped": true,
       "seconds": 20.29322514287196,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe1822_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-3a9962d5ad30c9c18790"
     },
     {
       "experiment": "probe21_seeds30",
@@ -325,7 +325,7 @@
       "capped": true,
       "seconds": 8.52836075425148,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe21_seeds30/cuts/aam.pkl.gz"
+      "archive": "private-reference-0cb8d3ab4332a7cee35b"
     },
     {
       "experiment": "probe602_seeds30_cap100",
@@ -334,7 +334,7 @@
       "capped": true,
       "seconds": 21.223280603066087,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe602_seeds30_cap100/cuts/aam.pkl.gz"
+      "archive": "private-reference-7dd4146a20988e85e249"
     },
     {
       "experiment": "probe602_seeds3_cap1000",
@@ -343,7 +343,7 @@
       "capped": false,
       "seconds": 2.298088937997818,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe602_seeds3_cap1000/cuts/aam.pkl.gz"
+      "archive": "private-reference-46353c4a1873d8cc92c2"
     },
     {
       "experiment": "probe986_seeds3_cap1000",
@@ -352,7 +352,7 @@
       "capped": true,
       "seconds": 62.522496095858514,
       "reference_directed": false,
-      "archive": "/project/yunhengzou/coordinate_alignment/aam_benchmarks/golden_mapping_diagnosis_20260907/probe986_seeds3_cap1000/cuts/aam.pkl.gz"
+      "archive": "private-reference-6733a6e6927e03deddd7"
     }
   ],
   "confirmed_blind_higher_seed_recoveries": [
@@ -381,5 +381,9 @@
     "recovered": 1607,
     "not_recovered": 149,
     "unknown": 4
+  },
+  "privacy_projection": {
+    "original_sha256": "76256fb2af729d4e207822ed1a61fbc68d2f1e94becded6f39ec21bb1d9ac26d",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
   }
 }

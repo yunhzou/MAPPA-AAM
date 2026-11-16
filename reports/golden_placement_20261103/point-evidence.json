@@ -1,0 +1,842 @@
+{
+  "baseline_1801": {
+    "case": "golden1801-reverse-uncut",
+    "config": {
+      "anchors": [],
+      "branch_limit": 2000,
+      "cut_floor": 0.2,
+      "event_threshold": 0.5,
+      "graph_floor": 0.2,
+      "iso_tolerance": 1.0,
+      "metal_event_threshold": 0.3,
+      "random_seed": 42,
+      "seed_count": 1,
+      "seed_selection": "random",
+      "self_tolerance": 1.0,
+      "sweep_cuts": true,
+      "task_chunksize": 1
+    },
+    "elapsed_seconds": 30.131637000013143,
+    "matching_finished": false,
+    "maximum_sampled_rss_bytes": 59719680,
+    "raw_evidence_sha256": "4713a1bde797f734fadbd48459281e4e5c7a31be6c8ea842e3a1e8c82ede09b4",
+    "returncode": -15,
+    "sampled_cpu_seconds": 29.796854608,
+    "source_commit": "2658966b5cc1c73e5510ee2d8001b29e7db989ff",
+    "source_identity": "cc548f367dd0213d977edef8849ce8dfe1d4008b0c1e6b5e14ea065072ed1dcd",
+    "timeout_seconds": 30
+  },
+  "complex_output_equality": {
+    "case": 1410,
+    "consumer_and_repaired_matcher_mac_identity": "c557077902062d7a0e08940544f1f4e0d57b92ce56d9e31b1413ff40acba6f4a",
+    "cut_bonds": [
+      [
+        19,
+        20
+      ]
+    ],
+    "cut_number": 40,
+    "direction": "reverse",
+    "exact_decoded_record_equal": true,
+    "interpretation": "Original saved matching output is reduced and decoded by the same current consumers as the repaired matching probe; matching is not rerun and outputs are not reused in the new benchmark.",
+    "original_cut_blob_bytes": 82413,
+    "original_cut_blob_sha256": "5e50f11ea4f1e07ba8f51dcf5ae52a458367d3c2db8f515579eb2d3939cd90c9",
+    "original_decoded_record_sha256": "a26de51c32a67b79dfb1252834d8329bb999459389021f1b008e2163dc27e37b",
+    "original_families": 1997,
+    "original_linux_identity": "ab93d412975f9194d794403d7eb2e20716d7a27a464a29ae76a69cef7e10e1bf",
+    "original_scientific_commit": "2658966b5cc1c73e5510ee2d8001b29e7db989ff",
+    "original_search_counts": [
+      {
+        "max_growth_candidates": 1,
+        "max_live_branches": 1997,
+        "search_seconds": 362.1020031820517
+      }
+    ],
+    "redecode_cpu_seconds": 2.972864,
+    "redecode_wall_seconds": 2.9858181250747293,
+    "repaired_decoded_record_sha256": "a26de51c32a67b79dfb1252834d8329bb999459389021f1b008e2163dc27e37b",
+    "repaired_families": 1997
+  },
+  "independent_stack_profile": {
+    "bound_seconds": 10,
+    "hotspot": [
+      "SetOrbit::contains",
+      "StabilizerChain::contains"
+    ],
+    "native_stack_samples": 2169,
+    "profile_seconds": 5,
+    "raw_evidence_sha256": "2e417ddd7b3f0b695eadbb7ea606472fe0a59b19715e0fa902fcd87795874f33",
+    "raw_profile_sha256": "90e39bc4853bf9406a35615a16f4d1045002c9b677665946308693066f487410",
+    "source_identity": "cc548f367dd0213d977edef8849ce8dfe1d4008b0c1e6b5e14ea065072ed1dcd"
+  },
+  "limits": [
+    "The old 1801 run was stopped at 30 seconds; this is a censored duration, not a completed baseline time.",
+    "Reported peak RSS is process-lifetime high-water; it differs from sampled process-tree RSS.",
+    "The cold probe pipeline includes export, serialization and restoration; it excludes external reference verification.",
+    "The 1410 output equality compares saved old matching output through the same current reduction/decoding owners; its old Linux search duration is not directly comparable with the repaired Mac duration.",
+    "Case 1410 cut 40 records branch-cap stops; successful computation is not an exhaustive search claim."
+  ],
+  "raw_repaired_evidence_sha256": "dc3eb5bad6183ca0799894a6f42854c7ffa2f4f6386886db16994f34b4651333",
+  "repair": {
+    "justification": "Every remaining action preserves each of its point orbits, so selected-atom counts in those orbits are necessary invariants. Equal counts still require the existing exact joint transport check.",
+    "module": "src/mappa/mappa_core/native/set_orbit.h",
+    "rule": "Before correlated target-set transport, reject unequal selected-atom counts within any point orbit of the remaining stabilizer.",
+    "scientific_settings_changed": false
+  },
+  "runs": [
+    {
+      "cache_after": {
+        "boundary_misses": 0,
+        "boundary_rebases": 544,
+        "cache_budget_bytes": 67108864,
+        "calls": 3416,
+        "dependency_checks": 900,
+        "entries": 2568,
+        "evictions": 0,
+        "full_hits": 848,
+        "history_hits": 848,
+        "island_misses": 0,
+        "logical_extensions": 5535,
+        "mapping_misses": 52,
+        "oversized_results": 0,
+        "peak_resident_bytes": 12464083,
+        "resident_bytes": 12464083,
+        "reused_extensions": 1533,
+        "revision": 2568,
+        "shared_placement_bytes": 3615100,
+        "shared_placement_groups": 231,
+        "shared_self_bytes": 83087,
+        "shared_self_records": 83,
+        "topology_hits": 0,
+        "topology_misses": 0
+      },
+      "cache_before": {
+        "boundary_misses": 0,
+        "boundary_rebases": 0,
+        "cache_budget_bytes": 67108864,
+        "calls": 0,
+        "dependency_checks": 0,
+        "entries": 0,
+        "evictions": 0,
+        "full_hits": 0,
+        "history_hits": 0,
+        "island_misses": 0,
+        "logical_extensions": 0,
+        "mapping_misses": 0,
+        "oversized_results": 0,
+        "peak_resident_bytes": 0,
+        "resident_bytes": 0,
+        "reused_extensions": 0,
+        "revision": 0,
+        "shared_placement_bytes": 0,
+        "shared_placement_groups": 0,
+        "shared_self_bytes": 0,
+        "shared_self_records": 0,
+        "topology_hits": 0,
+        "topology_misses": 0
+      },
+      "cache_state": "cold",
+      "config": {
+        "anchors": [],
+        "branch_limit": 2000,
+        "cut_floor": 0.2,
+        "event_threshold": 0.5,
+        "graph_floor": 0.2,
+        "iso_tolerance": 1.0,
+        "metal_event_threshold": 0.3,
+        "random_seed": 42,
+        "seed_count": 1,
+        "seed_selection": "random",
+        "sweep_cuts": true,
+        "task_chunksize": 1
+      },
+      "cpu_seconds": 2.9241989999999998,
+      "cut_bonds": [
+        [
+          19,
+          20
+        ]
+      ],
+      "families": 1997,
+      "fragments": 58,
+      "input_blob": {
+        "offset": 6321594,
+        "sha256": "1f95b38f8d6fb11446f70fef4222de9ac08926e96b4ea9ac9fd6ff53e40dd967",
+        "size": 4579
+      },
+      "name": "golden1410-reverse-cut40",
+      "output_schema": "mappa.decoded_events/v7",
+      "output_sha256": "a26de51c32a67b79dfb1252834d8329bb999459389021f1b008e2163dc27e37b",
+      "phases": {
+        "decoding": {
+          "cpu_seconds": 0.04899699999999996,
+          "process_lifetime_peak_rss_bytes": 113885184,
+          "wall_seconds": 0.0490274578332901
+        },
+        "export": {
+          "cpu_seconds": 2.357923,
+          "process_lifetime_peak_rss_bytes": 143704064,
+          "wall_seconds": 2.3583717909641564
+        },
+        "matching": {
+          "cpu_seconds": 0.200953,
+          "process_lifetime_peak_rss_bytes": 95928320,
+          "wall_seconds": 0.23337979102507234
+        },
+        "planning": {
+          "cpu_seconds": 0.0003710000000000102,
+          "process_lifetime_peak_rss_bytes": 58359808,
+          "wall_seconds": 0.0003699997905641794
+        },
+        "preparation": {
+          "cpu_seconds": 0.0017039999999999833,
+          "process_lifetime_peak_rss_bytes": 58736640,
+          "wall_seconds": 0.0018122501205652952
+        },
+        "reduction": {
+          "cpu_seconds": 0.27320999999999995,
+          "process_lifetime_peak_rss_bytes": 103301120,
+          "wall_seconds": 0.2734609160106629
+        },
+        "restoration": {
+          "cpu_seconds": 0.021637999999999824,
+          "process_lifetime_peak_rss_bytes": 202883072,
+          "wall_seconds": 0.02164079202339053
+        },
+        "serialization": {
+          "cpu_seconds": 0.01940300000000006,
+          "process_lifetime_peak_rss_bytes": 165330944,
+          "wall_seconds": 0.01940833404660225
+        }
+      },
+      "process_elapsed_seconds": 3.4456590828485787,
+      "process_lifetime_peak_rss_bytes": 234684416,
+      "responses": 5,
+      "search_counts": [
+        {
+          "max_growth_candidates": 1,
+          "max_live_branches": 1997,
+          "search_seconds": 0.23309395904652774
+        }
+      ],
+      "self_tolerance": 1.0,
+      "serialized_bytes": 3845812,
+      "states": 4307,
+      "stop_reason_occurrences": {
+        "capped": 7097,
+        "objective_met": 1997
+      },
+      "stop_reason_records": {
+        "capped": 2,
+        "objective_met": 1997
+      },
+      "stops_sha256": "4987887b9a6c45a1614e7d7af0b257c9c323f80156420afe72a4b89eb2d38196",
+      "tables": 1997,
+      "terminals": 1997,
+      "transitions": 4306,
+      "wall_seconds": 2.957471331814304
+    },
+    {
+      "cache_after": {
+        "boundary_misses": 0,
+        "boundary_rebases": 0,
+        "cache_budget_bytes": 67108864,
+        "calls": 271,
+        "dependency_checks": 91,
+        "entries": 180,
+        "evictions": 0,
+        "full_hits": 91,
+        "history_hits": 91,
+        "island_misses": 0,
+        "logical_extensions": 857,
+        "mapping_misses": 0,
+        "oversized_results": 0,
+        "peak_resident_bytes": 2148343,
+        "resident_bytes": 2148343,
+        "reused_extensions": 273,
+        "revision": 180,
+        "shared_placement_bytes": 932560,
+        "shared_placement_groups": 67,
+        "shared_self_bytes": 144355,
+        "shared_self_records": 43,
+        "topology_hits": 0,
+        "topology_misses": 0
+      },
+      "cache_before": {
+        "boundary_misses": 0,
+        "boundary_rebases": 0,
+        "cache_budget_bytes": 67108864,
+        "calls": 0,
+        "dependency_checks": 0,
+        "entries": 0,
+        "evictions": 0,
+        "full_hits": 0,
+        "history_hits": 0,
+        "island_misses": 0,
+        "logical_extensions": 0,
+        "mapping_misses": 0,
+        "oversized_results": 0,
+        "peak_resident_bytes": 0,
+        "resident_bytes": 0,
+        "reused_extensions": 0,
+        "revision": 0,
+        "shared_placement_bytes": 0,
+        "shared_placement_groups": 0,
+        "shared_self_bytes": 0,
+        "shared_self_records": 0,
+        "topology_hits": 0,
+        "topology_misses": 0
+      },
+      "cache_state": "cold",
+      "config": {
+        "anchors": [],
+        "branch_limit": 2000,
+        "cut_floor": 0.2,
+        "event_threshold": 0.5,
+        "graph_floor": 0.2,
+        "iso_tolerance": 1.0,
+        "metal_event_threshold": 0.3,
+        "random_seed": 42,
+        "seed_count": 1,
+        "seed_selection": "random",
+        "sweep_cuts": true,
+        "task_chunksize": 1
+      },
+      "cpu_seconds": 2.2692099999999997,
+      "cut_bonds": [
+        [
+          0,
+          1
+        ]
+      ],
+      "families": 1136,
+      "fragments": 53,
+      "input_blob": {
+        "offset": 7483767,
+        "sha256": "09206b1c1f43fd8b78fce09a3623c0889fedbc053eb662e13f136cf3282ba79d",
+        "size": 6125
+      },
+      "name": "golden1606-reverse-cut1",
+      "output_schema": "mappa.decoded_events/v7",
+      "output_sha256": "3edfcbbfbfd27e69bbcee95fa0f1e527778a69e1420af0108d6a115fada6b6dd",
+      "phases": {
+        "decoding": {
+          "cpu_seconds": 0.03060799999999997,
+          "process_lifetime_peak_rss_bytes": 86294528,
+          "wall_seconds": 0.030643834033980966
+        },
+        "export": {
+          "cpu_seconds": 2.04696,
+          "process_lifetime_peak_rss_bytes": 107806720,
+          "wall_seconds": 2.047370375134051
+        },
+        "matching": {
+          "cpu_seconds": 0.05618300000000001,
+          "process_lifetime_peak_rss_bytes": 74055680,
+          "wall_seconds": 0.05701650003902614
+        },
+        "planning": {
+          "cpu_seconds": 0.0005310000000000037,
+          "process_lifetime_peak_rss_bytes": 58802176,
+          "wall_seconds": 0.0005316669121384621
+        },
+        "preparation": {
+          "cpu_seconds": 0.0021079999999999988,
+          "process_lifetime_peak_rss_bytes": 59408384,
+          "wall_seconds": 0.00224687485024333
+        },
+        "reduction": {
+          "cpu_seconds": 0.10985899999999998,
+          "process_lifetime_peak_rss_bytes": 78004224,
+          "wall_seconds": 0.109879249939695
+        },
+        "restoration": {
+          "cpu_seconds": 0.012630000000000141,
+          "process_lifetime_peak_rss_bytes": 144424960,
+          "wall_seconds": 0.012637666892260313
+        },
+        "serialization": {
+          "cpu_seconds": 0.010330999999999868,
+          "process_lifetime_peak_rss_bytes": 119209984,
+          "wall_seconds": 0.01033687498420477
+        }
+      },
+      "process_elapsed_seconds": 2.7876747911795974,
+      "process_lifetime_peak_rss_bytes": 191692800,
+      "responses": 7,
+      "search_counts": [
+        {
+          "max_growth_candidates": 1,
+          "max_live_branches": 1136,
+          "search_seconds": 0.05688666715286672
+        }
+      ],
+      "self_tolerance": 1.0,
+      "serialized_bytes": 2835461,
+      "states": 1407,
+      "stop_reason_occurrences": {
+        "objective_met": 1136
+      },
+      "stop_reason_records": {
+        "objective_met": 1136
+      },
+      "stops_sha256": "9d6d79644ba78d4bdf65bcdb2abb1b49c8001b05921311d9fb61c1d00d8433b3",
+      "tables": 1136,
+      "terminals": 1136,
+      "transitions": 1406,
+      "wall_seconds": 2.2706630427856
+    },
+    {
+      "cache_after": {
+        "boundary_misses": 0,
+        "boundary_rebases": 0,
+        "cache_budget_bytes": 67108864,
+        "calls": 2,
+        "dependency_checks": 0,
+        "entries": 2,
+        "evictions": 0,
+        "full_hits": 0,
+        "history_hits": 0,
+        "island_misses": 0,
+        "logical_extensions": 112,
+        "mapping_misses": 0,
+        "oversized_results": 0,
+        "peak_resident_bytes": 247290,
+        "resident_bytes": 247290,
+        "reused_extensions": 0,
+        "revision": 2,
+        "shared_placement_bytes": 56280,
+        "shared_placement_groups": 2,
+        "shared_self_bytes": 169696,
+        "shared_self_records": 4,
+        "topology_hits": 0,
+        "topology_misses": 0
+      },
+      "cache_before": {
+        "boundary_misses": 0,
+        "boundary_rebases": 0,
+        "cache_budget_bytes": 67108864,
+        "calls": 0,
+        "dependency_checks": 0,
+        "entries": 0,
+        "evictions": 0,
+        "full_hits": 0,
+        "history_hits": 0,
+        "island_misses": 0,
+        "logical_extensions": 0,
+        "mapping_misses": 0,
+        "oversized_results": 0,
+        "peak_resident_bytes": 0,
+        "resident_bytes": 0,
+        "reused_extensions": 0,
+        "revision": 0,
+        "shared_placement_bytes": 0,
+        "shared_placement_groups": 0,
+        "shared_self_bytes": 0,
+        "shared_self_records": 0,
+        "topology_hits": 0,
+        "topology_misses": 0
+      },
+      "cache_state": "cold",
+      "config": {
+        "anchors": [],
+        "branch_limit": 2000,
+        "cut_floor": 0.2,
+        "event_threshold": 0.5,
+        "graph_floor": 0.2,
+        "iso_tolerance": 1.0,
+        "metal_event_threshold": 0.3,
+        "random_seed": 42,
+        "seed_count": 1,
+        "seed_selection": "random",
+        "sweep_cuts": true,
+        "task_chunksize": 1
+      },
+      "cpu_seconds": 0.02890799999999999,
+      "cut_bonds": [],
+      "families": 1,
+      "fragments": 2,
+      "input_blob": {
+        "offset": 8878090,
+        "sha256": "25f2947376921095c00ab37ce8434367098a382b5f7ca4c0569935bbb4e3b0dd",
+        "size": 8015
+      },
+      "name": "golden1799-reverse-cut0",
+      "output_schema": "mappa.decoded_events/v7",
+      "output_sha256": "593bd3842031a37577b8cb4998a4b627871f959f0595366a03acc418e325c21c",
+      "phases": {
+        "decoding": {
+          "cpu_seconds": 0.004507000000000011,
+          "process_lifetime_peak_rss_bytes": 66879488,
+          "wall_seconds": 0.004506041994318366
+        },
+        "export": {
+          "cpu_seconds": 0.011440000000000006,
+          "process_lifetime_peak_rss_bytes": 69533696,
+          "wall_seconds": 0.011444875039160252
+        },
+        "matching": {
+          "cpu_seconds": 0.007318999999999992,
+          "process_lifetime_peak_rss_bytes": 64159744,
+          "wall_seconds": 0.008103833068162203
+        },
+        "planning": {
+          "cpu_seconds": 0.0006670000000000009,
+          "process_lifetime_peak_rss_bytes": 59883520,
+          "wall_seconds": 0.0006677079945802689
+        },
+        "preparation": {
+          "cpu_seconds": 0.002816000000000013,
+          "process_lifetime_peak_rss_bytes": 60964864,
+          "wall_seconds": 0.0029938749503344297
+        },
+        "reduction": {
+          "cpu_seconds": 0.0005030000000000034,
+          "process_lifetime_peak_rss_bytes": 64241664,
+          "wall_seconds": 0.0005022499244660139
+        },
+        "restoration": {
+          "cpu_seconds": 0.0010089999999999821,
+          "process_lifetime_peak_rss_bytes": 72368128,
+          "wall_seconds": 0.0010097918566316366
+        },
+        "serialization": {
+          "cpu_seconds": 0.0006469999999999809,
+          "process_lifetime_peak_rss_bytes": 69550080,
+          "wall_seconds": 0.0006472920067608356
+        }
+      },
+      "process_elapsed_seconds": 0.3908860001247376,
+      "process_lifetime_peak_rss_bytes": 72433664,
+      "responses": 5,
+      "search_counts": [
+        {
+          "max_growth_candidates": 1,
+          "max_live_branches": 1,
+          "search_seconds": 0.008089540991932154
+        }
+      ],
+      "self_tolerance": 1.0,
+      "serialized_bytes": 614652,
+      "states": 3,
+      "stop_reason_occurrences": {
+        "objective_met": 1
+      },
+      "stop_reason_records": {
+        "objective_met": 1
+      },
+      "stops_sha256": "3ffa39aaeae7f7a6c2e2a7bfb7c73e2d718f2f242b4aa3b1338b1e6765cc76db",
+      "tables": 1,
+      "terminals": 1,
+      "transitions": 2,
+      "wall_seconds": 0.029875666834414005
+    },
+    {
+      "cache_after": {
+        "boundary_misses": 0,
+        "boundary_rebases": 0,
+        "cache_budget_bytes": 67108864,
+        "calls": 3,
+        "dependency_checks": 0,
+        "entries": 3,
+        "evictions": 0,
+        "full_hits": 0,
+        "history_hits": 0,
+        "island_misses": 0,
+        "logical_extensions": 111,
+        "mapping_misses": 0,
+        "oversized_results": 0,
+        "peak_resident_bytes": 259917,
+        "resident_bytes": 259917,
+        "reused_extensions": 0,
+        "revision": 3,
+        "shared_placement_bytes": 65868,
+        "shared_placement_groups": 3,
+        "shared_self_bytes": 168236,
+        "shared_self_records": 7,
+        "topology_hits": 0,
+        "topology_misses": 0
+      },
+      "cache_before": {
+        "boundary_misses": 0,
+        "boundary_rebases": 0,
+        "cache_budget_bytes": 67108864,
+        "calls": 0,
+        "dependency_checks": 0,
+        "entries": 0,
+        "evictions": 0,
+        "full_hits": 0,
+        "history_hits": 0,
+        "island_misses": 0,
+        "logical_extensions": 0,
+        "mapping_misses": 0,
+        "oversized_results": 0,
+        "peak_resident_bytes": 0,
+        "resident_bytes": 0,
+        "reused_extensions": 0,
+        "revision": 0,
+        "shared_placement_bytes": 0,
+        "shared_placement_groups": 0,
+        "shared_self_bytes": 0,
+        "shared_self_records": 0,
+        "topology_hits": 0,
+        "topology_misses": 0
+      },
+      "cache_state": "cold",
+      "config": {
+        "anchors": [],
+        "branch_limit": 2000,
+        "cut_floor": 0.2,
+        "event_threshold": 0.5,
+        "graph_floor": 0.2,
+        "iso_tolerance": 1.0,
+        "metal_event_threshold": 0.3,
+        "random_seed": 42,
+        "seed_count": 1,
+        "seed_selection": "random",
+        "sweep_cuts": true,
+        "task_chunksize": 1
+      },
+      "cpu_seconds": 0.03650299999999995,
+      "cut_bonds": [
+        [
+          0,
+          1
+        ]
+      ],
+      "families": 2,
+      "fragments": 4,
+      "input_blob": {
+        "offset": 8878090,
+        "sha256": "25f2947376921095c00ab37ce8434367098a382b5f7ca4c0569935bbb4e3b0dd",
+        "size": 8015
+      },
+      "name": "golden1799-reverse-cut1",
+      "output_schema": "mappa.decoded_events/v7",
+      "output_sha256": "1f59a502f44ff73ebbee7009df6859a1e88a13b446814aa0a44fbb00b4601357",
+      "phases": {
+        "decoding": {
+          "cpu_seconds": 0.004408999999999996,
+          "process_lifetime_peak_rss_bytes": 65912832,
+          "wall_seconds": 0.004408583045005798
+        },
+        "export": {
+          "cpu_seconds": 0.018856999999999985,
+          "process_lifetime_peak_rss_bytes": 68599808,
+          "wall_seconds": 0.01886308309622109
+        },
+        "matching": {
+          "cpu_seconds": 0.00751099999999999,
+          "process_lifetime_peak_rss_bytes": 63324160,
+          "wall_seconds": 0.008423541905358434
+        },
+        "planning": {
+          "cpu_seconds": 0.0006839999999999902,
+          "process_lifetime_peak_rss_bytes": 59555840,
+          "wall_seconds": 0.0006819579284638166
+        },
+        "preparation": {
+          "cpu_seconds": 0.0026269999999999905,
+          "process_lifetime_peak_rss_bytes": 60424192,
+          "wall_seconds": 0.002840624889358878
+        },
+        "reduction": {
+          "cpu_seconds": 0.0006430000000000047,
+          "process_lifetime_peak_rss_bytes": 63455232,
+          "wall_seconds": 0.0006428749766200781
+        },
+        "restoration": {
+          "cpu_seconds": 0.0011410000000000031,
+          "process_lifetime_peak_rss_bytes": 71188480,
+          "wall_seconds": 0.001144707901403308
+        },
+        "serialization": {
+          "cpu_seconds": 0.0006309999999999927,
+          "process_lifetime_peak_rss_bytes": 68599808,
+          "wall_seconds": 0.0006300839595496655
+        }
+      },
+      "process_elapsed_seconds": 0.4039489170536399,
+      "process_lifetime_peak_rss_bytes": 71270400,
+      "responses": 6,
+      "search_counts": [
+        {
+          "max_growth_candidates": 1,
+          "max_live_branches": 2,
+          "search_seconds": 0.008405667031183839
+        }
+      ],
+      "self_tolerance": 1.0,
+      "serialized_bytes": 614326,
+      "states": 5,
+      "stop_reason_occurrences": {
+        "objective_met": 2
+      },
+      "stop_reason_records": {
+        "objective_met": 2
+      },
+      "stops_sha256": "d73d7cef04709b836f92571cfd2ee3d975ab81c05d99601d88c50ce22c015d69",
+      "tables": 2,
+      "terminals": 2,
+      "transitions": 4,
+      "wall_seconds": 0.03763545770198107
+    },
+    {
+      "cache_after": {
+        "boundary_misses": 0,
+        "boundary_rebases": 0,
+        "cache_budget_bytes": 67108864,
+        "calls": 2,
+        "dependency_checks": 0,
+        "entries": 2,
+        "evictions": 0,
+        "full_hits": 0,
+        "history_hits": 0,
+        "island_misses": 0,
+        "logical_extensions": 106,
+        "mapping_misses": 0,
+        "oversized_results": 0,
+        "peak_resident_bytes": 209546,
+        "resident_bytes": 209546,
+        "reused_extensions": 0,
+        "revision": 2,
+        "shared_placement_bytes": 25024,
+        "shared_placement_groups": 2,
+        "shared_self_bytes": 163492,
+        "shared_self_records": 4,
+        "topology_hits": 0,
+        "topology_misses": 0
+      },
+      "cache_before": {
+        "boundary_misses": 0,
+        "boundary_rebases": 0,
+        "cache_budget_bytes": 67108864,
+        "calls": 0,
+        "dependency_checks": 0,
+        "entries": 0,
+        "evictions": 0,
+        "full_hits": 0,
+        "history_hits": 0,
+        "island_misses": 0,
+        "logical_extensions": 0,
+        "mapping_misses": 0,
+        "oversized_results": 0,
+        "peak_resident_bytes": 0,
+        "resident_bytes": 0,
+        "reused_extensions": 0,
+        "revision": 0,
+        "shared_placement_bytes": 0,
+        "shared_placement_groups": 0,
+        "shared_self_bytes": 0,
+        "shared_self_records": 0,
+        "topology_hits": 0,
+        "topology_misses": 0
+      },
+      "cache_state": "cold",
+      "config": {
+        "anchors": [],
+        "branch_limit": 2000,
+        "cut_floor": 0.2,
+        "event_threshold": 0.5,
+        "graph_floor": 0.2,
+        "iso_tolerance": 1.0,
+        "metal_event_threshold": 0.3,
+        "random_seed": 42,
+        "seed_count": 1,
+        "seed_selection": "random",
+        "sweep_cuts": true,
+        "task_chunksize": 1
+      },
+      "cpu_seconds": 0.02341700000000005,
+      "cut_bonds": [],
+      "families": 1,
+      "fragments": 2,
+      "input_blob": {
+        "offset": 8902875,
+        "sha256": "c80cf64f1ce61e75fb94622aa96f11099edaa8d66b93a4e4d2d02e0b56d7d7c8",
+        "size": 5141
+      },
+      "name": "golden1801-reverse-cut0",
+      "output_schema": "mappa.decoded_events/v7",
+      "output_sha256": "feb21eac439940f8d5039d2b3f6fed326a56c5a57d5cc8821b315a1d64217550",
+      "phases": {
+        "decoding": {
+          "cpu_seconds": 0.0022040000000000115,
+          "process_lifetime_peak_rss_bytes": 63750144,
+          "wall_seconds": 0.002203958109021187
+        },
+        "export": {
+          "cpu_seconds": 0.010347999999999996,
+          "process_lifetime_peak_rss_bytes": 65896448,
+          "wall_seconds": 0.010352333076298237
+        },
+        "matching": {
+          "cpu_seconds": 0.006416000000000005,
+          "process_lifetime_peak_rss_bytes": 61374464,
+          "wall_seconds": 0.006878792075440288
+        },
+        "planning": {
+          "cpu_seconds": 0.0010069999999999801,
+          "process_lifetime_peak_rss_bytes": 58638336,
+          "wall_seconds": 0.0010070831049233675
+        },
+        "preparation": {
+          "cpu_seconds": 0.0019030000000000158,
+          "process_lifetime_peak_rss_bytes": 58998784,
+          "wall_seconds": 0.002038541017100215
+        },
+        "reduction": {
+          "cpu_seconds": 0.0003180000000000127,
+          "process_lifetime_peak_rss_bytes": 61390848,
+          "wall_seconds": 0.0003186250105500221
+        },
+        "restoration": {
+          "cpu_seconds": 0.0007420000000000204,
+          "process_lifetime_peak_rss_bytes": 67862528,
+          "wall_seconds": 0.0007422089111059904
+        },
+        "serialization": {
+          "cpu_seconds": 0.0004790000000000072,
+          "process_lifetime_peak_rss_bytes": 65896448,
+          "wall_seconds": 0.00047883298248052597
+        }
+      },
+      "process_elapsed_seconds": 0.3961192921269685,
+      "process_lifetime_peak_rss_bytes": 67977216,
+      "responses": 5,
+      "search_counts": [
+        {
+          "max_growth_candidates": 1,
+          "max_live_branches": 1,
+          "search_seconds": 0.006862125126644969
+        }
+      ],
+      "self_tolerance": 1.0,
+      "serialized_bytes": 424323,
+      "states": 3,
+      "stop_reason_occurrences": {
+        "objective_met": 1
+      },
+      "stop_reason_records": {
+        "objective_met": 1
+      },
+      "stops_sha256": "f15d1a163f7c3c2b55e414119638979892aed181eece9bd629555a8ab49adacf",
+      "tables": 1,
+      "terminals": 1,
+      "transitions": 2,
+      "wall_seconds": 0.024020374286919832
+    }
+  ],
+  "schema": "mappa.placement_membership_repair_points/v1",
+  "scope": "Five isolated cold single-cut Mac diagnostics; not the full Golden benchmark or reference recovery evaluation.",
+  "source_commit": "1710f690f5c49b34d11de69782aa54b1f4d79304",
+  "source_identity": "c557077902062d7a0e08940544f1f4e0d57b92ce56d9e31b1413ff40acba6f4a",
+  "validation": {
+    "existing_tests": 880,
+    "focused_seconds": 7.06,
+    "focused_tests_passed": 49,
+    "mac_tests_passed": 883,
+    "new_regression_tests": 3,
+    "process_socket_test_reexecution": "56 tests required operating-system access after sandbox permission failures; 827 other tests had already passed."
+  }
+}

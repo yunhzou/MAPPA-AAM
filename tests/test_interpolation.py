@@ -1,11 +1,10 @@
 import numpy as np
 
-from mappa.alignment.interpolation import (
+from mappa.presentation.interpolation import (
     _dihedral,
     _rotation_fraction,
     _wrap_angle,
     internal_coordinate_interpolation,
-    internal_distance_interpolation,
     proper_align_coordinates,
 )
 
@@ -23,7 +22,7 @@ def test_half_turn_follows_proper_rotation_without_crossing_center_plane():
     assert np.max(np.linalg.norm(np.diff(path, axis=0), axis=1)) < 0.04
 
 
-def test_internal_distance_interpolation_preserves_endpoints_and_frame_count():
+def test_internal_coordinate_interpolation_preserves_endpoints_and_frame_count():
     coords_r = np.array([
         [0.0, 0.0, 0.0],
         [1.0, 0.0, 0.0],
@@ -37,7 +36,7 @@ def test_internal_distance_interpolation_preserves_endpoints_and_frame_count():
         [2.0, 3.0, 5.2],
     ])
 
-    result = internal_distance_interpolation(
+    result = internal_coordinate_interpolation(
         coords_r, coords_p, ["C", "H", "H", "H"],
         bonded_pairs=[(0, 1), (0, 2), (0, 3)], n_frames=9)
 
@@ -51,13 +50,13 @@ def test_internal_distance_interpolation_preserves_endpoints_and_frame_count():
         [1.2, 1.2, 1.2])
 
 
-def test_internal_distance_interpolation_reports_nonbonded_clash():
+def test_internal_coordinate_interpolation_reports_nonbonded_clash():
     coords = np.array([
         [0.0, 0.0, 0.0],
         [1.0, 0.0, 0.0],
         [0.1, 0.0, 0.0],
     ])
-    result = internal_distance_interpolation(
+    result = internal_coordinate_interpolation(
         coords, coords, ["C", "H", "H"], bonded_pairs=[(0, 1)],
         n_frames=2)
 

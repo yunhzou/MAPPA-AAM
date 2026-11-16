@@ -1,0 +1,481 @@
+"""One coordinator owns task metadata; workers never open its SQLite file."""
+from dataclasses import dataclass
+from collections import Counter
+from graphlib import TopologicalSorter
+import pickle
+import os
+import shutil
+import tempfile
+from pathlib import Path
+import sqlite3
+import threading
+import time
+import uuid
+from mappa.mappa_core.utils.io.checkpoints import _loads_checkpoint
+from .cache import ReactionCaches
+
+
+@dataclass(frozen=True)
+class Task:
+    key: str
+    operation: str
+    payload: object
+    dependencies: tuple[str, ...] = ()
+    case: str = ''
+    case_seconds: float = 3600.
+    memory_bytes: int = 2**30
+
+
+class TaskQueue:
+    """Durable dependency queue for trusted workers running the same code.
+
+    Place the database on the coordinator's local disk, with explicit backups
+    to shared storage. Lost leases require an explicit retry; no silent reruns.
+    """
+    def __init__(self, path, identity, *, lease_seconds=120., keep_open=False, cache_directory=None, cache_publish_seconds=1.):
+        self.lock = threading.RLock()
+        self.changed = threading.Condition(self.lock)
+        self.generation = 0
+        self.keep_open = keep_open
+        self.caches = ReactionCaches(cache_directory, publish_seconds=cache_publish_seconds) if cache_directory is not None else None
+        self.worker_cases, self.case_workers = {}, Counter()
+        self.lease_seconds = lease_seconds
+        self.path = Path(path)
+        self.db = sqlite3.connect(str(path), check_same_thread=False, timeout=60)
+        columns = {r[1] for r in self.db.execute('PRAGMA table_info(cases)')}
+        if columns and 'spent' not in columns:
+            self.db.close()
+            raise ValueError('Unsupported queue schema')
+        self.db.execute('PRAGMA journal_mode=WAL')
+        self.db.executescript('''
+            CREATE TABLE IF NOT EXISTS identity (value TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS workers (
+                name TEXT PRIMARY KEY, process INTEGER, ready REAL,
+                pending INTEGER, runnable INTEGER);
+            CREATE TABLE IF NOT EXISTS cases (
+                name TEXT PRIMARY KEY, seconds REAL, deadline REAL,
+                spent REAL NOT NULL DEFAULT 0, active_since REAL);
+            CREATE TABLE IF NOT EXISTS active_work (token TEXT PRIMARY KEY, case_name TEXT);
+            CREATE INDEX IF NOT EXISTS active_case ON active_work(case_name);
+            CREATE TABLE IF NOT EXISTS tasks (
+                key TEXT PRIMARY KEY, specification BLOB, case_name TEXT, memory INTEGER,
+                state TEXT, worker TEXT, token TEXT, expires REAL, result BLOB);
+            CREATE TABLE IF NOT EXISTS attempts (
+                token TEXT PRIMARY KEY, task TEXT, worker TEXT, started REAL, finished REAL, state TEXT, result BLOB);
+            CREATE TABLE IF NOT EXISTS dependencies (task TEXT, dependency TEXT, PRIMARY KEY(task, dependency));
+            CREATE INDEX IF NOT EXISTS case_deadline ON cases(deadline);
+            CREATE INDEX IF NOT EXISTS task_state ON tasks(state);
+            CREATE INDEX IF NOT EXISTS task_case ON tasks(case_name,state);
+            CREATE INDEX IF NOT EXISTS task_expiry ON tasks(state,expires);
+            CREATE INDEX IF NOT EXISTS dependency_parent ON dependencies(dependency);
+            CREATE TABLE IF NOT EXISTS resource_changes (
+                utc REAL, reason TEXT, memory INTEGER, changed_tasks INTEGER);
+            CREATE TABLE IF NOT EXISTS case_retries (
+                utc REAL, case_name TEXT, previous_seconds REAL, spent REAL,
+                retry_seconds REAL, memory INTEGER);
+        ''')
+        row = self.db.execute('SELECT value FROM identity').fetchone()
+        if row and row[0] != identity:
+            self.db.close()
+            raise ValueError('Queue code/input identity differs')
+        if row is None:
+            self.db.execute('INSERT INTO identity VALUES (?)', (identity,))
+            self.db.commit()
+        self.identity = identity
+
+    def add(self, tasks):
+        tasks = list(tasks)
+        with self.lock, self.db:
+            if len({t.key for t in tasks}) != len(tasks):
+                raise ValueError('Duplicate task key')
+            new = {}
+            specifications = {}
+            for task in tasks:
+                if task.case_seconds <= 0 or task.memory_bytes <= 0:
+                    raise ValueError('Resource budgets must be positive')
+                data = pickle.dumps(task, protocol=5)
+                previous = self.db.execute('SELECT specification FROM tasks WHERE key=?', (task.key,)).fetchone()
+                if previous:
+                    if previous[0] != data:
+                        raise ValueError('Task identity reused with different work')
+                else:
+                    new[task.key] = task
+                    specifications[task.key] = data
+            external = {d for t in new.values() for d in t.dependencies if d not in new}
+            for dependency in external:
+                if self.db.execute('SELECT 1 FROM tasks WHERE key=?', (dependency,)).fetchone() is None:
+                    raise ValueError('Unknown dependency')
+            # Existing specifications are immutable and cannot refer to future
+            # tasks. Only the new subgraph can introduce a cycle.
+            tuple(TopologicalSorter({k: [d for d in t.dependencies if d in new]
+                                     for k, t in new.items()}).static_order())
+            for task in new.values():
+                case = task.case or task.key
+                row = self.db.execute('SELECT seconds FROM cases WHERE name=?', (case,)).fetchone()
+                if row and row[0] != task.case_seconds:
+                    raise ValueError('Tasks in one case must share the same budget')
+                self.db.execute('INSERT OR IGNORE INTO cases(name,seconds) VALUES (?,?)', (case, task.case_seconds))
+                self.db.execute('INSERT INTO tasks VALUES (?,?,?,?,?,?,?,?,?)',
+                    (task.key, specifications[task.key], case, task.memory_bytes, 'pending', None, None, None, None))
+                self.db.executemany('INSERT INTO dependencies VALUES (?,?)',
+                    [(task.key, d) for d in task.dependencies])
+            self._notify()
+
+    def _notify(self):
+        self.generation += 1
+        self.changed.notify_all()
+
+    def wait_for_work(self, generation, timeout):
+        with self.changed:
+            self.changed.wait_for(lambda: self.generation != generation, timeout)
+
+    def finish_input(self, *, cancel_pending=False):
+        """Drain accepted work and let persistent workers exit when it is finished."""
+        with self.lock, self.db:
+            self.keep_open = False
+            if cancel_pending:
+                self.db.execute("UPDATE tasks SET state='cancelled' WHERE state='pending'")
+            self._notify()
+
+    def _refresh(self, now):
+        for token, expires, worker in self.db.execute(
+                "SELECT token,expires,worker FROM tasks WHERE state='running' AND expires<? ORDER BY expires", (now,)).fetchall():
+            self._end_work(token, expires)
+            self._assign(worker)
+            if self.caches is not None:
+                self.caches.finish(token)
+        self.db.execute("""UPDATE attempts SET state='lost',finished=? WHERE state='running' AND token IN
+            (SELECT token FROM tasks WHERE state='running' AND expires<?)""", (now, now))
+        self.db.execute("UPDATE tasks SET state='lost' WHERE state='running' AND expires<?", (now,))
+        self.db.execute("""UPDATE tasks SET state='timeout' WHERE rowid IN
+            (SELECT t.rowid FROM cases c CROSS JOIN tasks t ON t.case_name=c.name AND t.state='pending'
+             WHERE c.spent>=c.seconds OR c.deadline<=?)""", (now,))
+        # Only failed parents can block children. Start from their state index,
+        # then look up their outgoing edges instead of scanning every dependency.
+        while self.db.execute("""UPDATE tasks SET state='blocked' WHERE state='pending' AND key IN
+            (SELECT d.task FROM tasks p INDEXED BY task_state
+             CROSS JOIN dependencies d ON d.dependency=p.key WHERE p.state IN ('error','timeout','memory_limit','lost','blocked'))""").rowcount:
+            pass
+
+    def worker_ready(self, worker, process):
+        """Timestamp readiness at the coordinator, on the same clock as claims."""
+        with self.lock, self.db:
+            pending = self.db.execute("SELECT count(*) FROM tasks WHERE state='pending'").fetchone()[0]
+            runnable = self.db.execute("""SELECT count(*) FROM tasks t WHERE state='pending'
+                AND NOT EXISTS (SELECT 1 FROM dependencies d JOIN tasks p ON p.key=d.dependency
+                                WHERE d.task=t.key AND p.state!='complete')""").fetchone()[0]
+            self.db.execute('INSERT INTO workers VALUES (?,?,?,?,?)',
+                            (worker, process, time.time(), pending, runnable))
+
+    def ready_workers(self):
+        with self.lock:
+            return dict(self.db.execute('SELECT name,process FROM workers'))
+
+    def _assign(self, worker, case=None):
+        previous = self.worker_cases.pop(worker, None)
+        if previous is not None:
+            self.case_workers[previous] -= 1
+            if not self.case_workers[previous]:
+                del self.case_workers[previous]
+        if case is not None:
+            self.worker_cases[worker] = case
+            self.case_workers[case] += 1
+
+    def _next_task(self, worker, memory_bytes):
+        ready = """SELECT key,specification,case_name FROM tasks t
+            WHERE state='pending' AND memory<=? AND NOT EXISTS (
+              SELECT 1 FROM dependencies d JOIN tasks p ON p.key=d.dependency
+              WHERE d.task=t.key AND p.state!='complete')"""
+        def in_case(case):
+            return self.db.execute(ready+' AND case_name=? ORDER BY t.rowid LIMIT 1',
+                                   (memory_bytes,case)).fetchone()
+        previous = self.worker_cases.get(worker)
+        if previous is not None:
+            row = in_case(previous)
+            if row is not None:
+                return row
+        # Prefer an unassigned reaction before splitting one across workers.
+        # Cases are bounded by the campaign's admission window; tasks are not.
+        for case, in self.db.execute("""SELECT name FROM cases c WHERE EXISTS (
+            SELECT 1 FROM tasks t WHERE t.case_name=c.name AND t.state='pending') ORDER BY rowid"""):
+            if case not in self.case_workers:
+                row = in_case(case)
+                if row is not None:
+                    return row
+        # A small batch or a long tail still uses every available worker.
+        return self.db.execute(ready+' ORDER BY t.rowid LIMIT 1',(memory_bytes,)).fetchone()
+
+    def claim(self, worker, memory_bytes, identity):
+        if identity != self.identity:
+            raise ValueError('Worker code/input identity differs')
+        with self.lock, self.db:
+            now = time.time()
+            self._refresh(now)
+            row = self._next_task(worker, memory_bytes)
+            if row is None:
+                active = self.db.execute("SELECT count(*) FROM tasks WHERE state IN ('pending','running')").fetchone()[0]
+                if not active:
+                    if not self.keep_open:
+                        self._assign(worker)
+                    return {'state': 'waiting' if self.keep_open else 'finished', 'generation': self.generation}
+                running = self.db.execute("SELECT count(*) FROM tasks WHERE state='running'").fetchone()[0]
+                if not running:
+                    self._assign(worker)
+                return {'state': 'waiting' if running else 'insufficient_memory', 'generation': self.generation}
+            key, specification, case = row
+            self._assign(worker, case)
+            self.db.execute('UPDATE cases SET active_since=?,deadline=?+seconds-spent WHERE name=? AND active_since IS NULL',
+                            (now, now, case))
+            deadline = self.db.execute('SELECT deadline FROM cases WHERE name=?', (case,)).fetchone()[0]
+            token = uuid.uuid4().hex
+            self.db.execute('INSERT INTO active_work VALUES (?,?)', (token, case))
+            self.db.execute("UPDATE tasks SET state='running',worker=?,token=?,expires=? WHERE key=?",
+                            (worker, token, now+self.lease_seconds, key))
+            self.db.execute('INSERT INTO attempts VALUES (?,?,?,?,NULL,?,NULL)',
+                            (token, key, worker, now, 'running'))
+            dependencies = {d: _loads_checkpoint(r) for d, r in self.db.execute('''
+                SELECT p.key,p.result FROM dependencies d JOIN tasks p ON p.key=d.dependency WHERE d.task=?''', (key,))}
+            task = _loads_checkpoint(specification)
+            cache = self.caches.describe(task.payload['cache']) if self.caches is not None and isinstance(task.payload, dict) and 'cache' in task.payload else None
+            return dict(state='work', task=task, token=token,
+                        deadline=deadline, dependencies=dependencies, cache=cache)
+
+    def _end_work(self, token, now):
+        row = self.db.execute('SELECT case_name FROM active_work WHERE token=?', (token,)).fetchone()
+        if row is None:
+            return
+        case = row[0]
+        self.db.execute('DELETE FROM active_work WHERE token=?', (token,))
+        if self.db.execute('SELECT 1 FROM active_work WHERE case_name=? LIMIT 1', (case,)).fetchone() is None:
+            self.db.execute('UPDATE cases SET spent=spent+max(0,?-active_since),active_since=NULL,deadline=NULL WHERE name=?',
+                            (now, case))
+
+    def computed(self, key, token, cache_update=None):
+        """Pause a direction once its last computation reaches publication.
+
+        Overlapping tasks share one active wall clock. Queued dependencies,
+        gaps between allocations and output publication do not consume it.
+        """
+        with self.lock, self.db:
+            now = time.time()
+            self._refresh(now)
+            valid = self.db.execute("SELECT 1 FROM tasks WHERE key=? AND token=? AND state='running'",
+                                    (key, token)).fetchone() is not None
+            if valid:
+                self._end_work(token, now)
+                if cache_update is not None and self.caches is not None:
+                    task = _loads_checkpoint(self.db.execute('SELECT specification FROM tasks WHERE key=?', (key,)).fetchone()[0])
+                    return self.caches.reserve(task.payload['cache'], cache_update['version'], token) or True
+            return valid
+
+    def heartbeat(self, key, token):
+        with self.lock, self.db:
+            return bool(self.db.execute("UPDATE tasks SET expires=? WHERE key=? AND token=? AND state='running'",
+                (time.time()+self.lease_seconds, key, token)).rowcount)
+
+    def finish(self, key, token, state, result):
+        if state not in ('complete', 'error', 'timeout', 'memory_limit', 'lost'):
+            raise ValueError('Invalid task outcome')
+        with self.lock, self.db:
+            self._refresh(time.time())
+            valid = self.db.execute("SELECT 1 FROM tasks WHERE key=? AND token=? AND state='running'", (key,token)).fetchone() is not None
+            publication = result.pop('cache_publication', None)
+            if self.caches is not None:
+                try:
+                    published = self.caches.finish(token, publication if valid and state == 'complete' else None)
+                    if 'cache' in result:
+                        result['cache']['published'] = published
+                except OSError as error:
+                    result.setdefault('cache', {}).setdefault('errors', []).append(f'publication: {error}')
+            data = pickle.dumps(result, protocol=5)
+            accepted = bool(self.db.execute("UPDATE tasks SET state=?,result=? WHERE key=? AND token=? AND state='running'",
+                (state, data, key, token)).rowcount)
+            if accepted:
+                self._end_work(token, time.time())
+                self.db.execute('UPDATE attempts SET state=?,result=?,finished=? WHERE token=?',
+                                (state, data, time.time(), token))
+                self._notify()
+                if state != 'complete':
+                    row = self.db.execute('SELECT worker FROM tasks WHERE key=?',(key,)).fetchone()
+                    self._assign(row[0])
+            return accepted
+
+
+    def retry(self, key):
+        """Explicit recovery after diagnosis; completed work and budgets survive."""
+        with self.lock, self.db:
+            row = self.db.execute('SELECT t.state,c.seconds-c.spent FROM tasks t JOIN cases c ON c.name=t.case_name WHERE t.key=?', (key,)).fetchone()
+            if row is None or row[0] not in ('lost', 'error', 'memory_limit', 'timeout'):
+                raise ValueError('Only diagnosed failed/lost tasks may be retried')
+            if row[0] == 'timeout' and row[1] <= 0:
+                raise ValueError('Timeout recovery requires an explicit fresh time allowance')
+            self.db.execute("UPDATE tasks SET state='pending',token=NULL,worker=NULL WHERE key=?", (key,))
+            self.db.execute("UPDATE tasks SET state='pending' WHERE state='blocked'")
+            self._refresh(time.time())
+
+    def set_pending_memory(self, memory_bytes, *, reason):
+        """Change admission estimates without changing saved work or remaining budgets.
+
+        A node-local maintenance connection may call this during a worker
+        handoff. SQLite serializes it with claims and publications. Setting an
+        estimate above the old workers' capacity lets their active work finish
+        before they retire through the normal insufficient-memory response.
+        """
+        if memory_bytes <= 0 or not reason.strip():
+            raise ValueError('A positive estimate and recorded reason are required')
+        with self.lock, self.db:
+            self.db.execute('INSERT INTO resource_changes VALUES (?,?,?,?)',
+                            (time.time(), reason, memory_bytes, 0))
+            change = self.db.execute('SELECT last_insert_rowid()').fetchone()[0]
+        changed, cursor = 0, 0
+        while True:
+            # Bound write-lock duration so a live coordinator can keep accepting
+            # heartbeats and completed outputs during a large queue handoff.
+            with self.lock, self.db:
+                self.db.execute('BEGIN IMMEDIATE')
+                rows = self.db.execute("SELECT rowid FROM tasks WHERE rowid>? AND state='pending' AND memory!=? ORDER BY rowid LIMIT 250",
+                                       (cursor, memory_bytes)).fetchall()
+                if not rows:
+                    break
+                cursor = rows[-1][0]
+                changed += self.db.executemany("UPDATE tasks SET memory=? WHERE rowid=? AND state='pending'",
+                                               [(memory_bytes, row[0]) for row in rows]).rowcount
+                self.db.execute('UPDATE resource_changes SET changed_tasks=? WHERE rowid=?', (changed, change))
+            time.sleep(.005)
+        return changed
+
+    def retry_memory_limits(self, previous_bytes, memory_bytes, *, reason):
+        """Explicit larger-memory stage; preserve attempts and case deadlines."""
+        if not 0 < previous_bytes < memory_bytes or not reason.strip():
+            raise ValueError('The next stage must increase memory and record a reason')
+        with self.lock, self.db:
+            # Acquire the write transaction before selecting retry candidates.
+            self.db.execute('INSERT INTO resource_changes VALUES (?,?,?,0)',
+                            (time.time(), reason, memory_bytes))
+            change = self.db.execute('SELECT last_insert_rowid()').fetchone()[0]
+            keys = [key for key, raw in self.db.execute(
+                "SELECT key,result FROM tasks WHERE state='memory_limit'")
+                if _loads_checkpoint(raw).get('memory_guard_bytes') == previous_bytes]
+            self.db.executemany("UPDATE tasks SET state='pending',memory=?,token=NULL,worker=NULL WHERE key=?",
+                                [(memory_bytes, key) for key in keys])
+            if keys:
+                self.db.execute("UPDATE tasks SET state='pending' WHERE state='blocked'")
+                self._refresh(time.time())
+            self.db.execute('UPDATE resource_changes SET changed_tasks=? WHERE rowid=?', (len(keys), change))
+        return keys
+
+    def snapshot(self):
+        with self.lock, self.db:
+            self._refresh(time.time())
+            return dict(self.db.execute('SELECT state,count(*) FROM tasks GROUP BY state'))
+
+    def results(self, keys=None):
+        with self.lock:
+            rows = (self.db.execute('SELECT key,state,result FROM tasks ORDER BY rowid') if keys is None
+                    else (self.db.execute('SELECT key,state,result FROM tasks WHERE key=?', (key,)).fetchone()
+                          for key in keys))
+            return {k: dict(state=s, result=_loads_checkpoint(r) if r else None) for k, s, r in rows}
+
+    def states(self, keys):
+        """Poll a bounded working set without deserializing completed payloads."""
+        keys = list(keys)
+        with self.lock:
+            result = {}
+            for first in range(0, len(keys), 400):
+                batch = keys[first:first+400]
+                marks = ','.join('?' for _ in batch)
+                result.update(self.db.execute(f'SELECT key,state FROM tasks WHERE key IN ({marks})', batch))
+            return result
+
+    def archive_case(self, task_key, store):
+        """Publish terminal task/attempt evidence before removing it from dispatch."""
+        with self.lock, self.db:
+            case, = self.db.execute('SELECT case_name FROM tasks WHERE key=?', (task_key,)).fetchone()
+            if self.db.execute("SELECT 1 FROM tasks WHERE case_name=? AND state IN ('pending','running') LIMIT 1", (case,)).fetchone():
+                raise ValueError('Cannot archive an active case')
+            if self.db.execute('''SELECT 1 FROM tasks p JOIN dependencies d ON d.dependency=p.key
+                    JOIN tasks child ON child.key=d.task WHERE p.case_name=? AND child.case_name!=? LIMIT 1''',
+                    (case, case)).fetchone():
+                raise ValueError('Another case still depends on this case')
+            tasks = self.db.execute('SELECT * FROM tasks WHERE case_name=?', (case,)).fetchall()
+            attempts = self.db.execute('SELECT a.* FROM attempts a JOIN tasks t ON t.key=a.task WHERE t.case_name=?', (case,)).fetchall()
+            dependencies = self.db.execute('SELECT d.* FROM dependencies d JOIN tasks t ON t.key=d.task WHERE t.case_name=?', (case,)).fetchall()
+            budget = self.db.execute('SELECT * FROM cases WHERE name=?', (case,)).fetchone()
+            retries = self.db.execute('SELECT * FROM case_retries WHERE case_name=?', (case,)).fetchall()
+            reference = store.put(dict(schema='mappa.task_audit/v1', case=budget,
+                                       tasks=tasks, attempts=attempts, dependencies=dependencies,
+                                       retries=retries))
+            self.db.execute('DELETE FROM attempts WHERE task IN (SELECT key FROM tasks WHERE case_name=?)', (case,))
+            self.db.execute('DELETE FROM dependencies WHERE task IN (SELECT key FROM tasks WHERE case_name=?)', (case,))
+            self.db.execute('DELETE FROM tasks WHERE case_name=?', (case,))
+            self.db.execute('DELETE FROM cases WHERE name=?', (case,))
+            self.db.execute('DELETE FROM case_retries WHERE case_name=?', (case,))
+            return reference
+
+    def restore_case(self, audit, *, retry_seconds=None, memory_bytes=None):
+        """Restore terminal work; an explicit resource retry retains spent time."""
+        if retry_seconds is not None and (retry_seconds <= 0 or memory_bytes is None or memory_bytes <= 0):
+            raise ValueError('A resource retry requires positive time and memory')
+        if audit['schema'] != 'mappa.task_audit/v1':
+            raise ValueError('Unsupported task audit')
+        if any(row[4] in ('pending', 'running') for row in audit['tasks']):
+            raise ValueError('Only terminal cases may be restored')
+        case = audit['case']
+        if case[2] is not None or case[4] is not None:
+            raise ValueError('Archived case still has an active budget')
+        with self.lock, self.db:
+            self.db.execute('INSERT INTO cases VALUES (?,?,?,?,?)', case)
+            self.db.executemany('INSERT INTO tasks VALUES (?,?,?,?,?,?,?,?,?)', audit['tasks'])
+            self.db.executemany('INSERT INTO attempts VALUES (?,?,?,?,?,?,?)', audit['attempts'])
+            self.db.executemany('INSERT INTO dependencies VALUES (?,?)', audit['dependencies'])
+            self.db.executemany('INSERT INTO case_retries VALUES (?,?,?,?,?,?)', audit.get('retries', ()))
+            if retry_seconds is not None:
+                self.db.execute('INSERT INTO case_retries VALUES (?,?,?,?,?,?)',
+                    (time.time(), case[0], case[1], case[3], retry_seconds, memory_bytes))
+                self.db.execute('UPDATE cases SET seconds=spent+? WHERE name=?', (retry_seconds, case[0]))
+                self.db.execute("UPDATE tasks SET memory=? WHERE case_name=? AND state!='complete'", (memory_bytes, case[0]))
+
+    def optimize(self):
+        """Prepare planner statistics after bulk task insertion, before workers.
+
+        Without cardinalities SQLite can scan every pending task for an empty
+        dependency update. Analysis changes query plans, never queue outcomes.
+        """
+        with self.lock, self.db:
+            self.db.execute('PRAGMA analysis_limit=1000')
+            self.db.execute('ANALYZE')
+
+    def backup(self, path):
+        """One compact consistent checkpoint, never a shared database writer."""
+        path = Path(path)
+        # A separate read connection lets workers renew leases while a large
+        # checkpoint is copied. Holding the dispatch lock here can expire
+        # healthy workers before their queued heartbeats are accepted.
+        with tempfile.TemporaryDirectory(dir=self.path.parent) as temporary:
+            snapshot = Path(temporary)/'queue.sqlite'
+            source = sqlite3.connect(f'file:{self.path}?mode=ro', uri=True)
+            destination = sqlite3.connect(snapshot)
+            try:
+                # Pin one WAL read snapshot. Without it, updates between backup
+                # pages restart the copy indefinitely under sustained traffic.
+                source.execute('BEGIN')
+                source.execute('SELECT count(*) FROM sqlite_schema').fetchone()
+                source.backup(destination, pages=256, sleep=.01)
+                # The backup inherits WAL mode. Consolidate it before publishing
+                # so copying this single file preserves every committed row.
+                destination.execute('PRAGMA journal_mode=DELETE')
+            finally:
+                destination.close()
+                source.close()
+            # SQLite writes stay local; only the finished file is copied to
+            # shared storage, then atomically replaces the published checkpoint.
+            with tempfile.TemporaryDirectory(dir=path.parent) as publication:
+                copied = Path(publication)/path.name
+                shutil.copyfile(snapshot, copied)
+                os.replace(copied, path)
+
+    def close(self):
+        with self.lock:
+            if self.caches is not None:
+                self.caches.close()
+            self.db.close()

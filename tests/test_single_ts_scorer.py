@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 import mappa
-from mappa.scoring import subset_score, POLICY
-from mappa.domain import TSScoringConfig
+from mappa.mappa_workflow.ts_analytics.scoring import subset_score, POLICY
+from mappa.mappa_workflow.ts_analytics.records import TSScoringConfig
 
 def case():
     return np.array([[0.,0,0],[1.4,0,0],[5.,0,0],[6.4,0,0]]), ['C']*4, [dict(kind='broken',target_bond=(0,1)),dict(kind='broken',target_bond=(2,3))], [(0,1),(2,3)]

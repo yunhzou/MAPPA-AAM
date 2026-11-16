@@ -67,14 +67,11 @@ measurements, not controlled end-to-end latencies. Each experiment used at most
 concurrently. The longest individual search including startup/I/O was 139.46 s
 for one seed and 228.55 s for two seeds.
 
-Slurm left one completed one-seed allocation in `COMPLETING`, blocking the
-dependent analysis array despite all 3,982 successful saved search statuses.
-After checking these statuses and Slurm's successful exit record, the dependency was
-cleared with `scontrol update JobId=467414 Dependency=`. This started verification
-of existing archives; no search was repeated. Search jobs: 467413 and 467430;
-analysis jobs: 467414 and 467431. Scheduler cleanup delay is excluded from the
-separate execution spans. Slurm TotalCPU fields on this cluster are unusable;
-the unchanged parent-plus-child SearchProfiler supplies the CPU measurements.
+All 3,982 saved search statuses were checked before releasing the delayed
+verification phase. No search was repeated. Scheduler cleanup delay is excluded
+from the separate execution spans. The unchanged parent-plus-child SearchProfiler
+supplies CPU measurements; scheduler CPU fields were unusable. Raw operational
+records are retained privately.
 
 ## Protocol
 
@@ -90,8 +87,7 @@ The holdout has no annotated ground truth. Golden recovery uses the strict
 heavy-atom relation modulo endpoint chemical symmetry, including unmatched atoms,
 among saved compressed families; it is not top-1 accuracy.
 
-Each experiment has a 512-CPU search budget, for 1,024 CPUs combined. Dynamic
-queues distribute independent tasks. Search and evaluation are separate phases,
+Dynamic queues distribute independent tasks. Search and evaluation are separate phases,
 with 300-second search and 240-second evaluation process watchdogs. Save every
 cut and final AAM archive. Keep incomplete outcomes in accuracy denominators.
 
@@ -101,10 +97,7 @@ counts and case-set differences, not an assumption that fewer seeds preserve
 accuracy. Cluster execution spans are distinct from CPU cost and exclude only
 the initial queue, not persistence or dispatch.
 
-Artifact roots:
-
-- `/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_one_seed_bidirectional_20260910`
-- `/project/yunhengzou/coordinate_alignment/aam_benchmarks/aam_two_seeds_bidirectional_20260910`
+Full artifacts and operational records are retained privately.
 
 The three-seed run and ten-seed baseline remain untouched. Package defaults and
 the AAM core are unchanged.

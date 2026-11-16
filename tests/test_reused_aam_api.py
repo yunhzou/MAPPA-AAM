@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 from mappa import AAMProblem, AAMSearchConfig, search_aam
-from mappa.domain import MolecularEndpoint
+from mappa.mappa_core.domain import MolecularEndpoint
 
 
 def problem(n=6, m=6):
@@ -20,7 +20,7 @@ def problem(n=6, m=6):
 def test_public_backends_have_identical_graphs_and_growth_counts(workers,tol):
     case=problem()
     config=AAMSearchConfig(seed_count=3,branch_limit=3,iso_tolerance=tol)
-    reference=search_aam(case,config,workers=workers)
+    reference=search_aam(case,config,workers=workers,execution='reference')
     reused=search_aam(case,config,workers=workers,execution='reused_native')
     assert reference.graph==reused.graph
     for name in ('max_live_branches','max_growth_candidates','subtree_branch_cap_count','cut_count'):
@@ -31,25 +31,43 @@ def test_public_backends_have_identical_graphs_and_growth_counts(workers,tol):
 def test_partial_composition_anchors_and_distinct_cut_floor(sizes):
     case=problem(*sizes)
     config=AAMSearchConfig(seed_count=2,branch_limit=100,anchors=((0,0),),cut_floor=.1,graph_floor=.5)
-    assert search_aam(case,config).graph==search_aam(case,config,execution='reused_native').graph
+    assert search_aam(case,config,execution='reference').graph==search_aam(case,config).graph
+
+
+def test_seed_measurements_preserve_batched_graph_and_account_for_cache_work():
+    from mappa.mappa_core.core.search.graph import AAMSearchGraph
+    from mappa.mappa_core.core.search.session import SearchSession
+    config = AAMSearchConfig(seed_count=10, branch_limit=100, iso_tolerance=2.)
+    session = SearchSession(problem(), config)
+    graph, counts = session.search_cut(())
+    split = SearchSession(problem(), config)
+    parts = [split.search_cut((), seed_indices=(i,))[0] for i in range(10)]
+    assert graph == AAMSearchGraph.combine(parts)
+    assert [row['index'] for row in counts['seeds']] == list(range(10))
+    assert all(row['cpu_seconds'] >= 0 and row['wall_seconds'] >= 0 for row in counts['seeds'])
+    assert sum(row['wall_seconds'] for row in counts['seeds']) <= counts['search_seconds']
+    for key in ('existence_queries', 'fragment_hits', 'set_blocks_checked'):
+        assert sum(row['cache'][key] for row in counts['seeds']) == session.fragments.stats()[key]
+    assert session.fragments.stats()['entries'] > 0
 
 
 @pytest.mark.parametrize('workers',[1,2])
 def test_cross_backend_checkpoint_resume_requires_no_mapping_rerun(tmp_path,monkeypatch,workers):
-    import mappa.aam as module
+    import mappa.mappa_core.core.scheduler.search as module
     case=problem();config=AAMSearchConfig(seed_count=2)
     original=search_aam(case,config,workers=workers,execution='reused_native',
         intermediate_dir=tmp_path,archive_format='checkpoint')
     def forbidden(*a,**kw):raise AssertionError('completed search reran')
     monkeypatch.setattr(module,'_search_cut',forbidden)
     resumed=search_aam(case,config,workers=workers,intermediate_dir=tmp_path,resume=True,
-                       archive_format='checkpoint')
+                       archive_format='checkpoint',execution='reference')
     assert original.graph==resumed.graph
 
 
-def test_native_requirement_is_checked_before_starting_worker_pool(monkeypatch):
+@pytest.mark.parametrize('options', [{}, {'execution': 'reused_native'}])
+def test_native_requirement_is_checked_before_starting_worker_pool(monkeypatch, options):
     monkeypatch.setenv('MAPPA_NATIVE','0')
     with pytest.raises(ValueError,match='requires the built native engine'):
-        search_aam(problem(),workers=2,execution='reused_native')
+        search_aam(problem(),workers=2,**options)
     with pytest.raises(ValueError,match='unknown AAM execution'):
         search_aam(problem(),execution='unknown')

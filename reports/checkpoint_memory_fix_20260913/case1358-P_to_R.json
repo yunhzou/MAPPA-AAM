@@ -4,511 +4,511 @@
   "checkpoint_verification": {
     "checked": [
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00000.raw.pkl.gz",
+        "cut": "private-reference-3e2dfa10a8b4a3190817",
         "sha256": "57d7f07791e79805b0b6987233471f00c26cc7ed00ba1e5f366a7a2af94a9406",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.03822985099941434
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00001.raw.pkl.gz",
+        "cut": "private-reference-bffa9db7ff7062f97d79",
         "sha256": "276c18c03c0691be33c641be5405a705071bf9bca06f30b56d1823d3d85fa7db",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.037814321998666856
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00002.raw.pkl.gz",
+        "cut": "private-reference-ea74bdba50e6c5e7e594",
         "sha256": "cf42019282ef141c76f403cea0c007762263f740ea179584107a0db0a47489b4",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.8238140519988519
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00003.raw.pkl.gz",
+        "cut": "private-reference-d928c106590e1f0e02f0",
         "sha256": "3e69a71691efbdd1f5c34c37413dd64d78d0ad4df493fee3e6add826a614e4b3",
         "reference_recovery": "not_recovered",
         "wall_seconds": 1.2848262309998972
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00004.raw.pkl.gz",
+        "cut": "private-reference-cc6dee651688b3ad8b3d",
         "sha256": "5976233f8154e7f9af992d8c19c877dd95b74878702eb2a833331effe0919b23",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.3048514399997657
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00005.raw.pkl.gz",
+        "cut": "private-reference-e8e9f9c387702c62bf7b",
         "sha256": "c64678b8d104d88d28ec90c34dcd0f6471383c58a30b349857631a172cc13616",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.3934185570014961
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00006.raw.pkl.gz",
+        "cut": "private-reference-8f6d0d2bdb7b72b8604f",
         "sha256": "61e610faddc1394d3bf8bedd32eccbf566e6cdd0a2c0183b77dc9255dfb7f2cf",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.4212401790009608
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00007.raw.pkl.gz",
+        "cut": "private-reference-e52f0dfa829ad0248bfb",
         "sha256": "1741e6c8cfffa26f41d77fa6507a08cee67f41b86590e4c0479ca62fe1ca7035",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.4436930379997648
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00008.raw.pkl.gz",
+        "cut": "private-reference-b548ef0e0017644c4393",
         "sha256": "16236f6cd7794acfe0e670a03fe6168a59a4761446933a8b1ceb139969f8803a",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.4866546439989179
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00009.raw.pkl.gz",
+        "cut": "private-reference-573794c573dfb2883135",
         "sha256": "e2e825ff84152c3e0ea8bcfb0e7787452df164d0a89137833f1fa0e2ac4325b7",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.37013593499978015
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00010.raw.pkl.gz",
+        "cut": "private-reference-16beae076855a6c2767a",
         "sha256": "dae7d1267af61f1398fafc1927d6ced6ebb5feceb5be31bb51eebb30da33ed46",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.37976279299982707
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00011.raw.pkl.gz",
+        "cut": "private-reference-a5c0f00924ec736b64bd",
         "sha256": "0f349e19e8187b8aa5ec79ee65b6b624e0cc58645a960331da824c3d602cb0b5",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.060018080001100316
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00012.raw.pkl.gz",
+        "cut": "private-reference-d525ec4c05ae88f13197",
         "sha256": "51ebab1d7beb98d0b2f3bb644350d373c7d87a6d9a6daa83fbc7cd007e77dfe2",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.8581108650014357
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00013.raw.pkl.gz",
+        "cut": "private-reference-3c0a1bf8a8daa0aab2c6",
         "sha256": "c8017503cbdeffe386b8919588c108c4400e70b97bb35ad6bcd49f2b262c32ec",
         "reference_recovery": "not_recovered",
         "wall_seconds": 1.0298426890003611
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00014.raw.pkl.gz",
+        "cut": "private-reference-f263c5b07d9962fced5e",
         "sha256": "c0a3cec1a00c000fac4f34edcce8550c13ca3f5677d667972de855901b73391d",
         "reference_recovery": "not_recovered",
         "wall_seconds": 1.0359904169999936
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00015.raw.pkl.gz",
+        "cut": "private-reference-8718af20e9f6ddf699d7",
         "sha256": "18053924b7ab81e29f34f21b1782996ff60702bc3fb966cf0890be999bb4d876",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.4630289830001857
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00016.raw.pkl.gz",
+        "cut": "private-reference-2574af9b8e1905cae08b",
         "sha256": "01d395aa7c944daf380375f1e9f32e0a94ce9f0a29763929ca2794df5f31036d",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.7862344599998323
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00017.raw.pkl.gz",
+        "cut": "private-reference-6940a4a87ef9e70bc8c8",
         "sha256": "12f7d8c68bf86266df48213004a093d0a0facb7f39b5701aa87b03f8d62d2cef",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.537463905999175
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00018.raw.pkl.gz",
+        "cut": "private-reference-f1d46de7b12e817fa6d2",
         "sha256": "0fee87076a3550db136b9ddd00b3096f1f85f314c43a92eda99e446ef3ceff4b",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.9994271849991492
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00019.raw.pkl.gz",
+        "cut": "private-reference-1390c505f7b0aa789a35",
         "sha256": "b90470d70ca81e610bda548d953823d87b70c17165292b566afd786e69b6783f",
         "reference_recovery": "not_recovered",
         "wall_seconds": 1.2352357180006948
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00020.raw.pkl.gz",
+        "cut": "private-reference-3a0b10da3d3b8b662368",
         "sha256": "0f892ffa478ac8a90a92377f608b5eb17d4e9d1fa7e39981b70ca11a1bc1ebf9",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.6321956489991862
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00021.raw.pkl.gz",
+        "cut": "private-reference-ae3c6768cbe775a76962",
         "sha256": "3cff7cd09869d83d2c36d439f37faa9a516d48550b755a2aa88c6069e4c4ae06",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.3707620660006796
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00022.raw.pkl.gz",
+        "cut": "private-reference-ddbd49ff648ae0f48cce",
         "sha256": "3d88790f6540f2a7a8f78ae6a2ec92a6e2f940af77d96bc661759f9f0842e9d8",
         "reference_recovery": "not_recovered",
         "wall_seconds": 1.5875179140002729
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00023.raw.pkl.gz",
+        "cut": "private-reference-1f01ddbfcae989d32397",
         "sha256": "a317bedd9d5e9cf25bec52cca1aed96e49577924d5c3c087252ebf5e650664c4",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.4212089920001745
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00024.raw.pkl.gz",
+        "cut": "private-reference-f618531cb46cef393a4b",
         "sha256": "15926cca01bc74ea0e883df5efba5032979ef2ff49b9b936b6944fdb1e6387e8",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.21850446899952658
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00025.raw.pkl.gz",
+        "cut": "private-reference-823cbeb8eeac0474fb1b",
         "sha256": "7787a75735b4afeb22f5b6cd59d8f27c620fbab6cc2ccb22ac802af01e79750d",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.6105407439990813
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00026.raw.pkl.gz",
+        "cut": "private-reference-e98448f3d85cfda2dfa7",
         "sha256": "0ff64935e8a32e47ac4f303e63cf28f2fd924e6044b9efc63f5244b464b60913",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.25612253100007365
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00027.raw.pkl.gz",
+        "cut": "private-reference-0254097620b4c82f0381",
         "sha256": "e2df545cc218c29f59866bee66388bf8b4cba513cf3860f7c79a5143d7f23f9e",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.6419756430004782
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00028.raw.pkl.gz",
+        "cut": "private-reference-d19eeda1edacb19a04ca",
         "sha256": "f4301365c9d4b3e7d5f440271d9331bff9e6afd51ce63b35ff92b216128c8e89",
         "reference_recovery": "not_recovered",
         "wall_seconds": 1.2161828080006671
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00029.raw.pkl.gz",
+        "cut": "private-reference-9c84e338e8c74f8ea2f3",
         "sha256": "c52263199653d92c2a8e83a9ed0ea25c555db9fd4c84b62a5c0f27931f211b8e",
         "reference_recovery": "not_recovered",
         "wall_seconds": 1.2791882640012773
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00030.raw.pkl.gz",
+        "cut": "private-reference-36c6931104efaefc8dca",
         "sha256": "97c27bab247d868252c133d9f57112069d9d230277b334d40e6a5fadf00a3882",
         "reference_recovery": "not_recovered",
         "wall_seconds": 1.6595176970004104
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00031.raw.pkl.gz",
+        "cut": "private-reference-ed775984a04207d83396",
         "sha256": "b4c7ff68c6a0654110bfe0251c7ac1630293005949f22e5a007d1c14920cde91",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.5024551209990022
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00032.raw.pkl.gz",
+        "cut": "private-reference-b6a4d4ab2d7365e52f29",
         "sha256": "79554dcba5c3f450441a68dca37e46dd2eb63a61f54a8b3c70888ce65fc44dd3",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.5921066949995293
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00033.raw.pkl.gz",
+        "cut": "private-reference-c38ca18fe0a1789b5799",
         "sha256": "d8d5957d307056e23e80f8764d91f27177bb743c98111be91ea78a31eb9a8f7f",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.3818745949993172
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00034.raw.pkl.gz",
+        "cut": "private-reference-b1fc34666ea1fcb6146b",
         "sha256": "986df7957f329fda8d4e3dd2ffebd7ed039eadd28077d030f0ffaf769a3784a3",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.4129431920009665
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00035.raw.pkl.gz",
+        "cut": "private-reference-dc130d0565b5af04a824",
         "sha256": "0923fe0ac39279a6eac8ec99ba05c069df734e3c2b28ec07a1a7f204d2e3642e",
         "reference_recovery": "not_recovered",
         "wall_seconds": 1.1442106760005117
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00036.raw.pkl.gz",
+        "cut": "private-reference-5f0121fb98a8847b7a90",
         "sha256": "11454ab7dbdcebffd1a180a3e0e8fa206d095188506b65ccaf142b4e08870988",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.35886321799989673
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00037.raw.pkl.gz",
+        "cut": "private-reference-127ba165597f93e0cd90",
         "sha256": "2a334c405a705d17ef38c228fb984c9411f9b2beee34a008ce7cce273997ca72",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.5003568299998733
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00038.raw.pkl.gz",
+        "cut": "private-reference-70b13090126d0ecc1900",
         "sha256": "34db7128a223b584a35d4b1cc58e6b1dba832ad2ffd492fb34801e8817a78a43",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.3637154779989942
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00039.raw.pkl.gz",
+        "cut": "private-reference-0c16578ec6809d7f4d6b",
         "sha256": "cb9eb5e950e88540dda3592c81d47cb9ffde2814283ff1937e2db88611fcb7d1",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.6857485040000029
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00040.raw.pkl.gz",
+        "cut": "private-reference-d8888d2c5c83c9074e27",
         "sha256": "9736256a868dfc4f7a2e361ae2ca81d1e1638468e8587b8e08261944c8d9340b",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.45000833500125736
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00041.raw.pkl.gz",
+        "cut": "private-reference-a5b3cb3ac3f3797f7f39",
         "sha256": "e4348d4d8484389e4343cb46f1c7c4288b5f2f031fd18f5a96dc8fb49beed3c2",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.06901334900067013
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00042.raw.pkl.gz",
+        "cut": "private-reference-87c514d3a31763c1f341",
         "sha256": "5457d1df5517f8b4b021e4938d918caaa03386eaac49f4fe691863ff3b2df6cb",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.4580546270008199
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00043.raw.pkl.gz",
+        "cut": "private-reference-3f65b7079fee6704cfbf",
         "sha256": "13eb68c6f848f278ae82a8d38192600edb9ca890c33cf9a68aecec7a61f1b885",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.48631004500020936
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00044.raw.pkl.gz",
+        "cut": "private-reference-66d67ed368a4b60f3727",
         "sha256": "ae8c9e6f0e3628872879fe978583f4f614762e4da0d15693f97645536ac06990",
         "reference_recovery": "not_recovered",
         "wall_seconds": 1.0087336109991156
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00045.raw.pkl.gz",
+        "cut": "private-reference-d7411c9c304d31c02243",
         "sha256": "871b17e26ae89d23f12b4055583a3d6d73453231ed59d315a5f5036be94c5627",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.21929019399976823
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00046.raw.pkl.gz",
+        "cut": "private-reference-72e0211740ecd1c2f802",
         "sha256": "ecffd53b4e08828419714bab1874ac7b8270cabd9b69ba9a32f61863c55b1a28",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.6331820530012919
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00047.raw.pkl.gz",
+        "cut": "private-reference-ad2cfae4ec5c40a62e42",
         "sha256": "631dab6b49e78f9e1ad23b5cc3221019e0dfe18643d0fafcfb3acbe02a4958c7",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.33711014199980127
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00048.raw.pkl.gz",
+        "cut": "private-reference-a01e33b58a94e9906ad0",
         "sha256": "fc2fa52e0cf5b69ef0acc43f2c0b9a7dcd75e44a5afc4653070006dc8058cca4",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.15916882599958626
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00049.raw.pkl.gz",
+        "cut": "private-reference-250c9e35c03b2f8d56a8",
         "sha256": "6edbad947664ce532c2bd8abd82bf8302c1e7abb15ea354dd38870c4a686596a",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.07404549500097346
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00050.raw.pkl.gz",
+        "cut": "private-reference-1e8d3145948d1b5ca6eb",
         "sha256": "2362de893936cea4b3c1f16e64cbf3969ac7a280991b8f6da26c60937728cd72",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.3111573899986979
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00051.raw.pkl.gz",
+        "cut": "private-reference-95da708c69c996710a1a",
         "sha256": "52b7ce91d9ff99010a8ac25aaa382a10853b54b05f6fb2bb33e9f39a633617fb",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.05031748799956404
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00052.raw.pkl.gz",
+        "cut": "private-reference-5c89b3e63877773f73d2",
         "sha256": "e2d81f87fe63738a70cd0edccf4c9150924c6c9c457945fc44847aa7611156fd",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.14699883299908834
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00053.raw.pkl.gz",
+        "cut": "private-reference-163bd9cb6a1a976459f6",
         "sha256": "ec9a533a6ad309d98f4990094a3f1db4a5f875f9f814054491415e70a749ff4d",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.5674271860007138
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00054.raw.pkl.gz",
+        "cut": "private-reference-a9b860ac88e31653f385",
         "sha256": "ed858673769d7795fcf41b080686641ec9b74df5c063e15860691af827482806",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.0346224719996826
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00055.raw.pkl.gz",
+        "cut": "private-reference-bde0d0c8307f668c4867",
         "sha256": "93a8cc8a9b9f87a1168a7dc372bac7c74ec2c427d3f97ea43b722f2bd2aec1b6",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.6033719679999194
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00056.raw.pkl.gz",
+        "cut": "private-reference-f39607b8cf566ce61dfc",
         "sha256": "9763298971919c61c201d8071ca24ef82db57e87a7f9506cfe7ce27fd7c6c4e4",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.21743452700138732
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00057.raw.pkl.gz",
+        "cut": "private-reference-3abbbc26b0f2536d5ef8",
         "sha256": "99b96e343d082f9570186d8236020e64623bacb88eb004cd80719776f4dfc7b9",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.3051360659992497
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00058.raw.pkl.gz",
+        "cut": "private-reference-cb6752542af274dd9886",
         "sha256": "33e4ef45489f928bb40b4bf913556ea98dfc53e81a5ea23f067ce0ccc5a7ca33",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.03860585800066474
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00059.raw.pkl.gz",
+        "cut": "private-reference-923f3048e57d47e88850",
         "sha256": "72cceb3e06d8f081952443402bcc11b22abd61fd5925929d43f8fb83d4258796",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.06097113299983903
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00060.raw.pkl.gz",
+        "cut": "private-reference-99bd5e4e1f9f76c9904d",
         "sha256": "bfbb5ab0fa221239764ebd96a1629b13f0ef106f703d8fa181e0807fb3ab4f77",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.5154998869984411
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00061.raw.pkl.gz",
+        "cut": "private-reference-79517f657b25ce5ddba0",
         "sha256": "adde91e51c5f72a73d97a514e128731b97b9fc1dc4d803e1218ac12ebc11c891",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.33614820600087114
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00062.raw.pkl.gz",
+        "cut": "private-reference-9d92710ef4f8d2d8736e",
         "sha256": "53a84632fbc0b934f676fc75cb662bc1b8e643ac36979b448decead905cbedc2",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.17558846400061157
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00063.raw.pkl.gz",
+        "cut": "private-reference-67392a16de352cd402c8",
         "sha256": "bbdeb69822736fe2eed44446791f1cfc6c8113b249f2f0ced424c2ae2c1184b5",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.5571982229994319
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00064.raw.pkl.gz",
+        "cut": "private-reference-e3783fa86cebc0dc9a3b",
         "sha256": "73cd3a7482b5be30e16886eb475c3b425536d46e39d8c5b9a4cc53c1572e64ac",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.0620317110005999
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00065.raw.pkl.gz",
+        "cut": "private-reference-20cf527d83213c75b242",
         "sha256": "d057c3cece30cbafd2593d6c6f147585a57103a3a053c527fdba4b073c1c7190",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.19842333999986295
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00066.raw.pkl.gz",
+        "cut": "private-reference-013b856831dba1c256a8",
         "sha256": "0dbeef6d3b616399052d5841373f60ccf970db3e9069edcba026ee63b2d7989e",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.3817843160013581
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00067.raw.pkl.gz",
+        "cut": "private-reference-c5c8a65098dcba99e474",
         "sha256": "701455dfbd9505d3a3c9b5ace850ab2c341cf1b6117457885071fc36800fa51e",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.5102967200000421
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00068.raw.pkl.gz",
+        "cut": "private-reference-a0c293d2dfee936b727c",
         "sha256": "22e792c5ac0ad56dbb2c01627c7a5973779eafd2e1189de21b0b454d7e1cd967",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.47198691599987797
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00069.raw.pkl.gz",
+        "cut": "private-reference-52aecbec53a6a2d7da21",
         "sha256": "5960a244cd9fe923108e53f26f5dddf3d6c2a2445816607382fdca5abe86c028",
         "reference_recovery": "not_recovered",
         "wall_seconds": 1.5020753720000357
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00070.raw.pkl.gz",
+        "cut": "private-reference-653ea5fac2c793d18ae4",
         "sha256": "1c700823b083e73bca2c6d1d9f578ed70459e2684521fb1358b151116c723f52",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.5974157559994637
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00071.raw.pkl.gz",
+        "cut": "private-reference-e3a0b7a1c0ce8c6725e2",
         "sha256": "a6fef5d98d71aa9bc3ad4117ca5c042d2ca2e50a7f2a3aad72af131f22590178",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.5622126700000081
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00072.raw.pkl.gz",
+        "cut": "private-reference-58e541f33cf01b0968db",
         "sha256": "8b99797012483abe80a72e9512a7a7789629935986c669df0d4aef154088231f",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.9689378659986687
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00073.raw.pkl.gz",
+        "cut": "private-reference-9fced5bb31e9dbe69b4a",
         "sha256": "62f24c39a81c17dcb6bbaad86ed7f44f0eb0c89cd9b82e126c15058d596b8a3e",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.5112622619999456
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00074.raw.pkl.gz",
+        "cut": "private-reference-af0e02e300d3e30a8bfb",
         "sha256": "331f1bffe48704a3b2ef48fb99618a76c4832c3871f91ba00e8c33a1334c9e4b",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.3310487069993542
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00075.raw.pkl.gz",
+        "cut": "private-reference-0e098d83d599a8620df5",
         "sha256": "4e0833c9a5f6f63ef0a2161f25cb9b61b19cad29699eb1a65301fe88f207ea32",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.7105439900005877
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00076.raw.pkl.gz",
+        "cut": "private-reference-472ed98d0d53dfdcdddb",
         "sha256": "6f5a6f57ed969f7adfe75aadac413c7b496e04703a7476ebb2a54219796c0c28",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.21627093899951433
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00077.raw.pkl.gz",
+        "cut": "private-reference-83415833113fbe290408",
         "sha256": "e9a4bd736c526a59e38917a23f4da6008780c2ad4ce5ef5191986d8d4ad6e7e7",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.5498052229995665
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00078.raw.pkl.gz",
+        "cut": "private-reference-c08c0cd62a8ee42842f0",
         "sha256": "5b3e4004187ccaba274a53087cb5f5066b61f3d3ca6d746f6e0d0676eff678b1",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.45728541599964956
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00079.raw.pkl.gz",
+        "cut": "private-reference-417f3d31af60c9e9fb2c",
         "sha256": "244d0880ab2e011210a16cabe4c65d87f82ac0f06642cf94c5ecf7acd0cf7462",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.4691641230001551
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00080.raw.pkl.gz",
+        "cut": "private-reference-59d527127147360ab538",
         "sha256": "ea160f9e940b40db1418c932d47f85116a9a6c4717ba194b650558c6ad3935b7",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.3277716970005713
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00081.raw.pkl.gz",
+        "cut": "private-reference-711c59e8ae4edaa81b20",
         "sha256": "c3c8a12a10695d78dadf3e3ef8456c2a2c4fefcd9cb3f556f9825920c485b118",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.08304573200075538
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00082.raw.pkl.gz",
+        "cut": "private-reference-9efd1c5926787848fcad",
         "sha256": "72ce556553bd5ed769dc89127a0ed5190105a859a244cefe17c9a3003f9759ab",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.3701092730007076
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00083.raw.pkl.gz",
+        "cut": "private-reference-022a4a7470c6401ae29e",
         "sha256": "e70b6d536e359e7c8e87b087a3dfb75888602523e3f71546a415b50d0bbe38bb",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.8046171210007742
       },
       {
-        "cut": "/lustre/fs1/portfolios/nvr/projects/nvr_lpr_agentic/users/yunhengz/Projects/coordinate_alignment/validation_20260912/runs/golden/seed10/case1358/P_to_R/cuts/cut_00084.raw.pkl.gz",
+        "cut": "private-reference-bc8ad4a773bc0d3cdb7c",
         "sha256": "4a2fe6b9eaf60a878132c90735ee8c1eb57b2845105e35da79ae56779d30f54e",
         "reference_recovery": "not_recovered",
         "wall_seconds": 0.885324002998459
@@ -520,5 +520,9 @@
     "scope": "Positive witness in a completed, independently finalized raw cut; no claim that an interrupted combined search completed."
   },
   "cpu_seconds": 47.049893682,
-  "wall_seconds": 47.5849939840009
+  "wall_seconds": 47.5849939840009,
+  "privacy_projection": {
+    "original_sha256": "ec2aa0a8cb19efd7df9f3e272c4cb8e4660e6260a02e26310ba1daaeaea8fb34",
+    "note": "Execution identifiers and allocation records omitted; private locations replaced with stable references. Scientific results retained."
+  }
 }
