@@ -179,36 +179,91 @@ class CompiledFamily:
         return _realize(self,model)
 
 
+def _tuple_orbit(seeds, moves, limit):
+    """Close atom tuples under generator moves; unlisted atoms stay fixed."""
+    from mappa.mappa_core.core.search.branching.construction import BranchLimitExceeded
+    seen = set(seeds)
+    stack = list(seen)
+    while stack:
+        current = stack.pop()
+        for move in moves:
+            image = tuple(move.get(atom, atom) for atom in current)
+            if image not in seen:
+                seen.add(image)
+                stack.append(image)
+                if len(seen) > int(limit):
+                    raise BranchLimitExceeded(limit, branch_count=len(seen),
+                                              stage='core_symmetry_expansion')
+    return seen
+
+
+def _self_moves(symmetry):
+    """A fragment's own shuffles as maps between original endpoint indices."""
+    atoms = symmetry.atoms
+    return tuple({atom: atoms[image] for atom, image in zip(atoms, generator)
+                  if atoms[image] != atom} for generator in symmetry.generators)
+
+
+def _relation_images(relation, atoms, limit):
+    """Images of a source tuple under the fragment's own shuffles.
+
+    The saved witness is carried through the source fragment's shuffles and
+    then the target fragment's: target shuffle o witness o source shuffle.
+    Atoms move together as one tuple, so their correlations are kept. Matches
+    that no shuffle of the saved witness reaches are not searched for.
+    """
+    witness = dict(relation.witness)
+    sources = _tuple_orbit({tuple(atoms)}, _self_moves(relation.source), limit)
+    placed = {tuple(witness[atom] for atom in source) for source in sources}
+    return _tuple_orbit(placed, _self_moves(relation.target), limit)
+
+
 def project_path_assignments(path, problem, source_atoms, *, assignment_limit):
-    """Enumerate only distinct requested tuples from the exact path relation."""
-    import z3
+    """Enumerate only distinct requested tuples from the exact path relation.
+
+    The path already stores each fragment's shuffles and placements, so the
+    requested atoms are carried through them directly as tuples. Choices within
+    one fragment stay joint; no full mapping is expanded and no solver is used.
+    """
     from mappa.mappa_core.core.search.branching.construction import BranchLimitExceeded
 
     source_atoms = tuple(sorted(set(map(int, source_atoms))))
-    if any(atom not in path.mapping for atom in source_atoms):
+    representative = path.mapping
+    if any(atom not in representative for atom in source_atoms):
         return []
-    compiled = compile_path(path, problem, {}, source_atoms=source_atoms,
-                            complete_reference=False)
-    values = tuple(compiled.values[atom][0] for atom in source_atoms)
-    assignments = []
-    while True:
-        status = compiled.solver.check()
-        if status == z3.unsat:
-            break
-        if status == z3.unknown:
-            raise RuntimeError(
-                f"Core assignment query was inconclusive: {compiled.solver.reason_unknown()}")
-        model = compiled.solver.model()
-        images = tuple(value if isinstance(value, int)
-                       else model.eval(value, model_completion=True).as_long()
-                       for value in values)
-        assignments.append(dict(zip(source_atoms, images)))
-        if len(assignments) > int(assignment_limit):
-            raise BranchLimitExceeded(assignment_limit, branch_count=len(assignments),
-                                      stage='core_symmetry_expansion')
-        compiled.solver.add(z3.Or(*(value != image
-            for value, image in zip(values, images))))
-    return sorted(assignments, key=lambda mapping: tuple(mapping.values()))
+    if len(set(representative.values())) != len(representative):
+        return []
+    target_count = problem.target_atom_count
+    tuples = {tuple(representative[atom] for atom in source_atoms)}
+    for edge_id in reversed(path.transitions):
+        edge = path.graph.transitions[edge_id]
+        if edge.match is not None:
+            relation = edge.match.relation
+            back = {p: r for r, p in edge.match.witness}
+            cache, moved = {}, set()
+            for current in tuples:
+                needed = tuple(dict.fromkeys(back[p] for p in current if p in back))
+                if not needed:
+                    moved.add(current)
+                    continue
+                if needed not in cache:
+                    cache[needed] = _relation_images(relation, needed, assignment_limit)
+                for images in cache[needed]:
+                    image = dict(zip(needed, images))
+                    moved.add(tuple(image[back[p]] if p in back else p for p in current))
+                    if len(moved) > int(assignment_limit):
+                        raise BranchLimitExceeded(assignment_limit, branch_count=len(moved),
+                                                  stage='core_symmetry_expansion')
+            tuples = moved
+        if edge.placement_generators:
+            moves = tuple({p: q for p, q in enumerate(generator) if p != q}
+                          for generator in edge.placement_generators)
+            tuples = _tuple_orbit(tuples, moves, assignment_limit)
+    source_elements, target_elements = problem.reactant.elements, problem.product.elements
+    kept = sorted(images for images in tuples if all(
+        p < target_count and source_elements[r] == target_elements[p]
+        for r, p in zip(source_atoms, images)))
+    return [dict(zip(source_atoms, images)) for images in kept]
 
 
 def query_path(path, problem, reference, *, source_atoms, source_generators=(),
