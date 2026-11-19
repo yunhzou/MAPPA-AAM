@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Don't guess the atom mapping | MAPPA</title>
+<meta name="description" content="Four ideas behind MAPPA, an atom mapper that returns the plausible alternatives and leaves the choice for later.">
+<style>
+:root {
+  --paper: #faf9f6; --card: #ffffff; --ink: #1c2430; --muted: #5d6b7c; --line: #d9dee6; --ghost: #e4e8ee;
+  --blue: #2f6fde; --blue-soft: #d3e2fb; --green: #1d9a5b; --green-soft: #cdf0dc;
+  --red: #d4483b; --red-soft: #f9d9d4; --amber: #c08310; --amber-soft: #f8e5b9; --grey-soft: #e3e6eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12161c; --card: #1a2029; --ink: #e8edf3; --muted: #9aa7b6; --line: #323c4a; --ghost: #2b3440;
+    --blue: #74a7ff; --blue-soft: #24406f; --green: #4fcc8d; --green-soft: #1c4a35;
+    --red: #f17d71; --red-soft: #5b2b27; --amber: #e6b24d; --amber-soft: #57451b; --grey-soft: #2e3743;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 18px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 780px; margin: 0 auto; padding: 56px 16px 80px; }
+h1 { font-size: clamp(2rem, 6vw, 3rem); line-height: 1.1; margin: 0 0 12px; letter-spacing: -0.02em; }
+h2 { font-size: 1.5rem; line-height: 1.25; margin: 56px 0 12px; letter-spacing: -0.01em; }
+h3 { font-size: 1.15rem; line-height: 1.3; margin: 36px 0 10px; }
+p { margin: 0 0 16px; }
+a { color: var(--blue); }
+.deck { font-size: 1.2rem; color: var(--muted); margin-bottom: 12px; }
+.byline { display: flex; align-items: center; gap: 14px; font-size: 0.9rem; line-height: 1.45; color: var(--muted); margin-bottom: 40px; }
+.byline img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); }
+.byline strong { color: var(--ink); font-size: 1rem; }
+figure { margin: 28px 0 32px; }
+.stage { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow-x: auto; overflow-y: hidden; }
+/* On a phone the drawing keeps a readable size and scrolls sideways inside its card. */
+.stage svg { display: block; width: 100%; min-width: 600px; height: auto; }
+.stage img { display: block; width: 100%; height: auto; }
+/* Paper figures keep their white background in both themes. */
+.stage.paper { background: #ffffff; padding: 12px; }
+svg text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+.controls { display: flex; align-items: center; gap: 12px; padding: 8px 2px 0; font-size: 0.85rem; color: var(--muted); }
+.controls button { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 4px 12px; min-width: 68px; cursor: pointer; }
+.controls input[type="range"] { flex: 1; accent-color: var(--blue); min-width: 0; }
+figcaption { font-size: 0.9rem; color: var(--muted); padding: 8px 2px 0; }
+footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 0.9rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+<h1>Don't guess the atom mapping</h1>
+<p class="deck">Four ideas behind MAPPA, an atom mapper that returns the plausible alternatives and leaves the choice for later.</p>
+<div class="byline"><img src="figures/author.jpg" alt="Portrait of Yunheng Zou" width="64" height="64"><div><strong>Yunheng Zou</strong><br>November 2026 · <a href="https://github.com/yunhzou/MAPPA-AAM">Code</a></div></div>
+
+<p>Every reaction hides a small question: which atom of the reactants becomes which atom of the products? The answer is called an atom-to-atom mapping. Reaction templates, reaction classification and transition-state searches that start from both ends of a step all depend on it.</p>
+<p>A mapper can return one mapping, or it can return several and leave the choice to a later step. Both kinds have a long history. Learned mappers such as RXNMapper and LocalMapper predict one mapping. Other methods, going back to 2008, enumerate every mapping with the fewest bond changes. MAPPA is of the second kind, and it differs in two ways: it also keeps the mappings slightly above the minimum, and it never writes the mappings out one by one. This post starts with the results, then covers the four ideas behind them and what MAPPA can be used for.</p>
+
+<h2>MAPPA returns the reference for over 99% of reactions</h2>
+<p>For each reaction, MAPPA returns a set of mappings. The test is coverage: is the reference mapping, the one annotated in the dataset, among those returned?</p>
+<figure>
+  <div class="stage paper"><img src="figures/coverage-and-cost.png" alt="Reference coverage and mean CPU time per reaction for Golden with one and ten seeds and for EnzymeMap" width="1430" height="399"></div>
+  <figcaption>(a) Reference coverage. (b) Mean CPU time per reaction, split into matching and decoding. Figure 5 of the paper.</figcaption>
+</figure>
+<p>With its standard settings, MAPPA returns the reference for 1,833 of 1,851 reactions of the Golden benchmark (99.03%) and for 47,796 of 47,974 EnzymeMap reactions (99.63%), at 3.19 and 13.16 CPU seconds per reaction. A broader search raises Golden to 99.51%.</p>
+<p>A mapper that returns one mapping is scored in the same way, as a set of one. On the same Golden reactions, the mappers we ran that return a single mapping cover between 37% and 87%. Their task is harder, because their one mapping has to be the reference, so this compares what each kind returns and does not rank them.</p>
+<p>Coverage is not ranking. MAPPA hands over a short, structured list. Picking from it is the next problem, and a good place for learned mappers and chemical rules to come in. The rest of this post is about the four ideas behind these numbers.</p>
+
+<h2>1. A mapping is an observation on the chemical pathway</h2>
+<p>A reaction follows a pathway: bonds break and form in some order, through intermediates and transition states. A mapping does not record that pathway. It records what the pathway leaves behind, which is where each atom started and where it ended. I think of a mapping as an observation on the chemical pathway, and a single mapping stands for one solved pathway.</p>
+<p>Different pathways can therefore leave different observations. In this gold-catalysed rearrangement, MAPPA sees only the two endpoints, and it returns two destinations for the epoxide oxygen: the ester link or the ketone.</p>
+<figure>
+  <div class="stage"><img src="gifs/gold-rearrangement.gif" alt="MAPPA grows a matching atom by atom on a gold-catalysed rearrangement and returns two destinations for one oxygen" width="960" height="600" loading="lazy"></div>
+  <figcaption>A replay of MAPPA's recorded search on a 65-atom reaction. Routes from <a href="https://pubs.acs.org/doi/10.1021/jo802516k">González Pérez et al., <i>J. Org. Chem.</i> 2009, 74, 2982</a>.</figcaption>
+</figure>
+<p>The original study proposes three routes for this reaction, labelled a, b and c.</p>
+<figure>
+  <div class="stage paper"><img src="figures/gold-three-routes.png" alt="Scheme of the three proposed routes a, b and c from the gold complex 2 to the product complex 9" width="531" height="856" loading="lazy" style="max-width: 440px; margin: 0 auto;"></div>
+  <figcaption>The three proposed routes. Structures 2 and 9 are the endpoints given to MAPPA, and the numbers beside the arrows are energies from the study. Reproduced from <a href="https://pubs.acs.org/doi/10.1021/jo802516k">González Pérez et al., <i>J. Org. Chem.</i> 2009, 74, 2982</a>.</figcaption>
+</figure>
+<p>Following the epoxide oxygen, in red, along routes a and b shows where each observation comes from.</p>
+<figure class="anim" data-anim="route-a">
+  <div class="stage"><noscript><img src="gifs/route-a.gif" alt="Route a, step by step: the epoxide oxygen ends in the ester link of the product" style="width:100%"></noscript></div>
+  <figcaption>Route a begins with a 1,3-ester migration. The epoxide oxygen ends in the ester link. Numbers follow the intermediates of the original study.</figcaption>
+</figure>
+<figure class="anim" data-anim="route-b">
+  <div class="stage"><noscript><img src="gifs/route-b.gif" alt="Route b, step by step: the epoxide oxygen ends as the ketone oxygen of the product" style="width:100%"></noscript></div>
+  <figcaption>Route b begins with a 1,2-ester migration. The epoxide oxygen ends as the ketone oxygen. Route c, which begins by activating the oxirane, ends in the same way. The two animations run on one clock and reach the product together; <a href="gifs/routes.gif" download>both in one GIF</a>.</figcaption>
+</figure>
+<p>MAPPA did not compute any of these steps. It returned the two observations that a mechanism has to explain, and each one points to a different route. The study then favours route a on energetic grounds.</p>
+<p>Choosing one mapping therefore means choosing a pathway, and the two endpoint structures do not hold enough chemistry for that. What a mapper can say from the endpoints is which parts of the answer are fixed and which can switch: atoms that symmetry makes interchangeable, and atoms with more than one possible origin.</p>
+<p>This is how a chemist works. A chemist who is unsure which atom went where does not guess. She draws two or three mechanisms and lets further evidence decide. I wanted a mapper that behaves the same way: return the plausible mappings now, and choose later, when more of the chemistry is known.</p>
+
+<h2>2. The fewest bond changes is a shortlist, not the answer</h2>
+<p>The oldest rule for choosing a mapping is that a reaction changes as few bonds as it can. It is a good rule, but it cannot always choose. Formaldehyde and hydroxypyruvic acid give dihydroxyacetone and CO₂. This reaction is in EnzymeMap, a collection of enzymatic reactions. In the dataset's mapping, the formaldehyde carbon ends up in dihydroxyacetone. MAPPA also finds a mapping in which it ends up in CO₂.</p>
+<figure class="anim" data-anim="tie">
+  <div class="stage"><noscript><img src="gifs/tie.gif" alt="Two mappings of the same reaction with six bond changes each" style="width:100%"></noscript></div>
+  <figcaption>Blue: formaldehyde. Amber: the acid's carboxyl group. Green: the rest of the acid. Small circles are hydrogens. Red bonds break or weaken, green bonds form or strengthen.</figcaption>
+</figure>
+<p>Both mappings change six bonds once the hydrogens are counted. The rule has nothing to say here, and a mapper that returns one of the two hides the other.</p>
+<p>With the alternatives in hand, we could measure how far the rule goes.</p>
+<figure>
+  <div class="stage paper"><img src="figures/reference-offsets.png" alt="Histograms of the reference mapping's bond changes above the detected minimum for Golden and EnzymeMap" width="1430" height="503" loading="lazy"></div>
+  <figcaption>Bond changes of the reference mapping above the lowest count that MAPPA found. (a) Golden benchmark, 1,851 reactions. (b) EnzymeMap, 47,974 reactions. The paper calls a bond change a bond event. Figure 7 of the paper.</figcaption>
+</figure>
+<p>On the Golden benchmark, 88 of every 100 reference mappings sit exactly at the lowest count, and 92 on EnzymeMap. Nearly all of the others sit within five bond changes of it. So the rule makes a good shortlist.</p>
+<figure>
+  <div class="stage paper"><img src="figures/reaction-cores.png" alt="Histogram of the number of distinct reaction cores among the minimum mappings of each Golden reaction" width="1430" height="486" loading="lazy"></div>
+  <figcaption>Distinct reaction cores among the minimum mappings of each Golden reaction. A reaction core is the set of bonds that change. Figure 8 of the paper.</figcaption>
+</figure>
+<p>As a final answer it is less reliable. In about a third of the Golden reactions, more than one set of bond changes shares that minimum, and for a reaction with several steps the right mapping need not be minimal at all. Here is one Golden reaction that shows both.</p>
+<figure class="anim" data-anim="detour">
+  <div class="stage"><noscript><img src="gifs/detour.gif" alt="A ring-forming reaction where the reference mapping changes nine bonds and another mapping changes eight" style="width:100%"></noscript></div>
+  <figcaption>Golden reaction 9, heavy atoms only. Blue: the alcohol oxygen. Amber: the carbonyl oxygen. Hydrogen changes are counted in the totals.</figcaption>
+</figure>
+<p>An unsaturated alcohol and acetophenone close a ring and release water, a Prins-type cyclization with several steps. In the reference, the carbonyl oxygen leaves as water, which changes nine bonds. If the alcohol oxygen leaves instead, eight bonds change. MAPPA finds two sets of bond changes at eight, and the reference one step above them. A mapper that returns only the minimum would not return the reference. MAPPA therefore keeps everything within five bond changes of the minimum.</p>
+
+<h2>3. Growing before branching keeps the choices few</h2>
+<p>Returning alternatives sounds expensive, because choices multiply. What matters is when a choice is made. MAPPA builds mappings from fragments, which are substructures present on both sides of the reaction. It grows one fragment at a time on one side, the base, and checks that the fragment still fits somewhere on the other side, the target.</p>
+<figure class="anim" data-anim="grow">
+  <div class="stage"><noscript><img src="gifs/grow.gif" alt="A fragment grows atom by atom while its placements in the target narrow from nine to three" style="width:100%"></noscript></div>
+  <figcaption>A constructed example, following Figure 1 of the paper. The target has three alcohol sites, a, b and c, with different linkers to nitrogen.</figcaption>
+</figure>
+<p>A lone carbon fits nine places in this target. Branching there would open nine searches, and six of them lead nowhere. So during growth MAPPA asks one question only: does at least one placement exist? If it does, the fragment keeps growing, whether there is one placement or many. A bond that cannot be added is set aside, and growth continues with the others. MAPPA asks for every placement only when nothing more can be added. By then the fragment is specific enough that three remain.</p>
+<p>The same reasoning explains bad starting points. A fragment that starts on a lone hydrogen fits almost everywhere. MAPPA caps such branchings and drops the largest subtrees, so the search meets the crowded choices later, when few atoms are left to assign.</p>
+
+<h2>4. Storing choices, not mappings, keeps it compact</h2>
+<p>Each placement locks its atoms, and the next fragment grows in what is left. The choices are therefore conditional. In the example above, the base has three such alcohol fragments, A, B and C: three sites are open for A, two for B and one for C.</p>
+<figure class="anim" data-anim="share">
+  <div class="stage"><noscript><img src="gifs/share.gif" alt="Six branches are built from nine fragment placements that are stored once" style="width:100%"></noscript></div>
+  <figcaption>Six branches reuse nine fragment placements. The mapping counts are for the atoms of these three fragments.</figcaption>
+</figure>
+<p>There are six branches but only nine distinct fragment placements, and MAPPA stores each one once. A fragment counts as new only if it occupies a different set of atoms. Rearrangements within the same atoms are symmetry, and symmetry is stored as a rule, not as a list. Here the six branches stand for 1,296 atom-by-atom mappings, and none of them is ever written out.</p>
+<p>Symmetry is not always free, though. Exchanging two atoms that look equivalent can change bond orders.</p>
+<figure class="anim" data-anim="decode">
+  <div class="stage"><noscript><img src="gifs/decode.gif" alt="Exchanging two oxygens inside a fragment adds two bond changes" style="width:100%"></noscript></div>
+  <figcaption>Methyl acetate and hydroxide give acetate and methanol. Numbers follow the base atoms. Fragment F is blue, G green and H grey.</figcaption>
+</figure>
+<p>MAPPA works this out once per fragment: a small table from each allowed rearrangement to the bond changes it causes. Every branch that contains the fragment reuses the table. That keeps a question such as "which mappings change at most <i>n</i> bonds?" cheap to answer.</p>
+
+<h2>MAPPA is useful beyond mapping benchmarks</h2>
+<h3>An anchor fixes what is known, and MAPPA completes the rest</h3>
+<p>Sometimes part of a mapping is already known, from an isotope label or from a mechanism that is trusted. An anchor fixes that atom pair, and MAPPA completes the rest of the mapping around it. In the formaldehyde reaction above, anchoring the formaldehyde carbon to dihydroxyacetone or to CO₂ selects one of the two answers.</p>
+<figure class="anim" data-anim="anchor">
+  <div class="stage"><noscript><img src="gifs/anchor.gif" alt="The formaldehyde carbon is anchored to dihydroxyacetone, then to carbon dioxide, and MAPPA completes each mapping" style="width:100%"></noscript></div>
+  <figcaption>MAPPA run on this reaction with one anchored pair. Each completion shown is among the minimum mappings it returns for that anchor, at six bond changes.</figcaption>
+</figure>
+<p>We use the same feature in the paper. For the few references that the free search did not return, we anchor the annotated atoms, let MAPPA complete the rest, and compare the count with the minimum.</p>
+
+<h3>A mapping picks out the reactive vibration of a transition state</h3>
+<p>A mapping says which bonds weaken and which strengthen. That is enough to tell which vibration of a transition-state guess is the reaction. In this 57-atom hydrogen transfer, the mapping marks an O–H bond that weakens and an N–H bond that strengthens. MAPPA scores each vibrational mode of the guess by how far it moves along those bond changes. The imaginary mode overlaps them at 0.87. A stable mode, shown for comparison, overlaps at 0.11.</p>
+<p>This use is the reason I built MAPPA, and it is less simple than it looks. When symmetry leaves more than one possible reaction core, each one has to be scored against the modes, so the alternatives are needed here too.</p>
+<figure>
+  <div class="stage"><img src="gifs/ts-mode.gif" alt="Mapped bond changes select the vibrational mode of a transition-state guess that moves the transferring hydrogen" width="960" height="600" loading="lazy"></div>
+  <figcaption>A recorded 57-atom case. The geometry is a transition-state guess, not an optimized transition state.</figcaption>
+</figure>
+
+<h3>One grown fragment verifies what a model built</h3>
+<p>Generative models now propose three-dimensional structures, and someone has to check that a structure is the molecule that was asked for. MAPPA checks this by growing one fragment across the whole target. Here the candidate has a different conformation, orientation and atom order. All 135 atoms and all 148 connections match.</p>
+<figure>
+  <div class="stage"><img src="gifs/verification.gif" alt="MAPPA grows one fragment across a 135-atom molecule and confirms every connection" width="960" height="600" loading="lazy"></div>
+</figure>
+<p>Now one C–C connection is removed. Every atom is still present, so an atom count would pass. MAPPA returns two fragments, of 114 and 21 atoms, and reports the one missing connection.</p>
+<figure>
+  <div class="stage"><img src="gifs/verification-broken.gif" alt="With one connection removed, MAPPA returns two fragments and reports the missing connection" width="960" height="600" loading="lazy"></div>
+  <figcaption>Both candidates are controlled examples, not model output. The check covers connectivity, not bond order, charge or stereochemistry.</figcaption>
+</figure>
+
+<h3>MAPPA could serve as a verifier in chemistry post-training</h3>
+<p>Post-training a language model for chemistry, for example by reinforcement learning with verifiable rewards, needs a program that can check the model's answer. Code has tests and mathematics has proof checkers. For chemistry, the checker has to compare structures: is this the right molecule, are all atoms accounted for, and which bonds changed?</p>
+<p>MAPPA could potentially fill that role. Given a structure that a model proposes, it can check the structure against the target atom by atom. Given a mapping or a set of bond changes that a model proposes for a reaction, it can check them against the alternatives that the endpoints allow. In both cases it reports what is wrong: which atoms are unmatched, which connection is missing, which bonds change. A reward could be built from that, and because MAPPA returns the alternatives, a valid mapping that differs from the one in a dataset would not be marked wrong. This is a possibility, not a result.</p>
+
+<footer>
+<p>MAPPA stands for Mapping of Atoms by Progressive Pattern Assembly. It is joint work with Olalla Nieto Faza, Shifa Hussain, Varinia Bernales and Alán Aspuru-Guzik. The code is at <a href="https://github.com/yunhzou/MAPPA-AAM">github.com/yunhzou/MAPPA-AAM</a>.</p>
+<p>The drawn animations are also available as GIFs through the link under each one.</p>
+</footer>
+</main>
+
+<script>
+'use strict';
+const round = x => Math.round(x * 100) / 100;
+const clamp = (x, low = 0, high = 1) => Math.min(high, Math.max(low, x));
+const span = (t, from, to) => clamp((t - from) / (to - from));
+const ease = u => u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+const mix = (a, b, u) => a + (b - a) * u;
+const mixPoint = (a, b, u) => [mix(a[0], b[0], u), mix(a[1], b[1], u)];
+
+const el = (tag, attributes = {}, body = '') => {
+  const text = Object.entries(attributes)
+    .filter(([, value]) => value !== undefined && value !== null)
+    .map(([key, value]) => ` ${key}="${typeof value === 'number' ? round(value) : value}"`).join('');
+  return `<${tag}${text}>${body}</${tag}>`;
+};
+const label = (x, y, body, o = {}) => el('text', {
+  x, y, 'font-size': o.size ?? 14, 'font-weight': o.weight, 'text-anchor': o.anchor ?? 'start',
+  'dominant-baseline': o.baseline, fill: o.fill ?? 'var(--ink)', opacity: o.opacity,
+}, body);
+const bond = (a, b, order, o = {}) => {
+  const dx = b[0] - a[0], dy = b[1] - a[1], length = Math.hypot(dx, dy) || 1;
+  const nx = -dy / length, ny = dx / length;
+  return (order >= 2 ? [-3, 3] : [0]).map(k => el('line', {
+    x1: a[0] + nx * k, y1: a[1] + ny * k, x2: b[0] + nx * k, y2: b[1] + ny * k,
+    stroke: o.stroke ?? 'var(--ink)', 'stroke-width': o.width ?? 2.2, 'stroke-linecap': 'round',
+    'stroke-dasharray': o.dash, opacity: o.opacity,
+  })).join('');
+};
+const node = (p, body, o = {}) => el('g', {opacity: o.opacity},
+  el('circle', {cx: p[0], cy: p[1], r: o.r ?? 15, fill: o.fill ?? 'var(--card)', stroke: o.stroke ?? 'var(--ink)', 'stroke-width': o.width ?? 1.6}) +
+  (body ? label(p[0], p[1] + 0.5, body, {size: o.size ?? 12, weight: 600, anchor: 'middle', baseline: 'central', fill: o.ink}) : ''));
+const backdrop = (width, height) => el('rect', {width, height, fill: 'var(--card)'});
+const cross = (p, size = 6) => [[-1, -1, 1, 1], [-1, 1, 1, -1]].map(([a, b, c, d]) => el('line', {
+  x1: p[0] + a * size, y1: p[1] + b * size, x2: p[0] + c * size, y2: p[1] + d * size,
+  stroke: 'var(--red)', 'stroke-width': 3, 'stroke-linecap': 'round'})).join('');
+const midpoint = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+
+const animations = {};
+
+/* A reaction drawn as atoms that travel from one endpoint to the other under a mapping.
+   Bond changes are computed from the two bond lists and the mapping, not written by hand. */
+const reactionScene = scene => {
+  const count = scene.elements.length;
+  const key = (a, b) => a < b ? `${a}-${b}` : `${b}-${a}`;
+  const orders = bonds => { const table = new Map(bonds.map(([a, b, order]) => [key(a, b), order])); return (a, b) => table.get(key(a, b)) ?? 0; };
+  const before = orders(scene.startBonds), after = orders(scene.endBonds);
+  // hydrogenChanges is given when the scene draws heavy atoms only.
+  const prepare = (mapping, hydrogenChanges) => {
+    const pairs = [];
+    for (let i = 0; i < count; i++) for (let j = i + 1; j < count; j++) {
+      const from = before(i, j), to = after(mapping[i], mapping[j]);
+      if (from || to) pairs.push({i, j, from, to, hydrogen: scene.elements[i] === 'H' || scene.elements[j] === 'H'});
+    }
+    const changed = pairs.filter(pair => pair.from !== pair.to);
+    return {mapping, pairs, heavy: changed.filter(pair => !pair.hydrogen).length, hydrogen: hydrogenChanges ?? changed.filter(pair => pair.hydrogen).length};
+  };
+  const row = (y, title, data, u, tally, pin = 0) => {
+    const at = i => {
+      const a = scene.start[i], b = scene.end[data.mapping[i]];
+      const lift = Math.sin(Math.PI * u) * Math.hypot(b[0] - a[0], b[1] - a[1]) * 0.12;
+      return [mix(a[0], b[0], u), mix(a[1], b[1], u) - lift];
+    };
+    let out = label(20, -22, title, {size: 15, weight: 700});
+    out += label(740, -22, `${data.heavy} heavy-atom + ${data.hydrogen} hydrogen = ` + el('tspan', {'font-weight': 700, fill: 'var(--ink)'}, `${data.heavy + data.hydrogen} bond changes`), {size: 14, anchor: 'end', fill: 'var(--muted)', opacity: tally});
+    out += scene.startBonds.map(([a, b, order]) => bond(scene.start[a], scene.start[b], order, {stroke: 'var(--ghost)'})).join('');
+    out += scene.endBonds.map(([a, b, order]) => bond(scene.end[a], scene.end[b], order, {stroke: 'var(--ghost)'})).join('');
+    for (const [x, py] of scene.plus) out += label(x, py, '+', {size: 20, anchor: 'middle', fill: 'var(--muted)'});
+    const [ax, ay] = scene.arrow;
+    out += el('path', {d: `M${ax} ${ay} h38 m-8 -7 l9 7 l-9 7`, stroke: 'var(--muted)', 'stroke-width': 2, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round'});
+    for (const [x, name] of scene.names) out += label(x, scene.nameY, name, {size: 12, anchor: 'middle', fill: 'var(--muted)'});
+    if (pin) {
+      // The anchored pair: a pin from the atom to the place it is fixed to.
+      const from = scene.start[scene.marked], to = scene.end[data.mapping[scene.marked]];
+      out += el('path', {d: `M${from[0]} ${from[1]} Q${(from[0] + to[0]) / 2} ${Math.min(from[1], to[1]) - 70} ${to[0]} ${to[1]}`, fill: 'none', stroke: 'var(--blue)', 'stroke-width': 2, 'stroke-dasharray': '6 5', opacity: pin * (1 - u)});
+      out += el('circle', {cx: to[0], cy: to[1], r: 18, fill: 'var(--blue-soft)', stroke: 'var(--blue)', 'stroke-width': 2, 'stroke-dasharray': '4 4', opacity: pin});
+    }
+    for (const {i, j, from, to} of data.pairs) {
+      const a = at(i), b = at(j);
+      if (from && to) {
+        const changed = from !== to && u >= 0.5;
+        out += bond(a, b, u < 0.5 ? from : to, {stroke: changed ? (to > from ? 'var(--green)' : 'var(--red)') : 'var(--ink)', width: changed ? 3 : 2.2});
+      } else if (from) {
+        const opacity = 1 - span(u, 0.1, 0.55);
+        if (opacity > 0) out += bond(a, b, from, u > 0.02 ? {stroke: 'var(--red)', dash: '5 5', opacity} : {});
+      } else {
+        const opacity = span(u, 0.7, 1);
+        if (opacity > 0) out += bond(a, b, to, {stroke: 'var(--green)', width: 3, opacity});
+      }
+    }
+    const order = [...Array(count).keys()].sort((a, b) => (scene.elements[a] === 'H' ? 0 : 1) - (scene.elements[b] === 'H' ? 0 : 1));
+    for (const i of order) {
+      const {r, text} = scene.atom(scene.elements[i]);
+      out += node(at(i), text, {r, fill: scene.fills[scene.groupOf[i]], stroke: scene.strokes[scene.groupOf[i]], width: r < 8 ? 1.2 : 1.6});
+    }
+    if (scene.marked !== undefined) {
+      const p = at(scene.marked);
+      out += el('circle', {cx: p[0], cy: p[1], r: 17, fill: 'none', stroke: 'var(--blue)', 'stroke-width': 2.5});
+    }
+    return el('g', {transform: `translate(0 ${y})`}, out);
+  };
+  return {prepare, row};
+};
+
+/* EnzymeMap case 13175: formaldehyde and hydroxypyruvic acid give dihydroxyacetone and CO2.
+   Atom indices, bonds and mappings follow manuscript/evidence/enzymemap_case13175.json.
+   The alternative is shown in the equivalent labelling that mirrors dihydroxyacetone. */
+const formaldehyde = (() => {
+  const scene = reactionScene({
+    elements: 'COOCOCOCOHHHHHH',
+    groupOf: [0, 0, 1, 1, 1, 2, 2, 2, 2, 0, 0, 1, 2, 2, 2],
+    fills: ['var(--blue-soft)', 'var(--amber-soft)', 'var(--green-soft)'],
+    strokes: ['var(--blue)', 'var(--amber)', 'var(--green)'],
+    atom: element => element === 'H' ? {r: 6.5, text: ''} : {r: 12, text: element},
+    start: {0: [62, 100], 1: [62, 52], 9: [34, 124], 10: [90, 124], 2: [198, 154], 3: [198, 106], 4: [160, 82],
+      11: [136, 58], 5: [238, 82], 6: [238, 34], 7: [278, 106], 12: [264, 144], 13: [300, 142], 8: [318, 82], 14: [348, 98]},
+    end: {0: [548, 34], 1: [548, 82], 2: [508, 106], 3: [470, 82], 4: [588, 106], 5: [628, 82], 6: [716, 52],
+      7: [716, 100], 8: [716, 148], 9: [494, 144], 10: [530, 142], 11: [446, 58], 12: [574, 144], 13: [610, 142], 14: [658, 98]},
+    startBonds: [[0, 1, 2], [0, 9, 1], [0, 10, 1], [2, 3, 2], [3, 4, 1], [3, 5, 1], [4, 11, 1], [5, 6, 2], [5, 7, 1], [7, 8, 1], [7, 12, 1], [7, 13, 1], [8, 14, 1]],
+    endBonds: [[0, 1, 2], [1, 2, 1], [1, 4, 1], [2, 3, 1], [2, 9, 1], [2, 10, 1], [3, 11, 1], [4, 5, 1], [4, 12, 1], [4, 13, 1], [5, 14, 1], [6, 7, 2], [7, 8, 2]],
+    plus: [[113, 105], [686, 105]], arrow: [378, 96], nameY: 180, marked: 0,
+    names: [[62, 'formaldehyde'], [240, 'hydroxypyruvic acid'], [552, 'dihydroxyacetone'], [716, 'CO₂']],
+  });
+  const reference = scene.prepare([2, 3, 6, 7, 8, 1, 0, 4, 5, 9, 10, 11, 12, 13, 14]);
+  const alternative = scene.prepare([7, 8, 6, 2, 3, 1, 0, 4, 5, 9, 10, 11, 12, 13, 14]);
+  console.assert(reference.heavy === 4 && reference.hydrogen === 2 && alternative.heavy === 2 && alternative.hydrogen === 4, 'formaldehyde counts');
+  return {row: scene.row, reference, alternative};
+})();
+
+/* 1. Two mappings of the formaldehyde reaction with six bond changes each. */
+animations.tie = (() => {
+  const width = 760, height = 504, duration = 16;
+  const draw = t => backdrop(width, height) +
+    formaldehyde.row(48, 'Mapping A: the dataset\'s reference', formaldehyde.reference, ease(span(t, 1, 4.5)), span(t, 4.6, 5.2)) +
+    formaldehyde.row(278, 'Mapping B: an alternative', formaldehyde.alternative, ease(span(t, 6, 9.5)), span(t, 9.6, 10.2)) +
+    label(380, 490, 'Same count, different carbon origin. Counting bond changes cannot choose.', {size: 16, weight: 700, anchor: 'middle', opacity: span(t, 11, 11.8)});
+  return {width, height, duration, draw, label: 'Two mappings of one reaction, each with six bond changes'};
+})();
+
+/* Golden case 9: the reference changes nine bonds and the detected minimum is eight.
+   Heavy atoms only; mappings and hydrogen counts follow manuscript/evidence/golden_case9.json
+   and golden_case9_verification.json. The minimum and reference counts match reference_offsets.json.gz. */
+animations.detour = (() => {
+  const width = 760, height = 504, duration = 16;
+  const scene = reactionScene({
+    elements: 'CCCCCOCCOCCCCCC',
+    groupOf: [0, 0, 0, 0, 0, 1, 2, 2, 3, 2, 2, 2, 2, 2, 2],
+    fills: ['var(--green-soft)', 'var(--blue-soft)', 'var(--grey-soft)', 'var(--amber-soft)'],
+    strokes: ['var(--green)', 'var(--blue)', 'var(--muted)', 'var(--amber)'],
+    atom: element => element === 'O' ? {r: 12, text: 'O'} : {r: 8, text: ''},
+    start: {0: [40, 118], 1: [70, 98], 2: [70, 60], 3: [100, 118], 4: [130, 98], 5: [162, 118], 6: [212, 120], 7: [242, 100], 8: [242, 62],
+      9: [272, 118], 10: [298, 103], 11: [324, 118], 12: [324, 148], 13: [298, 163], 14: [272, 148]},
+    end: {0: [444, 146], 1: [474, 130], 2: [474, 98], 3: [502, 82], 4: [530, 98], 5: [530, 130], 13: [502, 146], 6: [540, 164],
+      7: [562, 118], 8: [577, 92], 9: [607, 92], 10: [622, 118], 11: [607, 144], 12: [577, 144], 14: [700, 118]},
+    startBonds: [[0, 1, 2], [1, 2, 1], [1, 3, 1], [3, 4, 1], [4, 5, 1], [6, 7, 1], [7, 8, 2], [7, 9, 1], [9, 10, 2], [10, 11, 1], [11, 12, 2], [12, 13, 1], [13, 14, 2], [14, 9, 1]],
+    endBonds: [[0, 1, 1], [1, 2, 2], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [5, 7, 1], [7, 8, 2], [8, 9, 1], [9, 10, 2], [10, 11, 1], [11, 12, 2], [12, 7, 1], [5, 13, 1], [13, 1, 1]],
+    plus: [[187, 118], [661, 124]], arrow: [368, 112], nameY: 188,
+    names: [[100, '3-methylbut-3-en-1-ol'], [270, 'acetophenone'], [535, 'dihydropyran'], [700, 'water']],
+  });
+  const reference = scene.prepare([13, 1, 0, 2, 3, 4, 6, 5, 14, 7, 8, 9, 10, 11, 12], 4);
+  const minimum = scene.prepare([13, 1, 0, 2, 3, 14, 6, 5, 4, 7, 8, 9, 10, 11, 12], 2);
+  console.assert(reference.heavy === 5 && minimum.heavy === 6, 'Golden case 9 counts');
+  const draw = t => backdrop(width, height) +
+    scene.row(48, 'Mapping A: the dataset\'s reference', reference, ease(span(t, 1, 4.5)), span(t, 4.6, 5.2)) +
+    scene.row(278, 'Mapping B: the lowest count MAPPA found', minimum, ease(span(t, 6, 9.5)), span(t, 9.6, 10.2)) +
+    label(380, 490, 'The reference sends the carbonyl oxygen to water and costs one more bond change.', {size: 16, weight: 700, anchor: 'middle', opacity: span(t, 11, 11.8)});
+  return {width, height, duration, draw, label: 'A reference mapping one bond change above the minimum'};
+})();
+
+/* Anchors on the formaldehyde reaction. MAPPA was run with the carbon anchored each way
+   (forward direction, one seed): both completions shown are among its minimum mappings. */
+animations.anchor = (() => {
+  const width = 760, height = 282, duration = 15;
+  const draw = t => {
+    const second = t >= 7.5, s = second ? t - 7.5 : t;
+    return backdrop(width, height) +
+      formaldehyde.row(48, second ? 'Anchor: formaldehyde carbon → CO₂' : 'Anchor: formaldehyde carbon → dihydroxyacetone',
+        second ? formaldehyde.alternative : formaldehyde.reference, ease(span(s, 2, 5)), span(s, 5.1, 5.6), span(s, 0.5, 1.2)) +
+      label(380, 266, 'The anchored pair stays fixed. MAPPA completes the other 14 atoms around it.', {size: 15, weight: 700, anchor: 'middle', opacity: span(s, 2, 2.6)});
+  };
+  return {width, height, duration, draw, label: 'One anchored atom pair, completed by MAPPA in two ways'};
+})();
+
+/* 2. Growth keeps one witness and branches only at saturation (Figure 1a of the paper). */
+animations.grow = (() => {
+  const width = 760, height = 430, duration = 17;
+  const base = {R: [40, 196], CA: [88, 170], CM: [136, 196], O: [88, 118]};
+  const names = {CA: ['C', 'CH'], CM: ['C', 'CH₃'], O: ['O', 'OH']};
+  const target = {N: [560, 200, 'N'], a1: [606, 190, 'CH'], am: [636, 154, 'CH₃'], aO: [646, 216, 'OH'],
+    b1: [530, 238, 'CH₂'], b2: [486, 252, 'CH'], bO: [446, 228, 'OH'], bm: [492, 298, 'CH₃'],
+    c1: [526, 166, 'CH₂'], c2: [480, 172, 'CH₂'], c3: [446, 138, 'CH'], cO: [452, 92, 'OH'], cm: [400, 146, 'CH₃']};
+  const targetBonds = [['N', 'a1'], ['a1', 'am'], ['a1', 'aO'], ['N', 'b1'], ['b1', 'b2'], ['b2', 'bO'], ['b2', 'bm'], ['N', 'c1'], ['c1', 'c2'], ['c2', 'c3'], ['c3', 'cO'], ['c3', 'cm']];
+  const complete = [['am', 'a1', 'aO'], ['bm', 'b2', 'bO'], ['cm', 'c3', 'cO']];
+  const steps = [
+    {from: 0, grown: ['CM'], note: ['Seed: one carbon'],
+      sets: [['a1'], ['am'], ['b1'], ['b2'], ['bm'], ['c1'], ['c2'], ['c3'], ['cm']], witness: ['c1']},
+    {from: 2.6, grown: ['CM', 'CA'], note: ['Extend along a bond'],
+      sets: [['a1', 'am'], ['b1', 'b2'], ['b2', 'bm'], ['c1', 'c2'], ['c2', 'c3'], ['c3', 'cm']], witness: ['c1', 'c2']},
+    {from: 5.2, grown: ['CM', 'CA', 'O'], note: ['Include the oxygen'],
+      sets: [['am', 'a1', 'aO'], ['bm', 'b2', 'bO'], ['b1', 'b2', 'bO'], ['cm', 'c3', 'cO'], ['c2', 'c3', 'cO']], witness: ['b1', 'b2', 'bO']},
+    {from: 7.8, grown: ['CM', 'CA', 'O'], hydrogens: true, note: ['Check every attached hydrogen'], sets: complete, witness: complete[1]},
+    {from: 10.4, grown: ['CM', 'CA', 'O'], hydrogens: true, blocked: true, note: ['The bond to R has no match.', 'Nothing is left to add.'], sets: complete, witness: complete[1]},
+    {from: 12.6, grown: ['CM', 'CA', 'O'], hydrogens: true, final: true, note: ['Saturated: only now', 'find every placement'], sets: complete, witness: null},
+  ];
+  const highlight = (atoms, opacity) => atoms.length === 1
+    ? el('circle', {cx: target[atoms[0]][0], cy: target[atoms[0]][1], r: 21, fill: 'var(--blue)', opacity})
+    : el('polyline', {points: atoms.map(name => `${target[name][0]},${target[name][1]}`).join(' '), fill: 'none', stroke: 'var(--blue)', 'stroke-width': 40, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity});
+  const draw = t => {
+    const index = steps.findLastIndex(step => t >= step.from), step = steps[index];
+    const fade = span(t, step.from, step.from + 0.45);
+    let out = backdrop(width, height);
+    out += label(20, 34, 'Base: grow one fragment', {size: 15, weight: 700}) + label(385, 34, 'Target: where does it fit?', {size: 15, weight: 700});
+    // Base fragment.
+    out += bond(base.R, base.CA, 1, step.blocked ? {stroke: 'var(--red)', dash: '5 5', width: 3} : {stroke: 'var(--ghost)'});
+    out += bond(base.CA, base.CM, 1, {stroke: step.grown.includes('CA') ? 'var(--ink)' : 'var(--ghost)'});
+    out += bond(base.CA, base.O, 1, {stroke: step.grown.includes('O') ? 'var(--ink)' : 'var(--ghost)'});
+    if (step.blocked) out += cross(midpoint(base.R, base.CA));
+    out += label(base.R[0] - 4, base.R[1] + 2, 'R', {size: 15, weight: 600, anchor: 'end', baseline: 'central', fill: 'var(--muted)'});
+    for (const name of ['CA', 'CM', 'O']) {
+      const grown = step.grown.includes(name), added = grown && !(steps[index - 1]?.grown.includes(name));
+      out += node(base[name], names[name][1], {fill: 'var(--card)', stroke: 'var(--ghost)', ink: 'var(--line)'});
+      if (grown) out += node(base[name], names[name][step.hydrogens ? 1 : 0], {fill: 'var(--blue-soft)', stroke: 'var(--blue)', opacity: added ? fade : 1});
+    }
+    step.note.forEach((line, k) => out += label(20, 258 + 20 * k, line, {size: 14, fill: step.blocked ? 'var(--red)' : 'var(--ink)', weight: 600}));
+    // Target molecule with the placements of the current fragment.
+    const previous = steps[index - 1];
+    if (previous && fade < 1 && !step.final) for (const atoms of previous.sets) out += highlight(atoms, 0.16 * (1 - fade));
+    for (const atoms of step.sets) out += highlight(atoms, (step.final ? mix(0.16, 0.42, fade) : 0.16 * (previous && !step.final && previous.sets === step.sets ? 1 : fade)));
+    if (step.witness) out += highlight(step.witness, 0.3 * (previous?.witness === step.witness ? 1 : fade));
+    out += targetBonds.map(([a, b]) => bond(target[a], target[b], 1)).join('');
+    for (const [, [x, y, text]] of Object.entries(target)) out += node([x, y], text, {size: text.length > 2 ? 11 : 12});
+    for (const [x, y, text] of [[676, 186, 'a'], [446, 276, 'b'], [416, 106, 'c']])
+      out += label(x, y, text, {size: 16, weight: 700, anchor: 'middle', fill: step.final ? 'var(--blue)' : 'var(--muted)'});
+    out += el('rect', {x: 385, y: 322, width: 14, height: 14, rx: 3, fill: 'var(--blue)', opacity: 0.16}) + label(405, 334, 'fits here', {size: 12, fill: 'var(--muted)'});
+    out += el('rect', {x: 475, y: 322, width: 14, height: 14, rx: 3, fill: 'var(--blue)', opacity: 0.46}) + label(495, 334, step.final ? 'a placement, kept as a branch' : 'the one witness MAPPA keeps', {size: 12, fill: 'var(--muted)'});
+    // Counter strip.
+    out += el('line', {x1: 20, y1: 352, x2: 740, y2: 352, stroke: 'var(--line)'});
+    out += label(20, 404, String(step.sets.length), {size: 46, weight: 700, fill: 'var(--blue)'});
+    out += label(62, 384, 'places where the fragment fits', {size: 15, weight: 600});
+    out += label(62, 406, step.final ? 'each placement now becomes a branch' : 'one witness is enough: keep growing', {size: 14, fill: 'var(--muted)'});
+    out += label(740, 384, step.final ? 'Branches opened: 3' : 'Branches opened so far: 0', {size: 15, weight: 600, anchor: 'end'});
+    if (index < 3) out += label(740, 406, `branching now would open ${step.sets.length} searches`, {size: 14, anchor: 'end', fill: 'var(--red)'});
+    return out;
+  };
+  return {width, height, duration, draw, label: 'A fragment grows while its placements narrow from nine to three'};
+})();
+
+/* 3. Conditional branches share fragment placements (Figure 1a), and symmetry stays a rule. */
+animations.share = (() => {
+  const width = 760, height = 440, duration = 17;
+  const branches = [['Aa', 'Bb', 'Cc'], ['Aa', 'Bc', 'Cb'], ['Ab', 'Ba', 'Cc'], ['Ab', 'Bc', 'Ca'], ['Ac', 'Ba', 'Cb'], ['Ac', 'Bb', 'Ca']];
+  const leafY = [50, 110, 170, 230, 290, 350], columns = [110, 250, 390];
+  const colors = {A: ['var(--blue-soft)', 'var(--blue)'], B: ['var(--green-soft)', 'var(--green)'], C: ['var(--amber-soft)', 'var(--amber)']};
+  const nodes = [];
+  [80, 200, 320].forEach((y, k) => nodes.push({id: branches[2 * k][0], x: columns[0], y, level: 0, parent: [28, 200]}));
+  branches.forEach((branch, k) => {
+    nodes.push({id: branch[1], x: columns[1], y: leafY[k], level: 1, parent: [columns[0], [80, 200, 320][k >> 1]]});
+    nodes.push({id: branch[2], x: columns[2], y: leafY[k], level: 2, parent: [columns[1], leafY[k]]});
+  });
+  const cell = id => [553 + 76 * 'abc'.indexOf(id[1]), 147 + 52 * 'ABC'.indexOf(id[0])];
+  const pill = (x, y, id, opacity = 1, w = 84, h = 30) => el('g', {opacity},
+    el('rect', {x: x - w / 2, y: y - h / 2, width: w, height: h, rx: h / 2, fill: colors[id[0]][0], stroke: colors[id[0]][1], 'stroke-width': 1.6}) +
+    label(x, y + 0.5, `${id[0]} → ${id[1]}`, {size: 13, weight: 600, anchor: 'middle', baseline: 'central'}));
+  const draw = t => {
+    let out = backdrop(width, height);
+    out += label(20, 24, 'Each placement locks its atoms; the next fragment takes what is left', {size: 15, weight: 700});
+    out += el('circle', {cx: 28, cy: 200, r: 5, fill: 'var(--ink)'});
+    const shown = node => span(t, 1 + 2 * node.level + 0.12 * nodes.filter(other => other.level === node.level).indexOf(node), 1.5 + 2 * node.level + 0.12 * nodes.filter(other => other.level === node.level).indexOf(node));
+    for (const item of nodes) {
+      const opacity = shown(item), x0 = item.parent[0] + (item.level ? 42 : 5), x1 = item.x - 42, mid = (x0 + x1) / 2;
+      if (!opacity) continue;
+      out += el('path', {d: `M${x0} ${item.parent[1]} C${mid} ${item.parent[1]} ${mid} ${item.y} ${x1} ${item.y}`, fill: 'none', stroke: 'var(--muted)', 'stroke-width': 1.5, opacity});
+      out += pill(item.x, item.y, item.id, opacity);
+    }
+    out += label(390, 392, '6 branches', {size: 15, weight: 700, anchor: 'middle', opacity: span(t, 7, 7.6)});
+    // Catalogue of unique fragment placements.
+    const store = span(t, 8, 8.5);
+    out += label(515, 92, 'Stored once', {size: 15, weight: 700, opacity: store});
+    out += label(515, 112, '9 fragment placements', {size: 13, fill: 'var(--muted)', opacity: store});
+    const arrival = {};
+    nodes.forEach((item, k) => {
+      const u = ease(span(t, 8.4 + 0.14 * k, 9.3 + 0.14 * k)), goal = cell(item.id);
+      arrival[item.id] = Math.max(arrival[item.id] ?? 0, span(u, 0.85, 1));
+      if (u > 0 && u < 1) out += el('circle', {cx: mix(item.x, goal[0], u), cy: mix(item.y, goal[1], u), r: 7, fill: colors[item.id[0]][1], opacity: 0.85});
+    });
+    for (const id of Object.keys(arrival)) if (arrival[id]) out += pill(...cell(id), id, arrival[id], 68, 34);
+    out += label(629, 322, '6 branches × 3 fragments = 18 uses', {size: 13, anchor: 'middle', fill: 'var(--muted)', opacity: span(t, 11.2, 11.8)});
+    out += label(20, 414, 'Inside each placement, the methyl hydrogens can be permuted in 6 ways: a symmetry rule.', {size: 14, opacity: span(t, 12, 12.6)});
+    out += label(20, 434, '6 × 6 × 6 = 216 mappings per branch, 1,296 in all. None is written out.', {size: 14, weight: 700, opacity: span(t, 13.2, 13.8)});
+    return out;
+  };
+  return {width, height, duration, draw, label: 'Six branches built from nine stored fragment placements'};
+})();
+
+/* 4. A symmetric exchange inside a fragment can add internal events (Figure 1b and 1c). */
+animations.decode = (() => {
+  const width = 760, height = 384, duration = 17;
+  const B = {c1: [60, 150], c2: [106, 176], o3: [106, 228], o4: [152, 150], c5: [198, 176], o6: [292, 176]};
+  const T = {c1: [452, 150], c2: [498, 176], low: [498, 228], up: [544, 150], c5: [640, 176], o6: [690, 176]};
+  const halo = (points, color) => points.length === 1
+    ? el('circle', {cx: points[0][0], cy: points[0][1], r: 22, fill: color})
+    : el('polyline', {points: points.map(p => p.join(',')).join(' '), fill: 'none', stroke: color, 'stroke-width': 44, 'stroke-linecap': 'round', 'stroke-linejoin': 'round'});
+  const tag = (p, text, strong) => label(p[0], p[1], text, {size: strong ? 16 : 13, weight: 700, anchor: 'middle', baseline: 'central', fill: strong ? 'var(--blue)' : 'var(--muted)'});
+  const headers = [[0, 'A branch is a set of fragments. Bond changes between fragments are boundary changes.'],
+    [4, 'Inside F, keep the two oxygens where they are: no internal change.'],
+    [8, 'Or exchange them. F\'s connectivity allows it; the bond orders do not match.'],
+    [13, 'Worked out once for F, then reused by every branch that contains F.']];
+  const draw = t => {
+    const boundary = t >= 1.2, swap = ease(span(t, 8.6, 10)), internal = t >= 10.2, focus = t >= 4;
+    let out = backdrop(width, height);
+    out += label(20, 30, headers.findLast(([from]) => t >= from)[1], {size: 15, weight: 700});
+    out += el('circle', {cx: 28, cy: 56, r: 7, fill: 'var(--blue-soft)', stroke: 'var(--blue)'}) + label(40, 61, 'F', {size: 13, weight: 600});
+    out += el('circle', {cx: 68, cy: 56, r: 7, fill: 'var(--green-soft)', stroke: 'var(--green)'}) + label(80, 61, 'G', {size: 13, weight: 600});
+    out += el('circle', {cx: 108, cy: 56, r: 7, fill: 'var(--grey-soft)', stroke: 'var(--muted)'}) + label(120, 61, 'H', {size: 13, weight: 600});
+    out += label(40, 98, 'Base', {size: 14, weight: 700, fill: 'var(--muted)'}) + label(432, 98, 'Target', {size: 14, weight: 700, fill: 'var(--muted)'});
+    for (const side of [B, T]) {
+      const [down, upper] = side === B ? [side.o3, side.o4] : [side.low, side.up];
+      out += halo([side.c1, side.c2, down], 'var(--blue-soft)') + halo([side.c2, upper], 'var(--blue-soft)');
+      out += halo([side.c5], 'var(--green-soft)') + halo([side.o6], 'var(--grey-soft)');
+    }
+    // Base bonds.
+    out += bond(B.c1, B.c2, 1) + bond(B.c2, B.o3, 2) + bond(B.c2, B.o4, 1);
+    out += bond(B.o4, B.c5, 1, boundary ? {stroke: 'var(--red)', width: 3} : {}) + (boundary ? cross(midpoint(B.o4, B.c5), 5) : '');
+    // Target bonds.
+    out += bond(T.c1, T.c2, 1);
+    out += bond(T.c2, T.low, 2, internal ? {stroke: 'var(--green)', width: 3} : {});
+    out += bond(T.c2, T.up, 1, internal ? {stroke: 'var(--red)', width: 3} : {});
+    out += bond(T.c5, T.o6, 1, boundary ? {stroke: 'var(--green)', width: 3} : {});
+    out += label(244, 182, '+', {size: 20, anchor: 'middle', fill: 'var(--muted)'}) + label(592, 182, '+', {size: 20, anchor: 'middle', fill: 'var(--muted)'});
+    out += el('path', {d: 'M346 176 H394 M386 169 L395 176 L386 183', stroke: 'var(--muted)', 'stroke-width': 2, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round'});
+    for (const [p, text] of [[B.c1, 'CH₃'], [B.c2, 'C'], [B.o3, 'O'], [B.o4, 'O'], [B.c5, 'CH₃'], [B.o6, 'OH⁻'], [T.c1, 'CH₃'], [T.c2, 'C'], [T.low, 'O'], [T.up, 'O⁻'], [T.c5, 'CH₃'], [T.o6, 'OH']])
+      out += node(p, text, {size: text.length > 2 ? 11 : 12});
+    for (const [p, text] of [[[82, 186], '2'], [[198, 204], '5'], [[292, 204], '6'], [[474, 186], '2'], [[640, 204], '5'], [[690, 204], '6']]) out += tag(p, text);
+    const lowTag = [522, 232], upTag = [544, 124];
+    out += tag([130, 232], '3', focus) + tag([152, 124], '4', focus);
+    out += tag(mixPoint(lowTag, upTag, swap), '3', focus) + tag(mixPoint(upTag, lowTag, swap), '4', focus);
+    const total = t < 2 ? '' : t < 5.5 ? '2 boundary changes' : internal ? '2 boundary + 2 internal = 4 bond changes' : '2 boundary + 0 internal = 2 bond changes';
+    out += label(380, 322, total, {size: 20, weight: 700, anchor: 'middle'});
+    out += label(380, 358, 'Both mappings stay: MAPPA keeps everything from the minimum, 2, up to the minimum plus five.', {size: 14, anchor: 'middle', fill: 'var(--muted)', opacity: span(t, 13, 13.6)});
+    return out;
+  };
+  return {width, height, duration, draw, label: 'Exchanging two oxygens inside a fragment adds two bond changes'};
+})();
+
+/* Mechanism films for the gold-catalysed rearrangement (routes a and b of González Pérez et al.,
+   J. Org. Chem. 2009, 74, 2982). Every atom keeps one position unless a step has to move it,
+   so only the bonds that change and the groups that migrate draw the eye. */
+const mechanism = config => {
+  const width = 760, height = 548, zoom = 1.15, origin = [380 - 288 * zoom, 238 - 200 * zoom];
+  const states = config.states;
+  // Every route reaches its product at `arrival` and shows it for `finalHold`, whatever its number of steps.
+  const arrival = 25.2, finalHold = 5.5, move = config.move;
+  const cycle = arrival / (states.length - 1), hold = cycle - move, duration = arrival + finalHold;
+  const labelled = {Oe: ['O', 'var(--red)', 9], Oc: ['O', 'var(--blue)', 9], Ol: ['O', 'var(--ink)', 9], Au: ['AuL', 'var(--amber)', 15]};
+  const place = (index, atom) => states[index].at?.[atom] ?? config.base[atom];
+  const tables = states.map(state => new Map(state.bonds.map(([a, b, order]) => [a < b ? `${a} ${b}` : `${b} ${a}`, order])));
+  const angle = (from, to) => Math.atan2(to[1] - from[1], to[0] - from[0]);
+  // Position of an atom while state `index` turns into the next one (u from 0 to 1).
+  const position = (index, u, atom) => {
+    const from = place(index, atom);
+    if (u <= 0 || index + 1 >= states.length) return from;
+    const to = place(index + 1, atom), motion = states[index + 1].motion ?? {};
+    const [start, end] = motion.timing?.[atom] ?? [0, 1], e = ease(span(u, start, end));
+    if (motion.pivot?.[atom]) {
+      // Swing around another atom: the angle and the distance are interpolated, so bond lengths hold.
+      const name = motion.pivot[atom], pivot0 = place(index, name), pivot1 = place(index + 1, name), pivot = position(index, u, name);
+      let turn = angle(pivot1, to) - angle(pivot0, from);
+      turn = Math.atan2(Math.sin(turn), Math.cos(turn));
+      if (motion.turn?.[atom] === -1 && turn > 0) turn -= 2 * Math.PI;
+      const radius = mix(Math.hypot(from[0] - pivot0[0], from[1] - pivot0[1]), Math.hypot(to[0] - pivot1[0], to[1] - pivot1[1]), e);
+      const direction = angle(pivot0, from) + turn * e;
+      return [pivot[0] + radius * Math.cos(direction), pivot[1] + radius * Math.sin(direction)];
+    }
+    if (motion.frame?.[atom]) {
+      // Rotation about a bond, seen in projection: the atom crosses the bond's axis.
+      const [centreName, towardName] = motion.frame[atom];
+      const local = (point, centre, toward) => {
+        const a = angle(centre, toward), dx = point[0] - centre[0], dy = point[1] - centre[1];
+        return [dx * Math.cos(a) + dy * Math.sin(a), -dx * Math.sin(a) + dy * Math.cos(a)];
+      };
+      const l0 = local(from, place(index, centreName), place(index, towardName));
+      const l1 = local(to, place(index + 1, centreName), place(index + 1, towardName));
+      const centre = position(index, u, centreName), a = angle(centre, position(index, u, towardName));
+      const along = mix(l0[0], l1[0], e), across = mix(l0[1], l1[1], e);
+      return [centre[0] + along * Math.cos(a) - across * Math.sin(a), centre[1] + along * Math.sin(a) + across * Math.cos(a)];
+    }
+    return mixPoint(from, to, e);
+  };
+  const strokes = (a, b, order, opacity, nameA, nameB) => {
+    if (!order || opacity <= 0) return '';
+    const dx = b[0] - a[0], dy = b[1] - a[1], length = Math.hypot(dx, dy) || 1, ux = dx / length, uy = dy / length;
+    const trimA = labelled[nameA]?.[2] ?? 0, trimB = labelled[nameB]?.[2] ?? 0;
+    const p = [a[0] + ux * trimA, a[1] + uy * trimA], q = [b[0] - ux * trimB, b[1] - uy * trimB];
+    const offsets = order === 3 ? [-4.4, 0, 4.4] : order === 2 ? [-2.6, 2.6] : [0];
+    return offsets.map(k => el('line', {x1: p[0] - uy * k, y1: p[1] + ux * k, x2: q[0] - uy * k, y2: q[1] + ux * k,
+      stroke: order === 'd' ? 'var(--amber)' : 'var(--ink)', 'stroke-width': 1.9, 'stroke-linecap': 'round',
+      'stroke-dasharray': order === 'd' ? '4 4' : undefined, opacity})).join('');
+  };
+  const glow = (a, b, color, opacity) => opacity <= 0.01 ? '' : el('line', {x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: color, 'stroke-width': 9, 'stroke-linecap': 'round', opacity: 0.4 * opacity});
+  const draw = t => {
+    const index = Math.min(states.length - 1, Math.floor(t / cycle));
+    const u = index === states.length - 1 ? 0 : span(t - index * cycle, hold, cycle), e = ease(u), pulse = Math.sin(Math.PI * u);
+    const at = atom => position(index, u, atom);
+    const next = Math.min(index + 1, states.length - 1), shown = u > 0.5 ? next : index;
+    let body = '';
+    // Bonds: unchanged ones stay put; forming ones fade in over green, breaking ones fade out over red.
+    for (const pair of new Set([...tables[index].keys(), ...tables[next].keys()])) {
+      const [nameA, nameB] = pair.split(' '), a = at(nameA), b = at(nameB);
+      const before = tables[index].get(pair), after = u > 0 ? tables[next].get(pair) : before;
+      if (before === after) { body += strokes(a, b, before, 1, nameA, nameB); continue; }
+      const rank = order => order === 'd' ? 0.5 : order ?? 0;
+      // A bond that forms or breaks is drawn only while its atoms are within reach of each other.
+      const near = before && after ? 1 : span(78 - Math.hypot(b[0] - a[0], b[1] - a[1]), 0, 26);
+      body += glow(a, b, rank(after) > rank(before) ? 'var(--green)' : 'var(--red)', pulse * near);
+      body += strokes(a, b, before, (1 - e) * near, nameA, nameB) + strokes(a, b, after, e * near, nameA, nameB);
+    }
+    // Gold bound side-on to a multiple bond.
+    for (const [state, opacity] of [[states[index], u > 0 ? 1 - e : 1], [states[next], u > 0 ? e : 0]]) {
+      if (!state.pi || opacity <= 0) continue;
+      const middle = midpoint(at(state.pi[0]), at(state.pi[1]));
+      body += strokes(at('Au'), middle, 'd', opacity, 'Au');
+    }
+    for (const [name, [text, color]] of Object.entries(labelled)) {
+      const p = at(name);
+      body += label(p[0], p[1] + 0.5, text, {size: 15, weight: 600, anchor: 'middle', baseline: 'central', fill: color});
+    }
+    for (const [state, opacity] of [[states[index], u > 0 ? 1 - e : 1], [states[next], u > 0 ? e : 0]])
+      for (const name of state.plus ?? []) {
+        // The charge sits on the side of the atom that faces away from its bonds.
+        const p = at(name);
+        let away = [0, 0];
+        for (const [a, b] of state.bonds) if (a === name || b === name) {
+          const q = at(a === name ? b : a), length = Math.hypot(q[0] - p[0], q[1] - p[1]) || 1;
+          away = [away[0] - (q[0] - p[0]) / length, away[1] - (q[1] - p[1]) / length];
+        }
+        const size = Math.hypot(...away), reach = labelled[name] ? 15 : 11;
+        const [dx, dy] = size > 0.35 ? [away[0] / size * reach, away[1] / size * reach] : [10, -10];
+        body += label(p[0] + dx, p[1] + dy, '+', {size: 12, weight: 600, anchor: 'middle', baseline: 'central', fill: 'var(--muted)', opacity});
+      }
+    let out = backdrop(width, height) + el('g', {transform: `translate(${round(origin[0])} ${round(origin[1])}) scale(${zoom})`}, body);
+    out += label(20, 32, config.title, {size: 16, weight: 700});
+    out += label(452, 32, 'O', {size: 15, weight: 600, fill: 'var(--red)'}) + label(468, 32, 'epoxide oxygen', {size: 13, fill: 'var(--muted)'});
+    out += label(580, 32, 'O', {size: 15, weight: 600, fill: 'var(--blue)'}) + label(596, 32, 'ester carbonyl oxygen', {size: 13, fill: 'var(--muted)'});
+    const fade = u > 0 ? Math.abs(1 - 2 * u) : 1;
+    out += label(380, 448, states[shown].id, {size: 17, weight: 700, anchor: 'middle', opacity: fade});
+    out += label(380, 472, states[shown].caption, {size: 15, anchor: 'middle', opacity: fade});
+    const x = k => 130 + 500 * k / (states.length - 1);
+    out += el('line', {x1: x(0), y1: 506, x2: x(states.length - 1), y2: 506, stroke: 'var(--line)', 'stroke-width': 2});
+    out += el('line', {x1: x(0), y1: 506, x2: x(index + e), y2: 506, stroke: 'var(--blue)', 'stroke-width': 2});
+    states.forEach((state, k) => {
+      const reached = k <= index || (k === next && u > 0.5);
+      out += el('circle', {cx: x(k), cy: 506, r: k === shown ? 6.5 : 4, fill: reached ? 'var(--blue)' : 'var(--line)'});
+      out += label(x(k), 530, state.id, {size: 12.5, weight: k === shown ? 700 : 400, anchor: 'middle', fill: k === shown ? 'var(--ink)' : 'var(--muted)'});
+    });
+    return out;
+  };
+  return {width, height, duration, draw, label: config.title, group: 'routes'};
+};
+
+/* Route b: 1,2-ester migration. The carbon chain is fixed after the alkyne bends; the epoxide oxygen
+   sits where it can reach both of its later partners, and the last step is a rotation about C1-C2. */
+animations['route-b'] = (() => {
+  const methyls = [['Me1', 'Ca', 1], ['Cb', 'Me2', 1], ['C3', 'Me3', 1], ['C3', 'Me4', 1], ['Cac', 'Me5', 1]];
+  const epoxide = [['Ca', 'Cb', 1], ['Ca', 'Oe', 1], ['Cb', 'Oe', 1], ['Cb', 'C1', 1]];
+  const ester = [['C2', 'Oc', 1], ['Oc', 'Cac', 1], ['Cac', 'Ol', 2]];
+  const ketone = [['Ca', 'Cb', 2], ['Cb', 'C1', 1], ['C1', 'Oe', 2], ['C1', 'C2', 1], ['C2', 'C3', 2], ['Au', 'Oe', 'd']];
+  return mechanism({
+    title: 'Route b: 1,2-ester migration', move: 1.5,
+    base: {Me1: [150, 212], Ca: [190, 189], Cb: [230, 212], Me2: [230, 258], Oe: [230, 166], C1: [270, 189], C2: [310, 212], C3: [350, 189],
+      Me3: [390, 212], Me4: [350, 143], Oc: [310, 258], Cac: [350, 281], Ol: [392, 262], Me5: [350, 327], Au: [270, 141]},
+    states: [
+      {id: '2', caption: 'Gold activates the alkyne', pi: ['C1', 'C2'],
+        at: {C1: [276, 212], C2: [322, 212], C3: [368, 212], Me3: [408, 189], Me4: [368, 166], Ol: [391, 252], Cac: [368, 292], Oc: [322, 292], Me5: [391, 332], Au: [299, 154]},
+        bonds: [...methyls, ...epoxide, ['C1', 'C2', 3], ['C2', 'C3', 1], ['C3', 'Ol', 1], ['Ol', 'Cac', 1], ['Cac', 'Oc', 2]]},
+      {id: '11', caption: '1,2-Ester migration', plus: ['Oc'],
+        at: {Oc: [320, 257], Cac: [365, 262], Ol: [384, 220], Me5: [388, 302], Me3: [390, 166]},
+        bonds: [...methyls, ...epoxide, ['C1', 'C2', 2], ['C1', 'Au', 1], ['C2', 'C3', 1], ['C3', 'Ol', 1], ['Ol', 'Cac', 1], ['Cac', 'Oc', 2], ['Oc', 'C2', 1]]},
+      {id: '12', caption: 'Gold carbenoid',
+        bonds: [...methyls, ...epoxide, ...ester, ['C1', 'C2', 1], ['C1', 'Au', 2], ['C2', 'C3', 2]]},
+      {id: '13', caption: 'The epoxide oxygen attacks the carbenoid', plus: ['Oe'],
+        bonds: [...methyls, ...epoxide, ...ester, ['C1', 'C2', 1], ['C1', 'Au', 1], ['C1', 'Oe', 1], ['C2', 'C3', 2]]},
+      {id: '14', caption: 'Ring expansion to an oxete', at: {Au: [230, 118]},
+        bonds: [...methyls, ...ester, ['Ca', 'Cb', 1], ['Ca', 'Oe', 1], ['Cb', 'C1', 2], ['C1', 'Oe', 1], ['C1', 'C2', 1], ['C2', 'C3', 2], ['Au', 'Oe', 'd']]},
+      {id: '18', caption: 'Oxete ring opening', at: {Oe: [270, 143], Au: [232, 116]},
+        bonds: [...methyls, ...ester, ...ketone]},
+      {id: '9', caption: 'After a bond rotation: the epoxide oxygen is the ketone oxygen',
+        at: {Oe: [270, 143], Au: [232, 116], C3: [310, 258], Me3: [350, 281], Me4: [270, 281], Oc: [350, 189], Cac: [390, 212], Ol: [395, 258], Me5: [430, 189]},
+        bonds: [...methyls, ...ester, ...ketone]},
+    ],
+  });
+})();
+
+/* Route a: 1,3-ester migration. The acetyl group turns about its own O-C bond when it reaches over to
+   open the epoxide, and the product ends in the same drawing as route b. */
+animations['route-a'] = (() => {
+  const methyls = [['Me1', 'Ca', 1], ['Cb', 'Me2', 1], ['C3', 'Me3', 1], ['C3', 'Me4', 1], ['Cac', 'Me5', 1]];
+  const epoxide = [['Ca', 'Cb', 1], ['Ca', 'Oe', 1], ['Cb', 'Oe', 1], ['Cb', 'C1', 1]];
+  const acetate = [['C1', 'Oc', 1], ['Oc', 'Cac', 1], ['Cac', 'Ol', 2]];
+  const allene = [['C1', 'C2', 2], ['C2', 'C3', 2]];
+  const allenePose = {C2: [313, 189], C3: [356, 189], Me4: [379, 152], Me3: [379, 226]};
+  const opened = {Oe: [270, 281], Au: [312, 298]};
+  const chain = {Ca: [190, 189], Me1: [150, 212], Me2: [230, 258]};
+  const turned = {...chain, C3: [310, 258], Me3: [350, 281], Me4: [270, 281], Oe: [350, 189]};
+  return mechanism({
+    title: 'Route a: 1,3-ester migration', move: 1.3,
+    base: {Me1: [190, 281], Ca: [230, 258], Cb: [230, 212], Me2: [190, 189], Oe: [190, 235], C1: [270, 189], C2: [310, 212], C3: [350, 189],
+      Me3: [390, 212], Me4: [350, 143], Oc: [270, 143], Cac: [296, 105], Ol: [340, 93], Me5: [277, 63], Au: [310, 262]},
+    states: [
+      {id: '2', caption: 'Gold activates the alkyne', pi: ['C1', 'C2'],
+        at: {C1: [276, 212], C2: [322, 212], C3: [368, 212], Me4: [408, 189], Me3: [408, 235], Ol: [368, 166], Cac: [345, 126], Oc: [299, 126], Me5: [368, 86], Au: [299, 266]},
+        bonds: [...methyls, ...epoxide, ['C1', 'C2', 3], ['C2', 'C3', 1], ['C3', 'Ol', 1], ['Ol', 'Cac', 1], ['Cac', 'Oc', 2]]},
+      {id: '3', caption: '1,3-Ester migration', plus: ['Oc'],
+        at: {Cac: [310, 120], Ol: [350, 143], Me5: [310, 74], Me4: [390, 166]},
+        bonds: [...methyls, ...epoxide, ['C1', 'C2', 2], ['C2', 'Au', 1], ['C2', 'C3', 1], ['C3', 'Ol', 1], ['Ol', 'Cac', 1], ['Cac', 'Oc', 2], ['Oc', 'C1', 1]]},
+      {id: '4', caption: 'Allene formation', pi: ['C2', 'C3'], at: {...allenePose, Au: [334, 238]},
+        bonds: [...methyls, ...epoxide, ...acetate, ...allene]},
+      {id: '4′', caption: 'Gold moves to the epoxide oxygen', at: {...allenePose, Au: [146, 238]},
+        bonds: [...methyls, ...epoxide, ...acetate, ...allene, ['Au', 'Oe', 'd']]},
+      {id: '4″', caption: 'Acetate-assisted epoxide opening', plus: ['Ol'],
+        at: {...allenePose, ...opened, Cac: [224.5, 136.4], Ol: [201.5, 175.9], Me5: [206.5, 94], Me2: [187, 228]},
+        motion: {pivot: {Cac: 'Oc', Oe: 'Ca', Au: 'Ca'}, turn: {Oe: -1, Au: -1}, frame: {Ol: ['Cac', 'Oc'], Me5: ['Cac', 'Oc']}},
+        bonds: [...methyls, ...allene, ['Ca', 'Cb', 1], ['Ca', 'Oe', 1], ['Oe', 'Au', 1], ['Cb', 'C1', 1], ['Cb', 'Ol', 1], ['Ol', 'Cac', 2], ['Cac', 'Oc', 1], ['Oc', 'C1', 1]]},
+      {id: '5', caption: 'Opening of the cyclic acyloxonium', plus: ['Cb'], at: {...allenePose, ...opened},
+        motion: {pivot: {Cac: 'Oc'}, frame: {Ol: ['Cac', 'Oc'], Me5: ['Cac', 'Oc']}},
+        bonds: [...methyls, ...allene, ...acetate, ['Ca', 'Cb', 1], ['Ca', 'Oe', 1], ['Oe', 'Au', 1], ['Cb', 'C1', 1]]},
+      {id: '6', caption: 'Five-membered ring formation', at: {Ca: [247, 255], Oe: [293, 255], Me1: [212, 290], Au: [322, 292]},
+        bonds: [...methyls, ...acetate, ['Ca', 'Cb', 1], ['Ca', 'Oe', 1], ['Oe', 'C2', 1], ['Cb', 'C1', 2], ['C1', 'C2', 1], ['C2', 'C3', 2], ['Au', 'Oe', 'd']]},
+      {id: '7', caption: 'Ring opening', plus: ['C1'], at: {...chain, Oe: [310, 258], Au: [352, 278]},
+        motion: {timing: {Me2: [0, 0.6], Ca: [0.3, 1], Me1: [0.3, 1]}},
+        bonds: [...methyls, ...acetate, ['Ca', 'Cb', 2], ['Cb', 'C1', 1], ['C1', 'C2', 1], ['C2', 'C3', 2], ['C2', 'Oe', 1], ['Oe', 'Au', 1]]},
+      {id: '8', caption: 'Bond rotation', plus: ['C1'], at: {...turned, Au: [394, 172]},
+        bonds: [...methyls, ...acetate, ['Ca', 'Cb', 2], ['Cb', 'C1', 1], ['C1', 'C2', 1], ['C2', 'C3', 2], ['C2', 'Oe', 1], ['Oe', 'Au', 1]]},
+      {id: '9', caption: 'The acetyl group moves over: the epoxide oxygen is in the ester link',
+        at: {...turned, Cac: [390, 212], Ol: [395, 258], Me5: [430, 189], Au: [232, 116]},
+        motion: {timing: {Au: [0, 0.55], Cac: [0.35, 1], Ol: [0.35, 1], Me5: [0.35, 1]}},
+        bonds: [...methyls, ['Ca', 'Cb', 2], ['Cb', 'C1', 1], ['C1', 'Oc', 2], ['C1', 'C2', 1], ['C2', 'C3', 2], ['C2', 'Oe', 1], ['Oe', 'Cac', 1], ['Cac', 'Ol', 2], ['Au', 'Oc', 'd']]},
+    ],
+  });
+})();
+
+animations.routes = (() => {
+  const a = animations['route-a'], b = animations['route-b'];
+  return {width: a.width, height: a.height + b.height, duration: a.duration, label: 'Routes a and b side by side in time',
+    draw: t => a.draw(t) + el('g', {transform: `translate(0 ${a.height})`}, b.draw(t))};
+})();
+
+window.animations = animations;
+const svgOpen = (animation, extra = '') => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${animation.width} ${animation.height}" role="img" aria-label="${animation.label}"${extra}></svg>`;
+const captureName = new URLSearchParams(location.search).get('capture');
+
+if (captureName) {
+  // Frame capture for the GIF exports: one animation alone, light theme, fixed size.
+  const animation = animations[captureName];
+  document.documentElement.dataset.theme = 'light';
+  document.body.style.margin = '0';
+  document.body.innerHTML = svgOpen(animation, ` width="${animation.width}" height="${animation.height}" style="display:block"`);
+  const svg = document.querySelector('svg');
+  window.capture = {width: animation.width, height: animation.height, duration: animation.duration, seek: t => { svg.innerHTML = animation.draw(t); return true; }};
+  window.capture.seek(0);
+} else {
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Animations of one group share a clock, so they play, pause and scrub together.
+  const clocks = {};
+  for (const figure of document.querySelectorAll('figure.anim')) {
+    const name = figure.dataset.anim, animation = animations[name], stage = figure.querySelector('.stage');
+    stage.innerHTML = svgOpen(animation);
+    const svg = stage.querySelector('svg');
+    const controls = document.createElement('div');
+    controls.className = 'controls';
+    controls.innerHTML = `<button type="button"></button><input type="range" min="0" max="${animation.duration}" step="0.01" aria-label="Animation time"><a href="gifs/${name}.gif" download>GIF</a>`;
+    stage.after(controls);
+    const [button, slider] = controls.children;
+    const clock = clocks[animation.group ?? name] ??= {time: still ? animation.duration : 0, wanted: !still, visible: new Set(), views: [], previous: null, running: false, duration: animation.duration};
+    const render = () => { svg.innerHTML = animation.draw(clock.time); slider.value = clock.time; button.textContent = clock.wanted ? 'Pause' : 'Play'; };
+    clock.views.push(render);
+    const renderAll = () => clock.views.forEach(view => view());
+    const frame = now => {
+      if (!(clock.wanted && clock.visible.size)) { clock.previous = null; clock.running = false; return; }
+      if (clock.previous !== null) clock.time = (clock.time + (now - clock.previous) / 1000) % clock.duration;
+      clock.previous = now; renderAll(); requestAnimationFrame(frame);
+    };
+    const play = () => { if (clock.wanted && clock.visible.size && !clock.running) { clock.running = true; requestAnimationFrame(frame); } };
+    button.onclick = () => { clock.wanted = !clock.wanted; renderAll(); play(); };
+    slider.oninput = () => { clock.wanted = false; clock.time = Number(slider.value); renderAll(); };
+    new IntersectionObserver(([entry]) => { entry.isIntersecting ? clock.visible.add(name) : clock.visible.delete(name); play(); }, {threshold: 0.25}).observe(figure);
+    render();
+  }
+}
+</script>
+</body>
+</html>
