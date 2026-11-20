@@ -60,7 +60,7 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
   <div class="person"><img src="figures/author.jpg" alt="Portrait of Yunheng Zou" width="64" height="64"><div><strong>Yunheng Zou</strong><br>Author</div></div>
   <div class="person"><img src="figures/olalla.jpg" alt="Portrait of Olalla Nieto Faza" width="64" height="64"><div><strong>Olalla Nieto Faza</strong><br>Contributor</div></div>
 </div>
-<p class="dateline">November 2026 · <a href="https://github.com/yunhzou/MAPPA-AAM">Code</a></p>
+<p class="dateline">November 2026 · <a href="https://arxiv.org/abs/2611.25052">Paper</a> · <a href="https://github.com/yunhzou/MAPPA-AAM">Code</a></p>
 
 <p>I am doing my PhD in computer science, with some background in chemistry, biology and materials, and I am still surprised by how good the problems in those fields are. I have a lot of respect for the chemists, biologists and materials scientists who work on them. While I was working on El Agente, chemists told me that building reaction pathways and finding transition states are among the hardest and most interesting problems they have. That sounded like an invitation, and I took it: I would build agents for exactly that.</p>
 <p>The first thing I learned about transition states was a complaint. Methods such as the nudged elastic band start from the reactant and the product, and they need the two structures matched atom by atom: this carbon here is that carbon there. On large structures people do the matching by hand, and it is as tedious as it sounds. I heard about it from one chemist after another. The obvious shortcut, aligning the two structures by RMSD, does not help, because the conformation changes.</p>
@@ -185,7 +185,7 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
 <p>MAPPA could potentially fill that role. Given a structure that a model proposes, it can check the structure against the target atom by atom. Given a mapping or a set of bond changes that a model proposes for a reaction, it can check them against the mappings that MAPPA finds for the same initial and final states. In both cases it reports what is wrong: which atoms are unmatched, which connection is missing, which bonds change. A reward could be built from that, and because MAPPA returns the alternatives, a valid mapping that differs from the one in a dataset would not be marked wrong. This is a possibility I would like to see tested, not a result.</p>
 
 <footer>
-<p>MAPPA stands for Mapping of Atoms by Progressive Pattern Assembly. It is joint work with Olalla Nieto Faza, Shifa Hussain, Varinia Bernales and Alán Aspuru-Guzik. The code is at <a href="https://github.com/yunhzou/MAPPA-AAM">github.com/yunhzou/MAPPA-AAM</a>.</p>
+<p>MAPPA stands for Mapping of Atoms by Progressive Pattern Assembly. It is joint work with Olalla Nieto Faza, Shifa Hussain, Varinia Bernales and Alán Aspuru-Guzik. The paper is at <a href="https://arxiv.org/abs/2611.25052">arXiv:2611.25052</a> and the code is at <a href="https://github.com/yunhzou/MAPPA-AAM">github.com/yunhzou/MAPPA-AAM</a>.</p>
 <p>The drawn animations are also available as GIFs through the link under each one.</p>
 </footer>
 </main>
