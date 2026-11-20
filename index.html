@@ -50,6 +50,12 @@ svg text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
 .controls button { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 4px 12px; min-width: 68px; cursor: pointer; }
 .controls input[type="range"] { flex: 1; accent-color: var(--blue); min-width: 0; }
 figcaption { font-size: 0.9rem; color: var(--muted); padding: 8px 2px 0; }
+/* A comparison table scrolls sideways inside its card on a phone, as the drawings do. */
+table.taxonomy { width: 100%; min-width: 600px; border-collapse: collapse; font-size: 0.92rem; line-height: 1.45; }
+.taxonomy th, .taxonomy td { padding: 12px 16px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.taxonomy tr:last-child th, .taxonomy tr:last-child td { border-bottom: 0; }
+.taxonomy thead th { font-size: 1rem; }
+.taxonomy tbody th { color: var(--muted); font-weight: 600; white-space: nowrap; }
 footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 0.9rem; color: var(--muted); }
 </style>
 </head>
@@ -72,6 +78,18 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
 
 <h2>Two kinds of atom mapper</h2>
 <p>A mapper can predict a single correspondence or return several alternatives for later evaluation using chemical rules, a learned ranking, or energy calculations. Learned mappers such as RXNMapper and LocalMapper predict a single mapping. Other methods, dating back to at least 2008, enumerate all mappings that minimize bond changes: bonds that break, form, or change order. MAPPA takes the second approach.</p>
+<figure>
+  <div class="stage"><table class="taxonomy">
+    <thead><tr><th></th><th>Alternative-generating</th><th>Prediction-oriented</th></tr></thead>
+    <tbody>
+      <tr><th>Objective</th><td>Preserve candidate correspondences for later interpretation or selection.</td><td>Identify the most plausible correspondence.</td></tr>
+      <tr><th>Output</th><td>Several mappings, stored individually or as compact families.</td><td>One preferred mapping.</td></tr>
+      <tr><th>Examples</th><td>Enumeration of optimal mappings (since 2008), SLAPMapper, MAPPA.</td><td>RXNMapper, LocalMapper.</td></tr>
+      <tr><th>Evaluation</th><td>Reference coverage: is the annotated mapping retained?</td><td>Top-1 accuracy: does the selected mapping match the annotation?</td></tr>
+    </tbody>
+  </table></div>
+  <figcaption>Atom-mapping methods by the output they aim to provide. Table 1 of the paper.</figcaption>
+</figure>
 
 <h2>MAPPA finds the reference mapping for over 99% of reactions in both benchmarks</h2>
 <p>We gave MAPPA only the reactants and products for each reaction. On Golden, its candidates included the dataset’s annotated mapping (the reference) for 1,833 of 1,851 reactions (99.03%). On EnzymeMap, it found the reference for 47,796 of 47,974 enzymatic reactions (99.63%). We call that share the reference coverage.</p>
