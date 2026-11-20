@@ -57,6 +57,7 @@ table.taxonomy { width: 100%; min-width: 600px; border-collapse: collapse; font-
 .taxonomy thead th { font-size: 1rem; }
 .taxonomy tbody th { color: var(--muted); font-weight: 600; white-space: nowrap; }
 mark { background: var(--amber-soft); color: inherit; padding: 1px 3px; border-radius: 4px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+pre.cite { margin: 0 0 16px; padding: 14px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow-x: auto; font: 0.82rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 0.9rem; color: var(--muted); }
 </style>
 </head>
@@ -214,9 +215,20 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
 <p>Post-training a language model for chemistry, for example by reinforcement learning with verifiable rewards, needs a program that can check the model's answer. Code has tests and mathematics has proof checkers. For chemistry, I think the checker has to compare structures: is this the right molecule, are all atoms accounted for, and which bonds changed?</p>
 <p>MAPPA could potentially fill that role. Given a structure that a model proposes, it can check the structure against the target atom by atom. Given a mapping or a set of bond changes that a model proposes for a reaction, it can check them against the mappings that MAPPA finds for the same initial and final states. In both cases it reports what is wrong: which atoms are unmatched, which connection is missing, which bonds change. A reward could be built from that, and because MAPPA returns the alternatives, a valid mapping that differs from the one in a dataset would not be marked wrong. This is a possibility I would like to see tested, not a result.</p>
 
+<h2>Citation</h2>
+<p>If MAPPA is useful in your work, please cite the paper: Yunheng Zou, Olalla Nieto Faza, Shifa Hussain, Varinia Bernales and Alán Aspuru-Guzik. “MAPPA: Mapping of Atoms by Progressive Pattern Assembly with Molecular Symmetry.” <a href="https://arxiv.org/abs/2611.25052">arXiv:2611.25052</a>, 2026.</p>
+<pre class="cite">@article{zou2026mappa,
+  title   = {MAPPA: Mapping of Atoms by Progressive Pattern Assembly with Molecular Symmetry},
+  author  = {Zou, Yunheng and Nieto Faza, Olalla and Hussain, Shifa and Bernales, Varinia and Aspuru-Guzik, Al{\'a}n},
+  journal = {arXiv preprint arXiv:2611.25052},
+  year    = {2026},
+  url     = {https://arxiv.org/abs/2611.25052}
+}</pre>
+
 <footer>
 <p>MAPPA stands for Mapping of Atoms by Progressive Pattern Assembly. It is joint work with Olalla Nieto Faza, Shifa Hussain, Varinia Bernales and Alán Aspuru-Guzik. The paper is at <a href="https://arxiv.org/abs/2611.25052">arXiv:2611.25052</a> and the code is at <a href="https://github.com/yunhzou/MAPPA-AAM">github.com/yunhzou/MAPPA-AAM</a>.</p>
 <p>The drawn animations are also available as GIFs through the link under each one.</p>
+<p>Contact: <a href="mailto:yunheng.zou@mail.utoronto.ca">yunheng.zou@mail.utoronto.ca</a></p>
 </footer>
 </main>
 
