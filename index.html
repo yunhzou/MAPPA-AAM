@@ -70,9 +70,6 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
 <p>That led me to a deceptively simple question: given the reactants and products of an elementary step, which atom on one side corresponds to which atom on the other? Chemists can often look at two structures and recognize what has changed. I wanted to understand how to turn that intuition into an algorithm. It looked like an interesting graph problem, I told myself. I did not yet know that it had a name—atom-to-atom mapping—or that it had almost fifty years of research behind it. So I started trying to build an algorithm.</p>
 <p>Five months later, MAPPA is out. It started as a side project and became my favorite one. Its algorithm follows an intuition familiar to anyone reading a reaction: find the structural fragments that the two sides share, one after another.</p>
 
-<h2>Types of atom-to-atom mapping</h2>
-<p>An atom-to-atom mapping assigns each atom in the reactants to its counterpart in the products. It establishes a correspondence between two states; it does not, by itself, tell us the steps connecting them. A mapper can predict a single correspondence or return several alternatives for later evaluation using chemical rules, a learned ranking, or energy calculations. MAPPA takes the second approach.</p>
-
 <h2>MAPPA finds the reference mapping for over 99% of reactions in both benchmarks</h2>
 <p>We gave MAPPA only the reactants and products for each reaction. On Golden, its candidates included the dataset’s annotated mapping (the reference) for 1,833 of 1,851 reactions (99.03%). On EnzymeMap, it found the reference for 47,796 of 47,974 enzymatic reactions (99.63%).</p>
 <p>With standard settings, MAPPA averaged 3.19 CPU seconds per reaction on Golden and 13.16 on EnzymeMap. Running the Golden search from ten random starting orders instead of one raised reference coverage to 99.51%.</p>
