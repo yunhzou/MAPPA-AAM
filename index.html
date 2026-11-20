@@ -160,7 +160,8 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
 </figure>
 <p>A lone carbon has nine placements in this target. Branching there, which means continuing the search separately from each placement, would open nine searches, and six of them lead nowhere. So during growth MAPPA is deliberately lazy and asks one question only: does at least one placement exist? If it does, the fragment keeps growing, whether there is one placement or many. A bond that cannot be added is set aside, and growth continues with the others. MAPPA asks for every placement only when nothing more can be added. By then the fragment is specific enough that three placements remain.</p>
 <p>The same reasoning explains bad starting points. A fragment that starts on a lone hydrogen fits almost everywhere. MAPPA limits the number of branches and discards the largest groups of them first, so atoms with many placements are assigned later, when few atoms are left.</p>
-<h3>A cut sweep finds what one greedy search misses</h3>
+
+<h2>4. A cut sweep finds what one greedy search misses</h2>
 <p>Growth is greedy. One search can keep favoring the same large preserved region and miss another useful way to split the molecule.</p>
 <p>Take N-methylbenzylamine going to methylamine and toluene, and ignore the hydrogens. The search can start on nine atoms. A seed in the ring, six of the nine, grows into the whole benzyl group. The CH₃ seed grows into CH₃–N. Both give the same split. The other split keeps N–CH₂ together, and it only appears when the seed is N or the CH₂ carbon and its first step goes the right way. That is about one search in nine. Replace the benzyl group with a large R group of <i>n</i> atoms and it falls to about 1 in <i>n</i> + 2.</p>
 <figure class="anim" data-anim="cut">
@@ -170,7 +171,7 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
 <p>So MAPPA also runs a cut sweep. It searches once as usual, then repeats the search with one bond of the base masked, for each bond in turn, including bonds to hydrogen. With the ring–CH₂ bond masked, the benzyl group can no longer be taken whole, and the other split turns up in about half of the searches, however large R is. A mask does not claim that the bond breaks. It only changes which fragments the search finds, and bond changes are still counted on the original molecules. MAPPA then exchanges the base and the target and searches again.</p>
 <p>Seeds, cuts and both directions widen the search without making it exhaustive. The same idea works for other mappers: it is part of the wider search that raised SLAP from 86% to 97% above.</p>
 
-<h2>4. Storing placements, not mappings, keeps the output compact</h2>
+<h2>5. Storing placements, not mappings, keeps the output compact</h2>
 <p>Each placement locks its atoms, and the next fragment grows in the atoms that are left. The placements open to a fragment therefore depend on the placements chosen before it. In the example above, the base has three such alcohol fragments, A, B and C: three sites are open for A, two for B and one for C.</p>
 <figure class="anim" data-anim="share">
   <div class="stage"><noscript><img src="gifs/share.gif" alt="Six branches are built from nine fragment placements that are stored once" style="width:100%"></noscript></div>
