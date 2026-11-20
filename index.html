@@ -169,8 +169,7 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
   <figcaption>N-methylbenzylamine gives methylamine and toluene, heavy atoms only. The chances are estimates from counting seed atoms, not measurements. After Figure 4a of the paper.</figcaption>
 </figure>
 <p>So MAPPA also runs a cut sweep. It searches once as usual, then repeats the search with one bond of the base masked, for each bond in turn, including bonds to hydrogen. With the ring–CH₂ bond masked, the benzyl group can no longer be taken whole, and the other split turns up in about half of the searches, however large R is. A mask does not claim that the bond breaks. It only changes which fragments the search finds, and bond changes are still counted on the original molecules. MAPPA then exchanges the base and the target and searches again.</p>
-<p>Seeds, cuts and both directions widen the search without making it exhaustive.</p>
-<p>The cut sweep is not specific to MAPPA. SLAP's improvement in the comparison above is due to it as well. With its default settings SLAP found the reference for 86% of the Golden reactions. Searching in both directions brought that to 88%. Adding the cut sweep, together with SLAP's weighted mode, brought it to 97%.</p>
+<p>Seeds, cuts and both directions widen the search without making it exhaustive. <strong>The same idea works for other mappers: it is part of the wider search that raised SLAP from 86% to 97% above.</strong></p>
 
 <h2>5. Storing placements, not mappings, keeps the output compact</h2>
 <p>Each placement locks its atoms, and the next fragment grows in the atoms that are left. The placements open to a fragment therefore depend on the placements chosen before it. In the example above, the base has three such alcohol fragments, A, B and C: three sites are open for A, two for B and one for C.</p>
