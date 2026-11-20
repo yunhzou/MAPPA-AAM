@@ -12,6 +12,12 @@ historical comparisons are distinguished below.
 
 [Get started](#get-started) · [Try the notebook](docs/AAM_SIMPLE.ipynb) · [Python API](docs/PYTHON_API.md) · [Paper](manuscript/manuscript.pdf) · [Benchmark evidence](reports/README.md)
 
+## MAPPA in 90 seconds
+
+[![MAPPA in 90 seconds: the mapping problem, one recorded search that grows, locks and branches fragments, and the benchmark results](blog/video/mappa-intro-poster.jpg)](blog/video/mappa-intro.mp4)
+
+[Watch the video](blog/video/mappa-intro.mp4) (MP4, 14 MB, with narration)
+
 ## Get started
 
 ```bash
