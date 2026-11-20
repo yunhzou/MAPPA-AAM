@@ -16,13 +16,13 @@
 :root {
   --paper: #faf9f6; --card: #ffffff; --ink: #1c2430; --muted: #5d6b7c; --line: #d9dee6; --ghost: #e4e8ee;
   --blue: #2f6fde; --blue-soft: #d3e2fb; --green: #1d9a5b; --green-soft: #cdf0dc;
-  --red: #d4483b; --red-soft: #f9d9d4; --amber: #c08310; --amber-soft: #f8e5b9; --grey-soft: #e3e6eb;
+  --red: #d4483b; --red-soft: #f9d9d4; --amber: #c08310; --amber-soft: #f8e5b9; --grey-soft: #e3e6eb; --purple: #6b4fa0;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #12161c; --card: #1a2029; --ink: #e8edf3; --muted: #9aa7b6; --line: #323c4a; --ghost: #2b3440;
     --blue: #74a7ff; --blue-soft: #24406f; --green: #4fcc8d; --green-soft: #1c4a35;
-    --red: #f17d71; --red-soft: #5b2b27; --amber: #e6b24d; --amber-soft: #57451b; --grey-soft: #2e3743;
+    --red: #f17d71; --red-soft: #5b2b27; --amber: #e6b24d; --amber-soft: #57451b; --grey-soft: #2e3743; --purple: #b9a2ea;
   }
 }
 * { box-sizing: border-box; }
@@ -161,12 +161,13 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
 <p>A lone carbon has nine placements in this target. Branching there, which means continuing the search separately from each placement, would open nine searches, and six of them lead nowhere. So during growth MAPPA is deliberately lazy and asks one question only: does at least one placement exist? If it does, the fragment keeps growing, whether there is one placement or many. A bond that cannot be added is set aside, and growth continues with the others. MAPPA asks for every placement only when nothing more can be added. By then the fragment is specific enough that three placements remain.</p>
 <p>The same reasoning explains bad starting points. A fragment that starts on a lone hydrogen fits almost everywhere. MAPPA limits the number of branches and discards the largest groups of them first, so atoms with many placements are assigned later, when few atoms are left.</p>
 <h3>A cut sweep finds what one greedy search misses</h3>
-<p>Growth is greedy. One search can keep favoring the same large preserved region and miss another useful way to split the molecule. Starting from other seed atoms helps, but they often land in the same large fragment again.</p>
-<figure>
-  <div class="stage paper"><img src="figures/cut-sweep.png" alt="N-methylbenzylamine as the base with its benzyl region highlighted, methylamine and toluene as the target, and the base again with one bond of the benzyl region masked" width="2788" height="558" loading="lazy"></div>
-  <figcaption>The benzyl region is preserved, so growth tends to find it first. Masking one of its bonds changes how the fragments grow. The purple mark is a search mask, not a broken bond. Figure 4a of the paper.</figcaption>
+<p>Growth is greedy. One search can keep favoring the same large preserved region and miss another useful way to split the molecule.</p>
+<p>Take N-methylbenzylamine going to methylamine and toluene, and ignore the hydrogens. The search can start on nine atoms. A seed in the ring, six of the nine, grows into the whole benzyl group. The CH₃ seed grows into CH₃–N. Both give the same split. The other split keeps N–CH₂ together, and it only appears when the seed is N or the CH₂ carbon and its first step goes the right way. That is about one search in nine. Replace the benzyl group with a large R group of <i>n</i> atoms and it falls to about 1 in <i>n</i> + 2.</p>
+<figure class="anim" data-anim="cut">
+  <div class="stage"><noscript><img src="gifs/cut.gif" alt="A ring seed grows into the whole benzyl group, a seed on nitrogen can keep N–CH₂ together, and masking the ring–CH₂ bond lets a ring seed find that split too" style="width:100%"></noscript></div>
+  <figcaption>N-methylbenzylamine gives methylamine and toluene, heavy atoms only. The chances are estimates from counting seed atoms, not measurements. After Figure 4a of the paper.</figcaption>
 </figure>
-<p>So MAPPA also runs a cut sweep. It searches once as usual, then repeats the search with one bond of the base masked, for each bond in turn, including bonds to hydrogen. A mask does not claim that the bond breaks. It only changes which fragments the search finds, and bond changes are still counted on the original molecules. MAPPA then exchanges the base and the target and searches again.</p>
+<p>So MAPPA also runs a cut sweep. It searches once as usual, then repeats the search with one bond of the base masked, for each bond in turn, including bonds to hydrogen. With the ring–CH₂ bond masked, the benzyl group can no longer be taken whole, and the other split turns up in about half of the searches, however large R is. A mask does not claim that the bond breaks. It only changes which fragments the search finds, and bond changes are still counted on the original molecules. MAPPA then exchanges the base and the target and searches again.</p>
 <p>Seeds, cuts and both directions widen the search without making it exhaustive. The same idea works for other mappers: it is part of the wider search that raised SLAP from 86% to 97% above.</p>
 
 <h2>4. Storing placements, not mappings, keeps the output compact</h2>
@@ -769,6 +770,91 @@ animations['route-a'] = (() => {
         bonds: [...methyls, ['Ca', 'Cb', 2], ['Cb', 'C1', 1], ['C1', 'Oc', 2], ['C1', 'C2', 1], ['C2', 'C3', 2], ['C2', 'Oe', 1], ['Oe', 'Cac', 1], ['Cac', 'Ol', 2], ['Au', 'Oc', 'd']]},
     ],
   });
+})();
+
+/* The cut sweep on N-methylbenzylamine -> methylamine + toluene (paper Figure 4a), heavy atoms only.
+   The chances are the seed-counting estimate given in the text, not a measurement. */
+animations.cut = (() => {
+  const width = 760, height = 440, duration = 21;
+  const ring = (cx, cy, prefix) => Object.fromEntries([180, 240, 300, 0, 60, 120].map((angle, k) =>
+    [prefix + k, [cx + 40 * Math.cos(angle * Math.PI / 180), cy + 40 * Math.sin(angle * Math.PI / 180)]]));
+  const ringBonds = prefix => [0, 1, 2, 3, 4, 5].map(k => [prefix + k, prefix + (k + 1) % 6, k % 2 ? 1 : 2]);
+  const at = {Me: [40, 166], N: [92, 136], C: [144, 166], ...ring(236, 136, 'r'),
+    mMe: [428, 136], mN: [484, 136], tMe: [560, 136], ...ring(652, 136, 't')};
+  const text = {Me: 'CH₃', N: 'NH', C: 'CH₂', mMe: 'CH₃', mN: 'NH₂', tMe: 'CH₃'};
+  const bonds = [['Me', 'N', 1], ['N', 'C', 1], ['C', 'r0', 1], ...ringBonds('r'), ['mMe', 'mN', 1], ['tMe', 't0', 1], ...ringBonds('t')];
+  const radius = name => text[name] ? 15 : 7;
+  const baseRing = ['r3', 'r2', 'r4', 'r1', 'r5', 'r0'], targetRing = ['t3', 't2', 't4', 't1', 't5', 't0'];
+  // Each part is one fragment: its base atoms in growth order, the target atoms they are placed on, and when it grows.
+  const scenes = [
+    {from: 0, title: 'No cut: a seed in the ring', seed: 'r3', seedLabel: [16, -14, 'start'], chance: '1 in 9',
+      detail: '2 of 9 seeds can start it, and half of those grow the right way',
+      parts: [{color: 'blue', base: [...baseRing, 'C'], target: [...targetRing, 'tMe'], grows: [1.4, 3.8]},
+        {color: 'green', base: ['Me', 'N'], target: ['mMe', 'mN'], grows: [4.2, 5]}],
+      note: ['The fragment grows until it holds the whole benzyl group.', 'Six of the nine seeds end this way, and so does the CH₃ seed.'],
+      result: [5.2, 'Split 1: the benzyl group stays whole.']},
+    {from: 7, title: 'No cut: a seed on N that grows towards CH₂ first', seed: 'N', seedLabel: [0, -32, 'middle'], chance: '1 in 9',
+      detail: '2 of 9 seeds can start it, and half of those grow the right way',
+      parts: [{color: 'green', base: ['N', 'C'], target: ['mN', 'mMe'], grows: [1.2, 2]},
+        {color: 'blue', base: baseRing, target: targetRing, grows: [2.6, 4]},
+        {color: 'amber', base: ['Me'], target: ['tMe'], grows: [4.3, 4.8]}],
+      note: ['Only a seed on N or CH₂ can keep N–CH₂ together,', 'and only when its first step goes the right way.'],
+      result: [5, 'Split 2: N–CH₂ stays together, and the ring takes the other carbon.']},
+    {from: 13.5, title: 'Cut: the same ring seed, with the ring–CH₂ bond masked', seed: 'r3', seedLabel: [16, -14, 'start'], cut: true, chance: '1 in 2',
+      detail: 'with this bond masked, whatever the size of the group',
+      parts: [{color: 'blue', base: baseRing, target: targetRing, grows: [1.4, 3.2]},
+        {color: 'green', base: ['C', 'N'], target: ['mMe', 'mN'], grows: [3.8, 4.6]},
+        {color: 'amber', base: ['Me'], target: ['tMe'], grows: [4.9, 5.4]}],
+      note: ['Growth stops at the mask, so the ring is taken alone.', 'CH₂ is left to join N. The mask is not a broken bond.'],
+      result: [5.6, 'Split 2 again, this time from a ring seed.']},
+  ];
+  const draw = t => {
+    const scene = scenes.findLast(item => t >= item.from), s = t - scene.from;
+    // Which atoms each fragment holds at this moment.
+    const colorOf = {};
+    for (const part of scene.parts) {
+      const u = span(s, ...part.grows), count = u > 0 ? Math.max(1, Math.ceil(u * part.base.length)) : 0;
+      for (const side of [part.base, part.target]) side.slice(0, count).forEach(name => colorOf[name] = part.color);
+    }
+    let out = backdrop(width, height);
+    out += label(20, 34, scene.title, {size: 15, weight: 700});
+    out += label(20, 66, 'Base', {size: 13, fill: 'var(--muted)'}) + label(413, 66, 'Target', {size: 13, fill: 'var(--muted)'});
+    // Fragment halos behind the molecules.
+    for (const [a, b] of bonds) if (colorOf[a] && colorOf[a] === colorOf[b] && !(scene.cut && a === 'C' && b === 'r0'))
+      out += el('line', {x1: at[a][0], y1: at[a][1], x2: at[b][0], y2: at[b][1], stroke: `var(--${colorOf[a]}-soft)`, 'stroke-width': 22, 'stroke-linecap': 'round'});
+    for (const name of Object.keys(colorOf)) out += el('circle', {cx: at[name][0], cy: at[name][1], r: radius(name) + 7, fill: `var(--${colorOf[name]}-soft)`});
+    for (const [a, b, order] of bonds) {
+      if (scene.cut && a === 'C' && b === 'r0') continue;
+      out += bond(at[a], at[b], order);
+    }
+    if (scene.cut) {
+      const mask = span(s, 0.2, 0.8), middle = midpoint(at.C, at.r0);
+      out += bond(at.C, at.r0, 1, mask < 1 ? {opacity: 1 - mask} : {opacity: 0});
+      out += bond(at.C, at.r0, 1, {stroke: 'var(--purple)', dash: '5 5', width: 3, opacity: mask});
+      out += el('line', {x1: middle[0] - 6, y1: middle[1] - 11, x2: middle[0] + 6, y2: middle[1] + 11, stroke: 'var(--purple)', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: mask});
+      out += label(middle[0], 208, 'masked', {size: 12, weight: 600, anchor: 'middle', fill: 'var(--purple)', opacity: mask});
+    }
+    for (const name of Object.keys(at)) {
+      const color = colorOf[name];
+      out += node(at[name], text[name] ?? '', {r: radius(name), size: 11, fill: color ? `var(--${color}-soft)` : 'var(--card)', stroke: color ? `var(--${color})` : 'var(--ink)'});
+    }
+    out += label(523, 142, '+', {size: 20, anchor: 'middle', fill: 'var(--muted)'});
+    out += el('path', {d: 'M334 136 h38 m-8 -7 l9 7 l-9 7', stroke: 'var(--muted)', 'stroke-width': 2, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round'});
+    // The seed atom.
+    const seed = at[scene.seed], shown = span(s, 0.5, 1), [dx, dy, anchor] = scene.seedLabel;
+    out += el('circle', {cx: seed[0], cy: seed[1], r: radius(scene.seed) + 10, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2, 'stroke-dasharray': '4 4', opacity: shown});
+    out += label(seed[0] + dx, seed[1] + dy, 'seed', {size: 13, weight: 700, anchor, opacity: shown});
+    scene.note.forEach((line, k) => out += label(20, 242 + 21 * k, line, {size: 14, weight: 600}));
+    out += label(20, 298, scene.result[1], {size: 15, weight: 700, fill: 'var(--blue)', opacity: span(s, scene.result[0], scene.result[0] + 0.5)});
+    // Chance strip.
+    out += el('line', {x1: 20, y1: 318, x2: 740, y2: 318, stroke: 'var(--line)'});
+    out += label(20, 384, '≈ ' + scene.chance, {size: 40, weight: 700, fill: scene.cut ? 'var(--purple)' : 'var(--blue)'});
+    out += label(212, 362, 'chance that one search finds split 2', {size: 15, weight: 600});
+    out += label(212, 384, scene.detail, {size: 14, fill: 'var(--muted)'});
+    out += label(20, 422, 'For an R group of n atoms in place of benzyl: about 1 in n + 2 without the cut, still about 1 in 2 with it.', {size: 14, weight: 700, opacity: span(t, 19.6, 20.2)});
+    return out;
+  };
+  return {width, height, duration, draw, label: 'A cut sweep lets a ring seed find the split that keeps N–CH₂ together'};
 })();
 
 animations.routes = (() => {
