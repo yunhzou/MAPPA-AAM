@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Don't guess the atom mapping | MAPPA</title>
-<meta name="description" content="Four ideas behind MAPPA, an atom mapper that returns the plausible alternatives and leaves the choice for later.">
+<meta name="description" content="Four ideas behind MAPPA, an atom mapper that returns several alternative mappings for a reaction, so that the chemically correct one can be chosen later with more evidence.">
 <style>
 :root {
   --paper: #faf9f6; --card: #ffffff; --ink: #1c2430; --muted: #5d6b7c; --line: #d9dee6; --ghost: #e4e8ee;
@@ -48,25 +48,25 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
 <body>
 <main>
 <h1>Don't guess the atom mapping</h1>
-<p class="deck">Four ideas behind MAPPA, an atom mapper that returns the plausible alternatives and leaves the choice for later.</p>
+<p class="deck">Four ideas behind MAPPA, an atom mapper that returns several alternative mappings for a reaction, so that the chemically correct one can be chosen later with more evidence.</p>
 <div class="byline"><img src="figures/author.jpg" alt="Portrait of Yunheng Zou" width="64" height="64"><div><strong>Yunheng Zou</strong><br>November 2026 · <a href="https://github.com/yunhzou/MAPPA-AAM">Code</a></div></div>
 
-<p>Every reaction hides a small question: which atom of the reactants becomes which atom of the products? The answer is called an atom-to-atom mapping. Reaction templates, reaction classification and transition-state searches that start from both ends of a step all depend on it.</p>
-<p>A mapper can return one mapping, or it can return several and leave the choice to a later step. Both kinds have a long history. Learned mappers such as RXNMapper and LocalMapper predict one mapping. Other methods, going back to 2008, enumerate every mapping with the fewest bond changes. MAPPA is of the second kind, and it differs in two ways: it also keeps the mappings slightly above the minimum, and it never writes the mappings out one by one. This post starts with the results, then covers the four ideas behind them and what MAPPA can be used for.</p>
+<p>Every reaction hides a small question: which atom of the reactants becomes which atom of the products? Here a reaction means a pair of states: the reactant molecules before and the product molecules after, with nothing known about the steps in between. An atom-to-atom mapping answers the question by assigning each atom of the initial state to one atom of the final state. Reaction templates, reaction classification and transition-state searches that start from both ends of a step all depend on it.</p>
+<p>A mapper can return one mapping for a reaction. Or it can return several alternative mappings and leave it to a later step to choose the one that is chemically most favorable, for example with chemical rules, a learned ranking or an energy calculation. Both kinds have a long history. Learned mappers such as RXNMapper and LocalMapper predict one mapping. Other methods, going back to 2008, return every mapping that changes the fewest bonds. A bond change is a bond that forms, breaks or changes its order. MAPPA is of the second kind, and it differs in two ways. It also returns mappings that change up to five more bonds than the fewest it finds, because the chemically correct mapping does not always change the fewest bonds. And it never writes the mappings out one by one: it stores them as combinations of molecular fragments that the mappings share. This post starts with the results, then covers the four ideas behind them and what MAPPA can be used for.</p>
 
 <h2>MAPPA returns the reference for over 99% of reactions</h2>
-<p>For each reaction, MAPPA returns a set of mappings. The test is coverage: is the reference mapping, the one annotated in the dataset, among those returned?</p>
+<p>We give MAPPA each reaction as its initial and final states only, and it returns a set of mappings between them. Each benchmark dataset also holds one annotated mapping per reaction, which we call the reference. The test is coverage: for what share of the reactions is the reference among the mappings that MAPPA returns?</p>
 <figure>
   <div class="stage paper"><img src="figures/coverage-and-cost.png" alt="Reference coverage and mean CPU time per reaction for Golden with one and ten seeds and for EnzymeMap" width="1430" height="399"></div>
-  <figcaption>(a) Reference coverage. (b) Mean CPU time per reaction, split into matching and decoding. Figure 5 of the paper.</figcaption>
+  <figcaption>(a) Reference coverage. (b) Mean CPU time per reaction, split into matching, which finds the mappings, and decoding, which counts the bond changes of each. Figure 5 of the paper.</figcaption>
 </figure>
-<p>With its standard settings, MAPPA returns the reference for 1,833 of 1,851 reactions of the Golden benchmark (99.03%) and for 47,796 of 47,974 EnzymeMap reactions (99.63%), at 3.19 and 13.16 CPU seconds per reaction. A broader search raises Golden to 99.51%.</p>
-<p>A mapper that returns one mapping is scored in the same way, as a set of one. On the same Golden reactions, the mappers we ran that return a single mapping cover between 37% and 87%. Their task is harder, because their one mapping has to be the reference, so this compares what each kind returns and does not rank them.</p>
-<p>Coverage is not ranking. MAPPA hands over a short, structured list. Picking from it is the next problem, and a good place for learned mappers and chemical rules to come in. The rest of this post is about the four ideas behind these numbers.</p>
+<p>With its standard settings, MAPPA returns the reference for 1,833 of the 1,851 reactions of the Golden benchmark (99.03%) and for 47,796 of the 47,974 EnzymeMap reactions (99.63%). This takes 3.19 and 13.16 CPU seconds per reaction on average. Repeating the Golden search from ten random starting orders instead of one raises its coverage to 99.51%.</p>
+<p>A mapper that returns one mapping is scored in the same way, as a set of one. On the same Golden reactions, the mappers we ran that return a single mapping cover between 37% and 87%. Their task is harder, because their one mapping has to be the reference, so these numbers compare what each kind of mapper returns and do not rank the mappers.</p>
+<p>Coverage does not say which of the returned mappings is the correct one. MAPPA returns the alternatives. Choosing the chemically most favorable one among them is a separate step, and a good place for learned mappers and chemical rules to come in. The rest of this post is about the four ideas behind these numbers.</p>
 
 <h2>1. A mapping is an observation on the chemical pathway</h2>
 <p>A reaction follows a pathway: bonds break and form in some order, through intermediates and transition states. A mapping does not record that pathway. It records what the pathway leaves behind, which is where each atom started and where it ended. I think of a mapping as an observation on the chemical pathway, and a single mapping stands for one solved pathway.</p>
-<p>Different pathways can therefore leave different observations. In this gold-catalysed rearrangement, MAPPA sees only the two endpoints, and it returns two destinations for the epoxide oxygen: the ester link or the ketone.</p>
+<p>Different pathways can therefore leave different observations. In this gold-catalysed rearrangement, MAPPA is given only the initial and final structures, and it returns mappings with two different destinations for the epoxide oxygen: the ester link or the ketone of the product.</p>
 <figure>
   <div class="stage"><img src="gifs/gold-rearrangement.gif" alt="MAPPA grows a matching atom by atom on a gold-catalysed rearrangement and returns two destinations for one oxygen" width="960" height="600" loading="lazy"></div>
   <figcaption>A replay of MAPPA's recorded search on a 65-atom reaction. Routes from <a href="https://pubs.acs.org/doi/10.1021/jo802516k">González Pérez et al., <i>J. Org. Chem.</i> 2009, 74, 2982</a>.</figcaption>
@@ -74,7 +74,7 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
 <p>The original study proposes three routes for this reaction, labelled a, b and c.</p>
 <figure>
   <div class="stage paper"><img src="figures/gold-three-routes.png" alt="Scheme of the three proposed routes a, b and c from the gold complex 2 to the product complex 9" width="531" height="856" loading="lazy" style="max-width: 440px; margin: 0 auto;"></div>
-  <figcaption>The three proposed routes. Structures 2 and 9 are the endpoints given to MAPPA, and the numbers beside the arrows are energies from the study. Reproduced from <a href="https://pubs.acs.org/doi/10.1021/jo802516k">González Pérez et al., <i>J. Org. Chem.</i> 2009, 74, 2982</a>.</figcaption>
+  <figcaption>The three proposed routes. Structures 2 and 9 are the initial and final states given to MAPPA, and the numbers beside the arrows are energies from the study. Reproduced from <a href="https://pubs.acs.org/doi/10.1021/jo802516k">González Pérez et al., <i>J. Org. Chem.</i> 2009, 74, 2982</a>.</figcaption>
 </figure>
 <p>Following the epoxide oxygen, in red, along routes a and b shows where each observation comes from.</p>
 <figure class="anim" data-anim="route-a">
@@ -85,51 +85,51 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
   <div class="stage"><noscript><img src="gifs/route-b.gif" alt="Route b, step by step: the epoxide oxygen ends as the ketone oxygen of the product" style="width:100%"></noscript></div>
   <figcaption>Route b begins with a 1,2-ester migration. The epoxide oxygen ends as the ketone oxygen. Route c, which begins by activating the oxirane, ends in the same way. The two animations run on one clock and reach the product together; <a href="gifs/routes.gif" download>both in one GIF</a>.</figcaption>
 </figure>
-<p>MAPPA did not compute any of these steps. It returned the two observations that a mechanism has to explain, and each one points to a different route. The study then favours route a on energetic grounds.</p>
-<p>Choosing one mapping therefore means choosing a pathway, and the two endpoint structures do not hold enough chemistry for that. What a mapper can say from the endpoints is which parts of the answer are fixed and which can switch: atoms that symmetry makes interchangeable, and atoms with more than one possible origin.</p>
-<p>This is how a chemist works. A chemist who is unsure which atom went where does not guess. She draws two or three mechanisms and lets further evidence decide. I wanted a mapper that behaves the same way: return the plausible mappings now, and choose later, when more of the chemistry is known.</p>
+<p>MAPPA did not compute any of these steps. It returned the two possible destinations of the oxygen, and each one agrees with a different route: the ester link with route a, the ketone with routes b and c. The study then favours route a on energetic grounds.</p>
+<p>Choosing one mapping therefore means choosing a pathway, and the initial and final structures alone do not hold enough information for that. What a mapper can say from those two structures is which atom assignments are the same in every mapping and which differ between mappings: atoms that symmetry makes interchangeable, and atoms with more than one possible origin.</p>
+<p>This is how a chemist works. A chemist who is unsure which atom went where does not guess. She draws two or three mechanisms and lets further evidence decide. I wanted a mapper that behaves the same way: return the alternative mappings now, and choose the one that matches the mechanism later, when more of the chemistry is known.</p>
 
 <h2>2. The fewest bond changes is a shortlist, not the answer</h2>
-<p>The oldest rule for choosing a mapping is that a reaction changes as few bonds as it can. It is a good rule, but it cannot always choose. Formaldehyde and hydroxypyruvic acid give dihydroxyacetone and CO₂. This reaction is in EnzymeMap, a collection of enzymatic reactions. In the dataset's mapping, the formaldehyde carbon ends up in dihydroxyacetone. MAPPA also finds a mapping in which it ends up in CO₂.</p>
+<p>The oldest rule for choosing a mapping is to take the one that changes the fewest bonds. It is a good rule, but it cannot always single out one mapping. Formaldehyde and hydroxypyruvic acid give dihydroxyacetone and CO₂. This reaction is in EnzymeMap, a collection of enzymatic reactions. In the reference mapping, the formaldehyde carbon ends up in dihydroxyacetone. MAPPA also finds a mapping in which it ends up in CO₂.</p>
 <figure class="anim" data-anim="tie">
   <div class="stage"><noscript><img src="gifs/tie.gif" alt="Two mappings of the same reaction with six bond changes each" style="width:100%"></noscript></div>
   <figcaption>Blue: formaldehyde. Amber: the acid's carboxyl group. Green: the rest of the acid. Small circles are hydrogens. Red bonds break or weaken, green bonds form or strengthen.</figcaption>
 </figure>
-<p>Both mappings change six bonds once the hydrogens are counted. The rule has nothing to say here, and a mapper that returns one of the two hides the other.</p>
-<p>With the alternatives in hand, we could measure how far the rule goes.</p>
+<p>Both mappings change six bonds once the bonds to hydrogen are counted. The rule cannot choose between them, and a mapper that returns one of the two hides the other.</p>
+<p>Because MAPPA returns the alternatives with their numbers of bond changes, we could measure how often the reference is a mapping with the fewest bond changes.</p>
 <figure>
   <div class="stage paper"><img src="figures/reference-offsets.png" alt="Histograms of the reference mapping's bond changes above the detected minimum for Golden and EnzymeMap" width="1430" height="503" loading="lazy"></div>
-  <figcaption>Bond changes of the reference mapping above the lowest count that MAPPA found. (a) Golden benchmark, 1,851 reactions. (b) EnzymeMap, 47,974 reactions. The paper calls a bond change a bond event. Figure 7 of the paper.</figcaption>
+  <figcaption>Number of bond changes of the reference mapping minus the lowest number among the mappings that MAPPA found for the same reaction. (a) Golden benchmark, 1,851 reactions. (b) EnzymeMap, 47,974 reactions. The paper calls a bond change a bond event. Figure 7 of the paper.</figcaption>
 </figure>
-<p>On the Golden benchmark, 88 of every 100 reference mappings sit exactly at the lowest count, and 92 on EnzymeMap. Nearly all of the others sit within five bond changes of it. So the rule makes a good shortlist.</p>
+<p>On the Golden benchmark, 88 of every 100 reference mappings have exactly the lowest number of bond changes that MAPPA found for their reaction, and 92 of every 100 on EnzymeMap. Nearly all of the others have at most five more. So the rule makes a good shortlist.</p>
 <figure>
   <div class="stage paper"><img src="figures/reaction-cores.png" alt="Histogram of the number of distinct reaction cores among the minimum mappings of each Golden reaction" width="1430" height="486" loading="lazy"></div>
-  <figcaption>Distinct reaction cores among the minimum mappings of each Golden reaction. A reaction core is the set of bonds that change. Figure 8 of the paper.</figcaption>
+  <figcaption>Number of distinct reaction cores among the mappings with the fewest bond changes, for each Golden reaction. A reaction core is the set of bonds that change. Figure 8 of the paper.</figcaption>
 </figure>
-<p>As a final answer it is less reliable. In about a third of the Golden reactions, more than one set of bond changes shares that minimum, and for a reaction with several steps the right mapping need not be minimal at all. Here is one Golden reaction that shows both.</p>
+<p>As a final answer the rule is less reliable, for two reasons. In about a third of the Golden reactions, the mappings with the fewest bond changes do not all change the same bonds, so the rule leaves more than one answer. And when a reaction proceeds through several steps, the mapping that matches its mechanism can change more bonds than the fewest possible. Here is one Golden reaction that shows both.</p>
 <figure class="anim" data-anim="detour">
   <div class="stage"><noscript><img src="gifs/detour.gif" alt="A ring-forming reaction where the reference mapping changes nine bonds and another mapping changes eight" style="width:100%"></noscript></div>
   <figcaption>Golden reaction 9, heavy atoms only. Blue: the alcohol oxygen. Amber: the carbonyl oxygen. Hydrogen changes are counted in the totals.</figcaption>
 </figure>
-<p>An unsaturated alcohol and acetophenone close a ring and release water, a Prins-type cyclization with several steps. In the reference, the carbonyl oxygen leaves as water, which changes nine bonds. If the alcohol oxygen leaves instead, eight bonds change. MAPPA finds two sets of bond changes at eight, and the reference one step above them. A mapper that returns only the minimum would not return the reference. MAPPA therefore keeps everything within five bond changes of the minimum.</p>
+<p>An unsaturated alcohol and acetophenone close a ring and release water, a Prins-type cyclization with several steps. In the reference, the carbonyl oxygen leaves as water, which changes nine bonds. If the alcohol oxygen leaves instead, eight bonds change. MAPPA finds two different sets of eight bond changes, and it finds the reference with nine. A mapper that returns only the mappings with the fewest bond changes would not return the reference. MAPPA therefore returns every mapping it finds that changes at most five more bonds than the fewest it found.</p>
 
-<h2>3. Growing before branching keeps the choices few</h2>
-<p>Returning alternatives sounds expensive, because choices multiply. What matters is when a choice is made. MAPPA builds mappings from fragments, which are substructures present on both sides of the reaction. It grows one fragment at a time on one side, the base, and checks that the fragment still fits somewhere on the other side, the target.</p>
+<h2>3. Growing before branching keeps the placements few</h2>
+<p>Returning alternatives sounds expensive, because every group of atoms that can be assigned in more than one way multiplies the number of mappings. What matters is when the search commits to one of those ways. MAPPA builds mappings from fragments, which are substructures present in both the initial and the final state. It grows one fragment at a time in one of the two states, called the base, and checks that the fragment still fits somewhere in the other state, called the target. Each place where it fits is a placement.</p>
 <figure class="anim" data-anim="grow">
   <div class="stage"><noscript><img src="gifs/grow.gif" alt="A fragment grows atom by atom while its placements in the target narrow from nine to three" style="width:100%"></noscript></div>
   <figcaption>A constructed example, following Figure 1 of the paper. The target has three alcohol sites, a, b and c, with different linkers to nitrogen.</figcaption>
 </figure>
-<p>A lone carbon fits nine places in this target. Branching there would open nine searches, and six of them lead nowhere. So during growth MAPPA asks one question only: does at least one placement exist? If it does, the fragment keeps growing, whether there is one placement or many. A bond that cannot be added is set aside, and growth continues with the others. MAPPA asks for every placement only when nothing more can be added. By then the fragment is specific enough that three remain.</p>
-<p>The same reasoning explains bad starting points. A fragment that starts on a lone hydrogen fits almost everywhere. MAPPA caps such branchings and drops the largest subtrees, so the search meets the crowded choices later, when few atoms are left to assign.</p>
+<p>A lone carbon has nine placements in this target. Branching there, which means continuing the search separately from each placement, would open nine searches, and six of them lead nowhere. So during growth MAPPA asks one question only: does at least one placement exist? If it does, the fragment keeps growing, whether there is one placement or many. A bond that cannot be added is set aside, and growth continues with the others. MAPPA asks for every placement only when nothing more can be added. By then the fragment is specific enough that three placements remain.</p>
+<p>The same reasoning explains bad starting points. A fragment that starts on a lone hydrogen fits almost everywhere. MAPPA limits the number of branches and discards the largest groups of them first, so atoms with many placements are assigned later, when few atoms are left.</p>
 
-<h2>4. Storing choices, not mappings, keeps it compact</h2>
-<p>Each placement locks its atoms, and the next fragment grows in what is left. The choices are therefore conditional. In the example above, the base has three such alcohol fragments, A, B and C: three sites are open for A, two for B and one for C.</p>
+<h2>4. Storing placements, not mappings, keeps the output compact</h2>
+<p>Each placement locks its atoms, and the next fragment grows in the atoms that are left. The placements open to a fragment therefore depend on the placements chosen before it. In the example above, the base has three such alcohol fragments, A, B and C: three sites are open for A, two for B and one for C.</p>
 <figure class="anim" data-anim="share">
   <div class="stage"><noscript><img src="gifs/share.gif" alt="Six branches are built from nine fragment placements that are stored once" style="width:100%"></noscript></div>
   <figcaption>Six branches reuse nine fragment placements. The mapping counts are for the atoms of these three fragments.</figcaption>
 </figure>
-<p>There are six branches but only nine distinct fragment placements, and MAPPA stores each one once. A fragment counts as new only if it occupies a different set of atoms. Rearrangements within the same atoms are symmetry, and symmetry is stored as a rule, not as a list. Here the six branches stand for 1,296 atom-by-atom mappings, and none of them is ever written out.</p>
-<p>Symmetry is not always free, though. Exchanging two atoms that look equivalent can change bond orders.</p>
+<p>A branch is one complete sequence of placements. There are six branches but only nine distinct fragment placements, and MAPPA stores each one once. A fragment counts as new only if it occupies a different set of atoms. Rearrangements within the same atoms, such as exchanging the three hydrogens of a methyl group, are symmetry, and MAPPA stores a symmetry as a rule, not as a list of mappings. Here the six branches stand for 1,296 atom-by-atom mappings, and none of them is ever written out.</p>
+<p>A symmetric rearrangement does not always leave the bond changes the same, though. Exchanging two atoms that are equivalent by connectivity adds bond changes when their bond orders differ.</p>
 <figure class="anim" data-anim="decode">
   <div class="stage"><noscript><img src="gifs/decode.gif" alt="Exchanging two oxygens inside a fragment adds two bond changes" style="width:100%"></noscript></div>
   <figcaption>Methyl acetate and hydroxide give acetate and methanol. Numbers follow the base atoms. Fragment F is blue, G green and H grey.</figcaption>
@@ -138,16 +138,16 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
 
 <h2>MAPPA is useful beyond mapping benchmarks</h2>
 <h3>An anchor fixes what is known, and MAPPA completes the rest</h3>
-<p>Sometimes part of a mapping is already known, from an isotope label or from a mechanism that is trusted. An anchor fixes that atom pair, and MAPPA completes the rest of the mapping around it. In the formaldehyde reaction above, anchoring the formaldehyde carbon to dihydroxyacetone or to CO₂ selects one of the two answers.</p>
+<p>Sometimes part of a mapping is already known, from an isotope label or from a mechanism that is trusted. An anchor fixes that atom pair, and MAPPA completes the rest of the mapping around it. In the formaldehyde reaction above, anchoring the formaldehyde carbon to dihydroxyacetone or to CO₂ selects one of the two mappings shown earlier.</p>
 <figure class="anim" data-anim="anchor">
   <div class="stage"><noscript><img src="gifs/anchor.gif" alt="The formaldehyde carbon is anchored to dihydroxyacetone, then to carbon dioxide, and MAPPA completes each mapping" style="width:100%"></noscript></div>
-  <figcaption>MAPPA run on this reaction with one anchored pair. Each completion shown is among the minimum mappings it returns for that anchor, at six bond changes.</figcaption>
+  <figcaption>MAPPA run on this reaction with one anchored pair. Each completion shown is one of the mappings with the fewest bond changes, six, that MAPPA returns for that anchor.</figcaption>
 </figure>
-<p>We use the same feature in the paper. For the few references that the free search did not return, we anchor the annotated atoms, let MAPPA complete the rest, and compare the count with the minimum.</p>
+<p>We use the same feature in the paper. For the few references that the search without anchors did not return, we anchor the annotated atom pairs, let MAPPA complete the rest, and compare its number of bond changes with the lowest number found without anchors.</p>
 
 <h3>A mapping picks out the reactive vibration of a transition state</h3>
-<p>A mapping says which bonds weaken and which strengthen. That is enough to tell which vibration of a transition-state guess is the reaction. In this 57-atom hydrogen transfer, the mapping marks an O–H bond that weakens and an N–H bond that strengthens. MAPPA scores each vibrational mode of the guess by how far it moves along those bond changes. The imaginary mode overlaps them at 0.87. A stable mode, shown for comparison, overlaps at 0.11.</p>
-<p>This use is the reason I built MAPPA, and it is less simple than it looks. When symmetry leaves more than one possible reaction core, each one has to be scored against the modes, so the alternatives are needed here too.</p>
+<p>A mapping says which bonds weaken and which strengthen. That is enough to tell which vibration of a transition-state guess corresponds to the reaction. In this 57-atom hydrogen transfer, the mapping marks an O–H bond that weakens and an N–H bond that strengthens. MAPPA scores each vibrational mode of the guess by how far it moves along those bond changes. On a scale from 0 to 1, the imaginary mode scores 0.87, and a stable mode, shown for comparison, scores 0.11.</p>
+<p>This use is the reason I built MAPPA, and it is less simple than it looks. When symmetry leaves more than one possible reaction core, that is, more than one set of bonds that change, each one has to be scored against the modes, so the alternatives are needed here too.</p>
 <figure>
   <div class="stage"><img src="gifs/ts-mode.gif" alt="Mapped bond changes select the vibrational mode of a transition-state guess that moves the transferring hydrogen" width="960" height="600" loading="lazy"></div>
   <figcaption>A recorded 57-atom case. The geometry is a transition-state guess, not an optimized transition state.</figcaption>
@@ -166,7 +166,7 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line);
 
 <h3>MAPPA could serve as a verifier in chemistry post-training</h3>
 <p>Post-training a language model for chemistry, for example by reinforcement learning with verifiable rewards, needs a program that can check the model's answer. Code has tests and mathematics has proof checkers. For chemistry, the checker has to compare structures: is this the right molecule, are all atoms accounted for, and which bonds changed?</p>
-<p>MAPPA could potentially fill that role. Given a structure that a model proposes, it can check the structure against the target atom by atom. Given a mapping or a set of bond changes that a model proposes for a reaction, it can check them against the alternatives that the endpoints allow. In both cases it reports what is wrong: which atoms are unmatched, which connection is missing, which bonds change. A reward could be built from that, and because MAPPA returns the alternatives, a valid mapping that differs from the one in a dataset would not be marked wrong. This is a possibility, not a result.</p>
+<p>MAPPA could potentially fill that role. Given a structure that a model proposes, it can check the structure against the target atom by atom. Given a mapping or a set of bond changes that a model proposes for a reaction, it can check them against the mappings that MAPPA finds for the same initial and final states. In both cases it reports what is wrong: which atoms are unmatched, which connection is missing, which bonds change. A reward could be built from that, and because MAPPA returns the alternatives, a valid mapping that differs from the one in a dataset would not be marked wrong. This is a possibility, not a result.</p>
 
 <footer>
 <p>MAPPA stands for Mapping of Atoms by Progressive Pattern Assembly. It is joint work with Olalla Nieto Faza, Shifa Hussain, Varinia Bernales and Alán Aspuru-Guzik. The code is at <a href="https://github.com/yunhzou/MAPPA-AAM">github.com/yunhzou/MAPPA-AAM</a>.</p>
