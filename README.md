@@ -6,9 +6,10 @@ MAPPA is a Python library for atom–atom matching (AAM) between molecular struc
 
 Use MAPPA to map reactants to products, analyze how molecular structures differ, verify generated structures against a target, or carry reaction-core correspondences into transition-state workflows. It works with molecular graphs and supplied bond-order matrices, including continuous Wiberg bond orders (WBOs).
 
-**Matching and decoding are complete for the current Golden and EnzymeMap studies.**
-Golden contains 1,851 reactions; EnzymeMap contains 47,974. Current results and
-historical comparisons are distinguished below.
+**With its standard settings, MAPPA recovers 99.03% of the Golden and 99.63% of
+the EnzymeMap reference mappings**, averaging 3.19 and 13.16 CPU seconds per
+reaction. Golden contains 1,851 reactions; EnzymeMap contains 47,974. See
+[Benchmarks](#benchmarks).
 
 [Get started](#get-started) · [Try the notebook](docs/AAM_SIMPLE.ipynb) · [Python API](docs/PYTHON_API.md) · [Paper](manuscript/manuscript.pdf) · [Benchmark evidence](reports/README.md)
 
@@ -96,68 +97,54 @@ or aggregated result bundles. Scheduling stays outside the core algorithms.
 The [portable benchmark launcher](bench/README.md) keeps cluster configuration
 private and uses the same separate stages for EnzymeMap and Golden.
 
-## Golden benchmark: coverage of mapping alternatives
+## Benchmarks
 
-**Coverage means that the annotated heavy-atom correspondence is present among the returned alternatives**, allowing equivalent endpoint symmetries. It measures reference inclusion, not whether an automatically ranked first candidate is correct. For methods returning one bijection, the same check measures that bijection's accuracy. Failures and unresolved cases remain in the denominator.
+**A reference is recovered when a verified mapping that keeps the annotated heavy-atom correspondence occurs in MAPPA's decoded output**, within five bond events of the detected minimum, in either search direction. This measures reference inclusion among the returned alternatives, not whether a ranked first candidate is correct. Every reaction stays in the denominator.
 
-The [current one- and ten-seed Golden study](reports/golden_native_seeds_20261106/README.md)
-uses discovery tolerance 2, branch cap 100, both directions and the full single-edge
-sweep. Matching-catalogue coverage is **1,834/1,851 (99.082%)** with one seed and
-**1,843/1,851 (99.568%)** with ten. Every reaction has a definitive catalogue
-verdict. Both runs completed matching and decoding for all 3,702 directions.
-The report separately measures exact-index reference membership in the saved
-decoded minimum + 5 window.
+![Reference coverage and mean CPU time per reaction for Golden with one and ten seeds and EnzymeMap with one seed](manuscript/figs/fig6_current_benchmarks.png)
 
-Mean compute CPU per reaction is **1.31 s matching and 1.88 s decoding** with one
-seed, and **11.64 s matching and 9.28 s decoding** with ten. Matching includes
-fragment reduction; both directions and all cuts contribute. These are the
-saved completed-stage measurements, excluding publication and external evaluation.
+| Study | Reactions | Recovered | Coverage | Matching CPU s | Decoding CPU s | Total CPU s |
+|---|---:|---:|---:|---:|---:|---:|
+| **Golden, 1 seed** | 1,851 | **1,833** | **99.03%** | 1.31 | 1.88 | **3.19** |
+| Golden, 10 seeds | 1,851 | 1,842 | 99.51% | 11.64 | 9.28 | 20.92 |
+| **EnzymeMap, 1 seed** | 47,974 | **47,796** | **99.63%** | 4.41 | 8.75 | **13.16** |
 
-### Historical September comparison
+All runs use discovery tolerance 2, branch cap 100, both directions and the full
+single-edge sweep. Times are means per reaction; matching includes fragment
+reduction, and publication and external verification are excluded. Ten seeds
+recover nine more Golden references and lose none. On EnzymeMap the median is
+5.80 CPU seconds per reaction and the 95th percentile 41.86.
 
-The chart and table below preserve the September experiments: 1,834 / 1,851
-references with one seed and 1,840 / 1,851 with ten seeds. Their algorithms,
-outputs and timing protocol belong to those recorded revisions.
+[Golden report](reports/golden_native_seeds_20261106/README.md) · [EnzymeMap report](reports/enzymemap_native_20261106/README.md) · [Earlier campaigns](reports/README.md)
 
-![Historical September Golden comparison: 99.08% coverage with one seed and 99.41% with ten seeds](docs/assets/golden-coverage.png)
+### Golden coverage across methods
 
-<!-- golden-coverage-table:start -->
+A method that returns one mapping is treated as a candidate set of size one, so
+the same check measures that mapping's accuracy.
 
-| Method | Search setting | Output | References covered | Coverage | Mean CPU s/reaction |
-|---|---|---|---:|---:|---:|
-| **MAPPA** | **1 seed, sweep** | Compressed families | **1,834 / 1,851** | **99.08%** | **0.963** |
-| MAPPA | 3 seeds, sweep | Compressed families | 1,837 / 1,851 | 99.24% | 2.265 |
-| MAPPA | 10 seeds, sweep | Compressed families | 1,840 / 1,851 | 99.41% | 6.993 |
-| SLAP | Bidirectional + our sweep | Multiple candidates | 1,796 / 1,851 | 97.03% | 2.793 |
-| SLAP | Bidirectional, no sweep | Multiple candidates | 1,661 / 1,851 | 89.74% | 0.105 |
-| SLAP | Default, no sweep (binary) | Multiple candidates | 1,591 / 1,851 | 85.95% | 0.075† |
-| LocalMapper | Default, no sweep | One bijection | 1,605 / 1,851 | 86.71% | 0.294† |
-| RXNMapper | Default, no sweep | One bijection | 1,547 / 1,851 | 83.58% | 0.056† |
-| Chython | Default, no sweep | One bijection | 1,561 / 1,851 | 84.33% | 0.612† |
-| Reaction Decoder Tool (RDT) | Default, no sweep | One bijection | 1,030 / 1,851 | 55.65% | 1.021† |
-| Indigo | Default, no sweep | One bijection | 692 / 1,851 | 37.39% | 0.184† |
+| Method | Search setting | Output | References covered | Coverage |
+|---|---|---|---:|---:|
+| **MAPPA** | **1 seed, sweep** | Families | **1,833 / 1,851** | **99.03%** |
+| **MAPPA** | **10 seeds, sweep** | Families | **1,842 / 1,851** | **99.51%** |
+| SLAP | Expanded sweep | Candidates | 1,794 / 1,851 | 96.92% |
+| SLAP | Binary, both directions | Candidates | 1,620 / 1,851 | 87.52% |
+| SLAP | Binary, default | Candidates | 1,591 / 1,851 | 85.95% |
+| LocalMapper | Default | Single mapping | 1,605 / 1,851 | 86.71% |
+| Chython | Default | Single mapping | 1,561 / 1,851 | 84.33% |
+| RXNMapper | Default | Single mapping | 1,547 / 1,851 | 83.58% |
+| Reaction Decoder Tool (RDT) | Default | Single mapping | 1,030 / 1,851 | 55.65% |
+| Indigo | Default | Single mapping | 692 / 1,851 | 37.39% |
 
-<!-- golden-coverage-table:end -->
+Expanded SLAP combines its binary and weighted modes with both directions and
+the cut sweep through our wrapper; it is not SLAP's published score. All
+comparator numbers come from our own evaluation.
 
-Unmarked CPU times are paired search averages over the same 1,403 completed reactions on the same CPU, excluding separate bond-event decoding. † Archived completed mapper calls from a separate timing group; these times are not directly comparable with the unmarked values.
+On the 1,834 Golden reactions completed by every protocol, on the same CPU
+model, binary SLAP without the sweep averages 0.111 CPU seconds per reaction,
+MAPPA 1.202 for matching plus 1.617 for decoding, and expanded SLAP 12.475.
+All three use both directions.
 
-MAPPA rows use bidirectional search and branch cap 100. Bidirectional combines searches starting from each endpoint. The cut sweep is part of default MAPPA; **SLAP + our sweep** applies our search extension to SLAP and is not its original published score. The bidirectional SLAP rows combine its binary and weighted modes; the released default row uses binary only. All numbers above come from our strict re-evaluation, including LocalMapper, the prior accuracy-SOTA baseline discussed in the paper.
-
-[Full comparison and CPU timings](manuscript/manuscript.pdf) · [Coverage data and source hashes](docs/assets/golden-coverage.json) · [Comparator audit](reports/golden_competitor_recheck_20260913/README.md) · [Branch-cap ablation](reports/golden_controlled_20260915/README.md) · [Rebuild the plot/table](https://github.com/yunhzou/MAPPA-AAM/blob/22f349e2761f324b273a3a80dd498981b9fa37fb/bench/publish_readme_coverage.py)
-
-## EnzymeMap benchmark
-
-The [completed current campaign](reports/enzymemap_native_20261106/README.md)
-processed all **47,974 reactions / 95,948 directions**. Exact-index catalogue
-coverage is **47,798/47,974 (99.633%)**; the saved decoded minimum + 5 window
-contains **47,796/47,974 (99.629%)**. Every reaction has a definitive outcome.
-The two additional catalogue references are outside their retained decoded windows.
-Mean successful compute CPU per reaction is **4.41 s matching**, including
-reduction, and **8.75 s decoding**, across both directions and all cuts. The
-report separately records publication, external evaluation and earlier attempts.
-
-Historical campaigns remain in [the report index](reports/README.md), with their
-original source revisions and evaluation policies.
+[Full comparison](manuscript/manuscript.pdf) · [Paired timing study](reports/golden_slap_paired_20261108/README.md) · [Comparator audit](reports/golden_competitor_recheck_20260913/README.md)
 
 ## What you can do with MAPPA
 
@@ -172,21 +159,21 @@ Different atom assignments can imply different bond changes and reaction-core mo
 
 A reaction can admit several atom correspondences, with different bond changes or symmetry-related atom assignments. Returning one mapping hides those choices, while listing every symmetry permutation quickly becomes unwieldy. MAPPA grows matching fragments, branches when alternative placements are available, and keeps symmetry compressed. Separate decoding attaches local bond-change responses to these retained choices for inspection.
 
-![Manuscript overview: fragment growth, three levels of conditional branching, cut sweep, and symmetry-aware event decoding](manuscript/figs/fig1_algorithm.png)
+![Paper Figure 1: (a) a fragment grows and its placements branch, (b) matched fragments pair atoms of the base and target, (c) exchanging two oxygens inside a fragment adds two bond events](manuscript/figs/fig1_algorithm.png)
 
-Each earlier fragment placement constrains the later branches. The cut sweep changes the growth conditions. Decoding collects the unique saved fragments, shares their conditional responses, and composes the approximate event window. Physical evaluation of a requested mapping remains separate.
+(a) A fragment grows on the base with one witness; at saturation each of its target placements becomes a branch, and each earlier placement constrains the later ones. (b) One branch pairs the base and target atom sets of its fragments, here with two boundary events. (c) Decoding compares both sides of a fragment: exchanging O3 and O4 adds two internal events to the two boundary events. These are constructed examples from the paper.
 
 ![MAPPA: Golden fragment growth, branching and two distinct decoded event classes](manuscript/animations/mappa_research_preview/mappa-grow-branch-decode.gif)
 
-This Golden example follows the recorded growth and branching, then shows two distinct decoded event patterns, including one equivalent to the reference. The saved catalogue contains nine patterns. Red × marks indicate breaking or weakening; green inward arrows indicate forming or strengthening.
+This Golden example follows the growth and branching recorded with the September baseline search, then shows two distinct decoded event patterns, including one equivalent to the reference. That saved catalogue contains nine patterns. Red × marks indicate breaking or weakening; green inward arrows indicate forming or strengthening.
 
 [Full-resolution MP4](manuscript/animations/mappa_research_preview/mappa-grow-branch-decode.mp4) · [Offline interactive viewer](manuscript/animations/mappa_research_preview/index.html) · [Example and provenance](manuscript/animations/mappa_research_preview/README.md)
 
-## Alternative mappings in Golden case 9
+## Two mappings of one EnzymeMap reaction
 
-![Golden case 9: MAPPA recovers the annotated reference and alternatives with different oxygen and carbon correspondences](manuscript/figs/fig4_alternatives.png)
+![Paper Figure 2, EnzymeMap case 13175: (a) the annotated mapping with four heavy-atom bond changes, (b) an alternative with two](manuscript/figs/fig4_alternatives.png)
 
-In this manuscript example, MAPPA recovers the annotated heavy-atom correspondence alongside alternatives with different atom origins and bond changes. The alternative with fewer total bond events is not the annotated reference, illustrating why selecting only the minimum-event mapping can discard useful information. This illustration uses branch cap 2,000; the benchmark table above reports cap 100.
+Both mappings are saved MAPPA outputs for EnzymeMap case 13175. (a) In the annotated reference, the formaldehyde carbon 1 enters the three-carbon molecule and carboxyl carbon 4 becomes CO₂. (b) The alternative exchanges these carbon origins. The drawings show four and two heavy-atom bond changes; with the hydrogen assignments optimized for each, both need six bond events in total. Event counting therefore leaves the two atom origins tied, which is why MAPPA keeps both. Neither correspondence establishes a reaction pathway.
 
 ## Use atom matching to explore alternative reaction pathways
 
