@@ -1,6 +1,31 @@
-# MAPPA: fragment-based atom–atom matching
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/mappa-logo-dark.svg">
+    <img src="docs/assets/mappa-logo.svg" alt="MAPPA" width="340">
+  </picture>
+</h1>
 
-**Match atoms. Recover alternatives. Understand structural change.**
+<p align="center">
+  <b>Mapping of Atoms by Progressive Pattern Assembly with Molecular Symmetry</b><br>
+  Match atoms. Recover alternatives. Understand structural change.
+</p>
+
+<p align="center">
+  <a href="https://yunhzou.github.io/MAPPA-AAM/">Blog</a> ·
+  <a href="manuscript/manuscript.pdf">Paper</a> ·
+  <a href="blog/video/mappa-intro.mp4">Video</a> ·
+  <a href="docs/AAM_SIMPLE.ipynb">Notebook</a> ·
+  <a href="docs/PYTHON_API.md">Python API</a> ·
+  <a href="#benchmarks">Benchmarks</a> ·
+  <a href="reports/README.md">Evidence</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Golden-99.03%25_coverage-2f6fde" alt="Golden: 99.03% reference coverage">
+  <img src="https://img.shields.io/badge/EnzymeMap-99.63%25_coverage-2f6fde" alt="EnzymeMap: 99.63% reference coverage">
+  <img src="https://img.shields.io/badge/python-3.10%2B-e09a1f" alt="Python 3.10 or later">
+  <img src="https://img.shields.io/github/last-commit/yunhzou/MAPPA-AAM?color=3fb950" alt="Last commit">
+</p>
 
 MAPPA is a Python library for atom–atom matching (AAM) between molecular structures. It grows matching fragments, branches over alternative placements, and keeps symmetry-related correspondences in a compressed representation. The decoder combines shared fragment responses under an independent-fragment event-count approximation. The matching catalogue retains its original constraints. Decoding selects an improved starting correspondence per fragment and keeps its binary symmetry as a queryable event response; explicit realizations can be checked against original bond weights.
 
@@ -10,8 +35,6 @@ Use MAPPA to map reactants to products, analyze how molecular structures differ,
 the EnzymeMap reference mappings**, averaging 3.19 and 13.16 CPU seconds per
 reaction. Golden contains 1,851 reactions; EnzymeMap contains 47,974. See
 [Benchmarks](#benchmarks).
-
-[Get started](#get-started) · [Try the notebook](docs/AAM_SIMPLE.ipynb) · [Python API](docs/PYTHON_API.md) · [Paper](manuscript/manuscript.pdf) · [Benchmark evidence](reports/README.md)
 
 ## MAPPA in 90 seconds
 
