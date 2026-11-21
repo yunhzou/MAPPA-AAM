@@ -37,16 +37,16 @@ Source: González Pérez et al., *J. Org. Chem.* **2009**, 74, 2982–2991. [DOI
 
 The endpoint coordinates are rigidly aligned for display. The film is a search replay, not molecular dynamics. Core close-ups omit catalyst atoms only from the drawing. Dashed gold contacts use a display WBO range of 0.15–0.45, separate from matching and event thresholds. Other sweep contexts are outside this film's scope. The full family union is not exhaustively decoded here.
 
-## Rebuild or inspect
+## Re-render or inspect
 
 ```bash
-python manuscript/scripts/gold_film/build.py
 node manuscript/scripts/gold_film/render.cjs manuscript/animations/gold_rearrangement 3d --video
 python manuscript/scripts/gold_film/export_gif.py manuscript/animations/gold_rearrangement
 ```
 
-The builder verifies every featured growth frame against `trajectory.json.gz`, checks shared-prefix transitions and the collapsed subtree, and certifies both complete witnesses against their compressed families. The browser renderer checks the real tree, one-second highlights, paused camera and mapping injectivity. The MP4 is 1440 × 900 at 24 fps; the GIF is 960 × 600 at 12 fps.
+These commands re-render the saved film viewer. The browser renderer checks the real tree, one-second highlights, paused camera and mapping injectivity. The MP4 is 1440 × 900 at 24 fps; the GIF is 960 × 600 at 12 fps.
 
-The removed example runner and its input preparation are preserved in the
-[recorded source revision](https://github.com/yunhzou/MAPPA-AAM/tree/b13898ad97311ffcb47d6b9fb78d7d8d4a160e42/examples/gold_rearrangement). Current film rebuilding uses the
-saved trace and `selected-families.json` beside this document.
+The script that built the viewer from the saved trace and `selected-families.json` was written for an earlier package layout and has been removed. It verified every featured growth frame against `trajectory.json.gz`, checked shared-prefix transitions and the collapsed subtree, and certified both complete witnesses against their compressed families. It is preserved, together with the library modules it imports, in [revision `c28697b`](https://github.com/yunhzou/MAPPA-AAM/tree/c28697bd1f72efa67f3e3b46686b5d345394dca5/manuscript/scripts/gold_film).
+
+The earlier example runner and its input preparation are preserved in the
+[recorded source revision](https://github.com/yunhzou/MAPPA-AAM/tree/b13898ad97311ffcb47d6b9fb78d7d8d4a160e42/examples/gold_rearrangement).

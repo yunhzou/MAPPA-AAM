@@ -8,4 +8,4 @@ The film grows two recorded fragment placements, pauses to highlight each branch
 
 Fragment colors show correspondence. Red crosses mark breaking/weakening; green inward arrows mark forming/strengthening. Coordinates are illustrative conformers, not dynamics. The evidence lives in `reports/published_baseline_20260915/film/`.
 
-Rebuild with `manuscript/scripts/research_film/build_film.py`, then `render_film.cjs` and `export_gif.py`. These tools perform no mapping search. `browser-validation.json` checks the one-second branch highlights and injectivity throughout the timeline.
+Re-render the saved viewer with `manuscript/scripts/research_film/render_film.cjs`, then `export_gif.py`. The script that built the viewer from the saved evidence was written for an earlier package layout and has been removed; it is preserved, together with the library modules it imports, in [revision `c28697b`](https://github.com/yunhzou/MAPPA-AAM/tree/c28697bd1f72efa67f3e3b46686b5d345394dca5/manuscript/scripts/research_film). These tools perform no mapping search. `browser-validation.json` checks the one-second branch highlights and injectivity throughout the timeline.

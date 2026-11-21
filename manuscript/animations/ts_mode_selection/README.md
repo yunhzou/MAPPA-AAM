@@ -19,7 +19,7 @@ For the selected core assignment, the production score is the mode overlap multi
 
 The bond vector is constructed at the guess geometry: separating each breaking pair and approaching each forming pair, weighted by the absolute R/P WBO change. MAPPA uses the absolute normalized projection, so changing the sign of an eigenvector leaves the overlap unchanged. Spectator motion contributes to the full-mode norm. Among imaginary modes, the workflow chooses the highest overlap for each allowed core assignment and then scores the assignments.
 
-The opening uses a **saved endpoint mapping**, not a newly invented interpolation or an atom-growth replay. The TS stage was rerun with the current public `analyze_transition_state` API. Its default search and scoring settings are used; no new limits are introduced for the film. Recorded endpoint, guess, WBO and mode arrays are bundled, with no electronic-structure calculation needed to reproduce the scoring.
+The opening uses a **saved endpoint mapping**, not a newly invented interpolation or an atom-growth replay. The TS stage was rerun with the public `analyze_transition_state` API when the film was built. Its default search and scoring settings are used; no new limits are introduced for the film. Recorded endpoint, guess, WBO and mode arrays are bundled, with no electronic-structure calculation needed to reproduce the scoring.
 
 ## Visual interpretation
 
@@ -31,7 +31,7 @@ The geometry is an **initial TS guess, not an optimized or validated TS**. The s
 
 ## Reproduce
 
-From the repository root with MAPPA installed:
+The build script was written for an earlier package layout and has been removed from the current repository. It is preserved, together with the library modules it imports, in [revision `c28697b`](https://github.com/yunhzou/MAPPA-AAM/tree/c28697bd1f72efa67f3e3b46686b5d345394dca5/manuscript/scripts/ts_mode_film). From the root of that revision with MAPPA installed:
 
 ```bash
 python manuscript/scripts/ts_mode_film/build.py \
