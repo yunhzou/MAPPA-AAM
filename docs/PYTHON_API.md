@@ -1,8 +1,6 @@
 # Importable AAM API
 
-Start with [AAM_SIMPLE.ipynb](AAM_SIMPLE.ipynb): a self-contained six-atom reaction with embedded coordinates, bond orders, and display helpers. It inspects the raw AAM, unique event candidates, certified shuffles, anchors, both search directions, conditional matching, serialization, and one growth animation per sweep. It uses one worker and can run outside the checkout after installation. Saved tables and static molecule drawings render on GitHub; interactive views require a trusted Jupyter notebook. The longer [TUTORIAL.ipynb](TUTORIAL.ipynb) covers R/P geometry and TS analysis.
-
-Install `python -m pip install -e ".[notebook]"` for the notebook, or `.` for the mapping and decoding API without notebook packages. A C++17 compiler builds the bookkeeping extensions. Normal search requires the fast growth engine: run `python src/mappa/mappa_core/native/build_engine.py`; see [native installation](../src/mappa/mappa_core/native/README.md). Missing native execution is an error. Python comparison runs explicitly select `MAPPA_NATIVE=0` and `search_aam(..., execution="reference")`. No xTB is needed when coordinates and bond-order matrices are supplied.
+Install with `python -m pip install -e .`. A C++17 compiler builds the bookkeeping extensions. Normal search requires the fast growth engine: run `python src/mappa/mappa_core/native/build_engine.py`; see [native installation](../src/mappa/mappa_core/native/README.md). Missing native execution is an error. Python comparison runs explicitly select `MAPPA_NATIVE=0` and `search_aam(..., execution="reference")`. No xTB is needed when coordinates and bond-order matrices are supplied.
 
 ## Default pipeline
 
@@ -88,8 +86,7 @@ refined = refine_mapping(aam, RefinementConfig(event_slack=5))
 
 This separate operation rematches fragment pairs at tighter tolerances. It can
 change the retained mapping space. It remains available for hierarchical mapping
-experiments and is never called by the normal decoder. The historical tutorial
-notebooks currently demonstrate this explicitly named experimental operation.
+experiments and is never called by the normal decoder.
 
 ## Bounded fragment witness improvement
 

@@ -1,6 +1,10 @@
 # Self-contained notebook validation
 
-The executed example is [`docs/AAM_SIMPLE.ipynb`](../../docs/AAM_SIMPLE.ipynb).
+Historical record: the notebook `docs/AAM_SIMPLE.ipynb` validated here used the
+September 2026 interface and was later removed from the repository. Its last
+copy is in revision `2689e5e`.
+
+The executed example was `docs/AAM_SIMPLE.ipynb`.
 It contains both endpoints, display helpers, public imports, and saved outputs.
 No benchmark archive, notebook helper module, path injection, xTB calculation,
 or downloaded molecule is required. Install the package with its notebook extras first.

@@ -29,8 +29,7 @@ renderer. Packaging preserves molecular documents; the AAM tool's explicit
 
 The reusable **algorithm search trajectory** pipeline is documented in
 [SEARCH_TRAJECTORIES.md](SEARCH_TRAJECTORIES.md). Use `from mappa.presentation.viewers import aam_growth_html` for direct in-memory
-results; archive capture and `growth_trace_html` remain supported. The executed
-[AAM notebook](AAM_SIMPLE.ipynb) shows a separate animation for each sweep.
+results; archive capture and `growth_trace_html` remain supported.
 The PR7 example is `reports/pr7_search_trajectory_20260911/algorithm_trajectory.html`.
 Its endpoint coordinates remain fixed; playback follows growth and branching.
 

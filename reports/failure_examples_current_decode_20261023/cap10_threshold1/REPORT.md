@@ -27,7 +27,7 @@ For context, the earlier cap-100 run retained 27,295 complete families and decod
 - [Timing and outcome](result/result.json)
 - [Search counters](result/search.json)
 - [Independent checkpoint audit and hashes](checkpoint-audit.json)
-- [Runner](run_decode.py); site-specific submission is retained privately.
+- Runner `run_decode.py`, removed from the repository in revision `652d05d`; site-specific submission is retained privately.
 - The frozen benchmark source is the parent report's `source.tar.gz` and `source_sha256.json`; this experiment does not change its engine.
 
 The raw decoder marks an empty retained catalogue complete. The audit explicitly records that this does **not** mean a complete molecular mapping was found.

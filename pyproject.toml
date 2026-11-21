@@ -29,8 +29,7 @@ dependencies = [
 
 [project.optional-dependencies]
 execution = ["psutil>=5.9"]
-notebook = ["rdkit>=2022.9", "py3Dmol>=2.0", "nbformat", "nbclient", "ipykernel", "jupyterlab"]
-dev = ["pytest", "nbclient", "ipykernel", "pypdf", "Pillow"]
+dev = ["pytest", "pypdf", "Pillow"]
 smiles = ["rdkit>=2022.9"]
 
 [project.scripts]

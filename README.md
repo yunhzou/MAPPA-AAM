@@ -14,7 +14,6 @@
   <a href="https://yunhzou.github.io/MAPPA-AAM/">Blog</a> ·
   <a href="manuscript/manuscript.pdf">Paper</a> ·
   <a href="blog/video/mappa-intro.mp4">Video</a> ·
-  <a href="docs/AAM_SIMPLE.ipynb">Notebook</a> ·
   <a href="docs/PYTHON_API.md">Python API</a> ·
   <a href="#benchmarks">Benchmarks</a> ·
   <a href="reports/README.md">Evidence</a>
@@ -48,10 +47,10 @@ reaction. Golden contains 1,851 reactions; EnzymeMap contains 47,974. See
 ```bash
 git clone git@github.com:yunhzou/MAPPA-AAM.git
 cd MAPPA-AAM
-python -m pip install -e ".[notebook]"
+python -m pip install -e .
 ```
 
-Open [the self-contained AAM notebook](docs/AAM_SIMPLE.ipynb) for embedded molecules, public Python imports, matching, unique candidates, symmetry queries, and py3Dmol visualization. For a smaller installation without notebook dependencies, use `python -m pip install -e .`. Building the native extensions requires a C++17 compiler. xTB is needed separately only if you want to compute WBO inputs; matching supplied arrays does not invoke it.
+Building the native extensions requires a C++17 compiler. xTB is needed separately only if you want to compute WBO inputs; matching supplied arrays does not invoke it.
 
 The pipeline has two stages: **matching**, ending with deduplication across
 seeds and cuts, then **decoding**. Each call handles both search directions:
@@ -84,8 +83,7 @@ Forward uses endpoint A as the base and B as the target; reverse exchanges them.
 own atom indices and event windows. No per-direction processing loop is needed.
 Increase `workers` to parallelize matching cuts, or `seed_count` for more growth
 orders. Search and decoding remain separate, so changing event settings does not
-require repeating matching. The [notebook](docs/AAM_SIMPLE.ipynb) supplies example
-molecules if you do not yet have input arrays.
+require repeating matching.
 
 This example selects discovery tolerance 2 and event slack 5; their defaults
 are 1 and 6. Event counting uses empirical bond-order change thresholds of 0.5
@@ -299,8 +297,7 @@ Retrosynthesis is maintained separately on [codex/retrosynthesis](https://github
 
 The examples below continue the [pipeline above](#get-started). The
 [Python API guide](docs/PYTHON_API.md) covers anchors, conditional matching and
-configuration; the [self-contained notebook](docs/AAM_SIMPLE.ipynb) includes
-molecular inputs and interactive viewers.
+configuration.
 
 ### Save and reload both directions
 
@@ -381,12 +378,7 @@ Path("aam_growth.html").write_text(aam_growth_html(matched[0].aam), encoding="ut
 ```
 
 The offline viewer replays recorded fragment calls and verifies their outputs;
-it does not enumerate every symmetry permutation. The notebook embeds it in an
-iframe alongside py3Dmol views. GitHub shows saved text and molecule PNGs;
-interactive views require a trusted Jupyter notebook.
-
-The [tutorial notebook](docs/TUTORIAL.ipynb) demonstrates search, event decoding,
-and explicit handoff of a selected event witness to TS analysis.
+it does not enumerate every symmetry permutation.
 
 ## CLI
 
@@ -416,8 +408,8 @@ mappa --stage ts \
 ```
 
 Target NPZ files additionally contain `frequencies` and `modes`. See the
-[tutorial](docs/TUTORIAL.ipynb) for constructing a `ReactionContext` from a
-chosen decoded event witness and serializing it with `reaction_record`.
+[Python API guide](docs/PYTHON_API.md) for supplying a `ReactionContext` and
+serializing it with `reaction_record`.
 
 The legacy orientation-selection APIs and CLI stages `rp` and `full` have been
 removed. They have no compatibility aliases or fallback dispatch. The old
@@ -498,7 +490,7 @@ which tests ran; passing smoke checks does not mean the full suite passed.
 | Location | Contents |
 |---|---|
 | `src/mappa/` | `mappa_core` algorithms/I/O, `mappa_workflow` analytics, and `presentation` |
-| `docs/` | Executed notebooks and public API documentation |
+| `docs/` | Python API, viewer and execution guides |
 | `bench/` | Maintained, portable experiment runners and campaign audits |
 | `reports/` | Saved measurements, witnesses, provenance, and benchmark summaries |
 | `manuscript/` | Current paper, figures, research preview, and reproducibility bundle |
