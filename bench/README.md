@@ -224,7 +224,7 @@ The repository privacy check also inspects compressed evidence and notebook
 text. Keep any site-specific denylist private:
 
 ```bash
-python manuscript/scripts/publication_privacy.py --repository . \
+python tools/publication_privacy.py --repository . \
   --private-values /path/to/private-identifiers.json
 ```
 

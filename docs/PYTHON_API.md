@@ -518,3 +518,36 @@ recover the same direction access and saved windows without further searches.
 `convert_fragments` and `refine_mapping` retain their existing hierarchical
 rematching behavior. They are separate from this model and are never invoked by
 normal decoding.
+
+## Result hierarchy
+
+After `search_aam_directions`, the public stage calls return `DirectionalResults`:
+`.forward` and `.reverse` hold the requested directions' individual results.
+The records inside each direction are:
+
+```text
+AAMResult
+`- AAMSearchGraph
+   |- contexts, states, transitions, and stop/cap evidence
+   `- compressed placements, conditioned generators, and provenance
+
+FinalBranchCatalogue                      # reduction across retained seeds/cuts
+`- saved mapping families, ordered actions and constraints
+
+EventInterpretation                       # separate event decoding
+|- unique fragments and shared conditional responses
+|- approximate model minimum and event window
+`- original family/partition references and mapping constraints
+
+ReactionCore                              # optional extract_reaction_cores call
+`- signed bond changes, representative mapping and decoded branch references
+
+ReactionContext                           # explicit TS input
+`- supplied mappings and corresponding bond events
+
+TSResult
+`- R->TS and P->TS CoreAAMResult plus scored core tuples
+```
+
+The command line is described in the [CLI guide](CLI.md) and the TS score in the
+[TS scoring guide](TS_SCORING.md).

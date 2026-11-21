@@ -5,7 +5,7 @@ The current plot compares concrete saved counts:
 `n = verified GT-consistent mapping event count - original detected minimum`.
 
 [Figure](event-offsets.png) · [PDF](event-offsets.pdf) ·
-[Per-reaction evidence](../../manuscript/evidence/reference_offsets.json.gz) ·
+[Per-reaction evidence](https://github.com/yunhzou/MAPPA-AAM/blob/700904113e5d0f9891d743c77f9d243f13635cae/manuscript/evidence/reference_offsets.json.gz) ·
 [Histogram](histogram.csv)
 
 Use the lowest recorded verified count across both directions, with forward
@@ -159,7 +159,7 @@ recovery. These concrete counts also enter the corrected offset figure.
 
 ### Corrected figure: saved GT-consistent mapping counts
 
-[Manuscript Figure 7](../../manuscript/figs/fig7_reference_offsets.png) includes
+[Manuscript Figure 7](https://github.com/yunhzou/MAPPA-AAM/blob/700904113e5d0f9891d743c77f9d243f13635cae/manuscript/figs/fig7_reference_offsets.png) includes
 all 1,851 Golden and 47,974 EnzymeMap reactions, with one color per dataset and
 no separate completion legend. Counts at zero are 1,630 (88.06%) and 44,086
 (91.90%), respectively. The histograms are:
@@ -172,9 +172,9 @@ fewer events than the original detected minimum. The old two lower bounds at -2
 and one at -1 no longer enter the figure. Golden has no negative ticks; the empty
 -1 tick is also omitted from EnzymeMap.
 
-[Plot evidence](../../manuscript/evidence/reference_offsets.json.gz) records each
+[Plot evidence](https://github.com/yunhzou/MAPPA-AAM/blob/700904113e5d0f9891d743c77f9d243f13635cae/manuscript/evidence/reference_offsets.json.gz) records each
 reaction's selected count, unchanged baseline, direction and certificate identity.
-[Anchored evidence](../../manuscript/evidence/anchored_offsets.json) retains both
+[Anchored evidence](https://github.com/yunhzou/MAPPA-AAM/blob/700904113e5d0f9891d743c77f9d243f13635cae/manuscript/evidence/anchored_offsets.json) retains both
 completion directions and index-translation details. The selected hydrogen
 assignment is a saved feasible completion, not a new optimized assignment.
 The build validates full scope, disjoint original/anchored membership, saved

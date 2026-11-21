@@ -15,7 +15,7 @@ from pypdf import PdfWriter
 from PIL import Image, PngImagePlugin
 
 
-CHECKER = Path(__file__).resolve().parents[1]/'manuscript/scripts/publication_privacy.py'
+CHECKER = Path(__file__).resolve().parents[1]/'tools/publication_privacy.py'
 spec = importlib.util.spec_from_file_location('publication_privacy', CHECKER)
 privacy = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(privacy)

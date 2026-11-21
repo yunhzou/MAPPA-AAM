@@ -1,5 +1,0 @@
-# Python 3.12; Tectonic and Poppler are installed separately.
-matplotlib==3.10.6
-numpy==2.3.5
-pypdf==6.10.0
-rdkit==2026.3.6
