@@ -24,6 +24,7 @@
   <img src="https://img.shields.io/badge/Golden-99.03%25_coverage-2f6fde" alt="Golden: 99.03% reference coverage">
   <img src="https://img.shields.io/badge/EnzymeMap-99.63%25_coverage-2f6fde" alt="EnzymeMap: 99.63% reference coverage">
   <img src="https://img.shields.io/badge/python-3.10%2B-e09a1f" alt="Python 3.10 or later">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-1c7ed6" alt="MIT license"></a>
   <img src="https://img.shields.io/github/last-commit/yunhzou/MAPPA-AAM?color=3fb950" alt="Last commit">
 </p>
 
