@@ -18,6 +18,7 @@
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -34,6 +35,8 @@ namespace {
 using Pair = std::pair<int, int>;
 using PlacementGenerators=permutation_native::Generators;
 using PlacementGroup=std::shared_ptr<const PlacementGenerators>;
+// One source edge's test on a target bond: weight, tolerance, inclusive limit.
+using DiscoveryConstraints=std::vector<std::tuple<double,double,bool>>;
 
 // ---------------------------------------------------------------------------
 // graphs
@@ -79,6 +82,7 @@ struct Target : Graph {
     mutable std::shared_ptr<const PreparedSymmetry> global_self;
     mutable PlacementGroup placement_generators;
     mutable std::unique_ptr<permutation_native::SetOrbit> placement_orbits;
+    mutable DiscoveryConstraints placement_constraints; // scope of the placement certificate
 };
 
 struct Source : Graph {

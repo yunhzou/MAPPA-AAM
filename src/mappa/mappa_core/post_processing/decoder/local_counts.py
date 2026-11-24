@@ -31,23 +31,27 @@ class FragmentCountIndex:
         self.bags = {}
         self.incident_bags = {}
 
-    def preserves_weights(self, action):
+    def preserves_responses(self, action):
+        """A placement group that leaves every target bond's event verdicts unchanged.
+
+        Exchanged bonds need not have equal bond orders. Each must compare the
+        same way, within the event threshold, with every base bond order of its
+        element pair; then counts and pair-bag bounds transfer to every image.
+        """
         if action not in self.groups:
             kind, generators = action
-            elements = np.asarray(self.index.problem.product.elements)
             self.groups[action] = kind == 'group' and all(
-                np.array_equal(elements, elements[np.asarray(g)]) and
-                np.array_equal(self.index.p, self.index.p[np.ix_(g, g)]) for g in generators)
+                preserved for preserved, _ in self.index.target_action_responses(generators))
         return self.groups[action]
 
     def fixed_pair_bag(self, response):
-        """Set permutations and subsequent weighted placements preserve pair bags."""
+        """Set permutations and subsequent response-preserving placements keep pair-bag bounds."""
         selected = frozenset(p for _, p in response.mapping)
         groups_started = False
         for action in response.actions:
             kind, value = action
             if kind == 'group':
-                if not self.preserves_weights(action):
+                if not self.preserves_responses(action):
                     return False
                 groups_started = True
             elif kind == 'relation':
@@ -177,7 +181,7 @@ class FragmentEventCounts:
         fragment = actions[0][1]
         if (self.response.mapping == fragment.witness
                 and self.response.piece.source_atoms == fragment.source_atoms
-                and all(self.owner.preserves_weights(action) for action in actions[1:])):
+                and all(self.owner.preserves_responses(action) for action in actions[1:])):
             return self.owner.decoder.prepare(fragment)
         return None
 
@@ -192,7 +196,7 @@ class FragmentEventCounts:
             return self.prepared_fragment.response
         actions = tuple((action, owner.decoder.prepare(action[1]).response if action[0] == 'relation' else None)
                         for action in response.actions)
-        # A whole fragment followed only by weight-preserving placements has
+        # A whole fragment followed only by response-preserving placements has
         # exactly its prepared internal costs. Placements still move endpoints.
         if self.prepared_fragment is not None:
             return OrderedSymmetryEvents(response.mapping, actions, owner.index.p, (),

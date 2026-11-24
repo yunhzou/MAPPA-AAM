@@ -348,9 +348,11 @@ def repeated_arms():
     return source, target
 
 
-def certified_group(target, prepared, locked=None):
-    from mappa.mappa_core.core.matching.growth.completion import _placement_generators
-    return _placement_generators(target, prepared, locked or {})
+def certified_group(source, target, prepared, tolerance=.2, locked=None):
+    from mappa.mappa_core.core.matching.growth.completion import (
+        _discovery_constraints, _placement_generators)
+    return _placement_generators(
+        target, prepared, _discovery_constraints(source, tolerance, None), locked or {})
 
 
 def image_orbits(images, generators, degree):
@@ -364,7 +366,7 @@ def test_global_image_orbits_share_discovery_without_losing_distinct_arms():
     source, target = repeated_arms()
     prepared = binary_symmetry(['O'] + ['C'] * 8, target.graph['wbo_matrix'])
     query = image_query(source, target, tuple(source), tuple(source.edges))
-    generators = certified_group(target, prepared)
+    generators = certified_group(source, target, prepared)
     witnesses = query.images(5, placement_generators=generators)
     assert len(witnesses) == 1
     images = {frozenset(p for _, p in mapping) for mapping in placed(
@@ -383,7 +385,7 @@ def test_global_image_orbits_stop_at_cap_evidence():
     prepared = binary_symmetry(['C'] * 10, target.graph['wbo_matrix'])
     query = image_query(source, target, tuple(source), tuple(source.edges))
     witnesses = query.images(2, preferred={0:0,1:1,2:2},
-                             placement_generators=certified_group(target, prepared))
+                             placement_generators=certified_group(source, target, prepared))
     # All 120 labelled three-atom sets share one continuation, below cap=1.
     assert len(witnesses) == 1
     assert query.nodes < 10
@@ -399,26 +401,32 @@ def weighted_star_self():
     return target, replace(prepared, _generators=((0,2,1,3), (0,1,3,2)))
 
 
-def test_global_pruning_preserves_the_actual_discovery_support_predicate():
+def test_placement_certificate_follows_the_discovery_support_predicate():
     target, prepared = weighted_star_self()
+    # At tolerance 0.5 a 1.0 edge accepts the 1.0 and 1.4 arms and rejects 1.8.
     source = graph(['O','C'], [(0,1,1.)])
+    generators = certified_group(source, target, prepared, .5)
+    assert set(group_actions(generators, 4)) == {(0,1,2,3), (0,2,1,3)}
     query = image_query(source, target, tuple(source), tuple(source.edges), tolerance=.5)
-    generators = certified_group(target, prepared)
     witnesses = query.images(4, placement_generators=generators)
-    assert {frozenset(w.values()) for w in witnesses} == {frozenset((0,1)), frozenset((0,2))}
-    assert not generators
+    assert len(witnesses) == 1
+    assert {frozenset(action[p] for p in witnesses[0].values())
+            for action in group_actions(generators, 4)} == {frozenset((0,1)), frozenset((0,2))}
 
 
-def test_binary_symmetry_does_not_certify_weighted_continuation_equivalence():
+def test_placement_certificate_compares_support_not_bond_order_equality():
     target, prepared = weighted_star_self()
-    assert all(prepared.contains(generator) for generator in prepared.generators)
-    assert prepared.contains((0,3,2,1))
+    # A 1.4 edge at tolerance 1 accepts every arm, so all exchanges are
+    # certified although the outer arms differ by 0.8.
     source = graph(['O','C'], [(0,1,1.4)])
+    generators = certified_group(source, target, prepared, 1.)
+    assert len(set(group_actions(generators, 4))) == 6
     query = image_query(source, target, tuple(source), tuple(source.edges), tolerance=1.)
-    generators = certified_group(target, prepared)
-    witnesses = query.images(4, placement_generators=generators)
-    assert {frozenset(w.values()) for w in witnesses} == {frozenset((0,i)) for i in (1,2,3)}
-    assert not generators
+    assert len(query.images(4, placement_generators=generators)) == 1
+    # Edges 1.0 and 1.8 at tolerance 0.5 accept a different pair of arms each:
+    # every arm has its own support pattern and no exchange is certified.
+    source = graph(['O','C','C'], [(0,1,1.), (0,2,1.8)])
+    assert not certified_group(source, target, prepared, .5)
 
 
 def test_global_pruning_matches_independent_weighted_locked_image_oracle():
@@ -438,12 +446,15 @@ def test_global_pruning_matches_independent_weighted_locked_image_oracle():
         prepared = binary_symmetry(['C']*n,target.graph['wbo_matrix'])
         query = image_query(source,target,range(k),tuple(source.edges),locked=locked,tolerance=tolerance)
         preferred = dict(min(valid)) if valid and trial % 2 else None
-        generators = certified_group(target, prepared, locked)
+        generators = certified_group(source, target, prepared, tolerance, locked)
         witnesses = query.images(100, preferred=preferred, placement_generators=generators)
         actual = [frozenset(w.values()) for w in witnesses]
         expected = {frozenset(p for _, p in pairs) for pairs in valid}
         assert len(actual) == len(image_orbits(actual, generators, n))
         assert image_orbits(actual, generators, n) == image_orbits(expected, generators, n)
+        # Certified exchanges never leave the independently valid atom sets.
+        assert {frozenset(action[p] for p in image) for image in actual
+                for action in group_actions(generators, n)} == expected
         assert all(tuple(sorted(w.items())) in valid for w in witnesses)
 
 

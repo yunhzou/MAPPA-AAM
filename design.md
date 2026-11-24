@@ -325,13 +325,24 @@ equivalent. Every represented placement remains recoverable through that
 relationship. Overlapping sets remain eligible.
 
 Placement compression uses a certified subgroup of the global binary symmetry.
-It preserves the full target WBO matrix, active connectivity and
-all base-to-target node compatibility, and fixes every prior locked target
-pointwise. Thus every later matching constraint is preserved under composition.
+An exchange is certified when it preserves active connectivity and all
+base-to-target node compatibility, fixes every prior locked target pointwise,
+and no discovery constraint of the search accepts a target bond but rejects its
+image. A discovery constraint is one base edge's bond order with its tolerance.
+Thus every later matching constraint is preserved under composition.
 Callers whose continuation depends on additional target labels declare those
 labels fixed for placement compression; this does not occupy them for matching.
-Binary connectivity alone does not establish this stronger condition.
+Binary connectivity alone does not establish this condition.
 Uncertified rearrangements never justify dropping a continuation.
+
+Exchanged target bonds need not have equal bond orders, and contacts below the
+bond floor are not compared. Equivalent atoms rarely carry identical continuous
+bond orders, so requiring equality left such targets with no certified exchange:
+every symmetric copy became its own branch and completion revisited the same
+atom sets through reshuffled equivalent atoms. Matching certifies placements
+against the discovery tolerance only. Decoding checks each saved exchange
+against the event thresholds with the original bond orders before it reuses a
+fragment's prepared counts.
 
 Discover one representative per target-set orbit. Compact orbit exclusions and
 conditioned symmetry pruning participate in search; do not enumerate all orbit
@@ -639,8 +650,12 @@ group closure or allow two fragments to occupy the same target atoms.
 Prepare and validate each shared local minimum operation once, then reuse it
 when composing branch witnesses. Shared choices must still agree and operations
 retain their recorded order. Assembly binds the prepared cost projections to their original shared choices;
-it does not expand them back into raw bond terms. Weight-preserving placement
-actions retain those internal costs while moving the endpoints. The sweep adds
+it does not expand them back into raw bond terms. Response-preserving placement
+actions retain those internal costs while moving the endpoints. A placement
+preserves responses when every exchanged target bond compares the same way,
+within the event threshold, with every base bond order of its element pair;
+the exchanged bond orders need not be equal. A placement that can change one
+such verdict is decoded with its fragment as an ordered program. The sweep adds
 only its endpoint-pair correction, with endpoint dependencies traced through the
 saved action order. When internal costs are constant, resolve the sweep directly
 over jointly reachable endpoint pairs, retaining one valid ordered choice as its

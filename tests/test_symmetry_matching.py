@@ -257,14 +257,19 @@ def test_core_alignment_does_not_filter_nonmatching_core_edges():
     assert {assignment.pairs for assignment in result.assignments} == {((0, 0), (1, 1), (2, 2))}
 
 
-def test_tolerance_compatible_unequal_bonds_remain_separate_placements():
+def test_tolerance_compatible_unequal_bonds_share_one_placement():
     weights = np.array([[0., 1., 1.1], [1., 0., 0.], [1.1, 0., 0.]])
     source = build_graph(['C', 'H', 'H'], weights, bond_cut=.2)
     target = build_graph(['C', 'H', 'H'], weights, bond_cut=.2)
     result = complete(source, target, {0, 1}, [(0, 1)], .2)
-    # Discovery accepts both bonds; exact whole-target symmetry cannot swap them.
-    assert len(result.matches) == 2
+    # Every source edge accepts both bonds, so their exchange is certified
+    # although the bond orders differ.
+    assert len(result.matches) == 1
     assert represented(result) == {((0, 0), (1, p)) for p in (1, 2)}
+    # A tolerance that separates the two bonds certifies no exchange.
+    strict = complete(source, target, {0, 1}, [(0, 1)], .05)
+    assert not strict.placement_generators
+    assert represented(strict) == {((0, 0), (1, 1))}
 
 
 def test_planar_metal_tetramethyl_child_h_keeps_parent_degeneracy():

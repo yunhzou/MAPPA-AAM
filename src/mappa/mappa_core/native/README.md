@@ -12,8 +12,9 @@ imports are `mappa._engine` and `mappa._group_ops`.
   `fragment_completion.h` retains the complete discovery constraints and
   prepares anchored relaxed self-relationships for each side. Global placement
   preparation is shared per target reaction. Its certified exchanges preserve
-  the full target WBO matrix, active topology and source-node compatibility,
-  while fixing prior locks and explicitly fixed target labels. Each result
+  active topology, source-node compatibility and every discovery constraint's
+  verdict on each target bond, without requiring equal bond orders, while
+  fixing prior locks and explicitly fixed target labels. Each result
   retains this placement relationship separately from its fragment-local
   relationships; saved hierarchy transitions transport the entire later
   continuation jointly. This prepared endpoint record is separate from the

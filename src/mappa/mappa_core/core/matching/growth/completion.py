@@ -5,7 +5,8 @@ from time import perf_counter
 import numpy as np
 
 from mappa.mappa_core.core.matching.growth.existence import FragmentQuery
-from mappa.mappa_core.core.matching.policy import _edge_wbo, ElementNodeMatchPolicy
+from mappa.mappa_core.core.matching.policy import (
+    _edge_wbo, _growth_edge_supported, ElementNodeMatchPolicy)
 from mappa.mappa_core.core.matching.representation.records import Fragment, FragmentMatchResult, IslandBranchLimitExceeded
 from mappa.mappa_core.core.symmetry.structure import binary_symmetry
 from mappa.mappa_core.core.symmetry.relations import DiscoveryEdge, RelaxedIsomorphism
@@ -67,33 +68,52 @@ def _global_self(target, labels):
     return prepared
 
 
-def _placement_generators(target, prepared, locked, fixed_targets=()):
+def _discovery_constraints(source, tolerance, bond_tolerance):
+    """Every distinct test a source edge of this search can apply to a target bond."""
+    inclusive = bond_tolerance is None or bond_tolerance.inclusive
+    return tuple(sorted({
+        (_edge_wbo(source, a, b),
+         tolerance if bond_tolerance is None else bond_tolerance.limit(a, b), inclusive)
+        for a, b in source.edges}))
+
+
+def _placement_generators(target, prepared, constraints, locked, fixed_targets=()):
     """Certify exchanges for every later matching constraint, then fix locks.
 
-    The broad preparation's labels preserve all source-node compatibility.
-    Whole-matrix equality, including subthreshold contacts, makes composition
-    safe independently of discovery tolerance.
+    The broad preparation's labels preserve all source-node compatibility. An
+    exchange is kept when it preserves active connectivity and no discovery
+    constraint accepts a target bond but rejects its image. Bond orders need not
+    be equal: equivalent atoms rarely carry identical continuous values. Such
+    exchanges preserve every later matching constraint under composition.
     """
     from mappa._group_ops import SetOrbit
     edges = frozenset(tuple(sorted(edge)) for edge in target.edges)
+    floor = target.graph.get('bond_cut', .2)
+
+    def separated(first, second):
+        return first != second and any(
+            _growth_edge_supported(weight, first, limit, floor, inclusive=inclusive)
+            != _growth_edge_supported(weight, second, limit, floor, inclusive=inclusive)
+            for weight, limit, inclusive in constraints)
+
     cached = target.graph.get('_placement_group')
-    if cached is None or cached[0] is not prepared or cached[1] != edges:
+    if (cached is None or cached[0] is not prepared or cached[1] != edges
+            or cached[2] != constraints):
         degree = max(target, default=-1) + 1
         generators = []
         for generator in prepared.generators:
-            if not np.array_equal(prepared.weights,
-                                  prepared.weights[np.ix_(generator, generator)]):
-                continue
             moved = {atom: prepared.atoms[index]
                      for atom, index in zip(prepared.atoms, generator)}
-            if any(tuple(sorted((moved[a], moved[b]))) not in edges for a, b in edges):
+            if any(tuple(sorted((moved[a], moved[b]))) not in edges
+                   or separated(_edge_wbo(target, a, b), _edge_wbo(target, moved[a], moved[b]))
+                   for a, b in edges):
                 continue
             generators.append(tuple(moved.get(atom, atom) for atom in range(degree)))
         group = SetOrbit(degree, generators)
         generators = tuple(map(tuple, group.stabilizer(())))
-        target.graph['_placement_group'] = prepared, edges, group, generators
+        target.graph['_placement_group'] = prepared, edges, constraints, group, generators
     else:
-        _, _, group, generators = cached
+        *_, group, generators = cached
     fixed = set(locked.values()) | set(fixed_targets)
     if not fixed.issubset(target):
         raise ValueError('fixed placement target is outside the target graph')
@@ -114,7 +134,10 @@ def complete_fragment(growth, source, target, locked, *, tolerance,
     global_self = (_global_self(target, target_labels)
                    if not set(target).issubset(fixed) and query.needs_global_symmetry() else None)
     generators = (() if global_self is None else
-                  _placement_generators(target, global_self, locked, placement_fixed_targets))
+                  _placement_generators(
+                      target, global_self,
+                      _discovery_constraints(source, tolerance, bond_tolerance),
+                      locked, placement_fixed_targets))
     witnesses = query.images(branch_limit + 1,
                              placement_generators=generators)
     if profile is not None:

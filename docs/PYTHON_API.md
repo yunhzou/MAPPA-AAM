@@ -159,10 +159,12 @@ result = match_fragment(source_graph, target_graph, seed=0,
 Fragment growth finds one valid placement per extension, allowing assignments
 inside the growing fragment to change while earlier fragment locks stay fixed.
 It first tries extending the witness, then searches the accepted fragment if
-reassignment is needed. At saturation, target atom sets related by a lossless
+reassignment is needed. At saturation, target atom sets related by a certified
 global placement group share one canonical `Fragment` and continuation. The
-group preserves the full target WBO matrix and earlier locks; its generators
-are saved in `result.placement_generators`. Other target sets remain separate.
+group preserves active connectivity, earlier locks and every discovery
+constraint's verdict on each target bond; exchanged bonds need not have equal
+bond orders. Its generators are saved in `result.placement_generators`. Other
+target sets remain separate.
 Each fragment retains all discovery assignments as joint constraints, plus its
 anchor-aware source and target relaxed self relationships. The placement group
 moves the complete later continuation together and does not replace either

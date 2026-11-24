@@ -137,11 +137,20 @@ def test_ring_hydrogens_stay_compressed(native,monkeypatch):
 @pytest.mark.parametrize('native',['0','1'])
 def test_locks_tolerance_atom_sets_components_and_caps(native,monkeypatch):
     monkeypatch.setenv('MAPPA_NATIVE',native)
-    source=graph(['X','C','C'],[(0,1,1),(0,2,1)])
     target=graph(['X','C','C','C'],[(0,1,1),(0,2,1.1),(0,3,1.2)])
-    result,_=compare(source,target,config=FragmentMatchConfig(branch_limit=3))
-    assert not result.capped and len(result.matches)==3
+    # The default tolerance accepts every arm for both source edges: the three
+    # atom sets are one placement orbit.
+    source=graph(['X','C','C'],[(0,1,1),(0,2,1)])
+    result,_=compare(source,target,config=FragmentMatchConfig(branch_limit=1))
+    assert not result.capped and len(result.matches)==1
     assert len(represented(result))==6
+    # At tolerance 0.15 each source edge accepts a different pair of arms, so
+    # the three atom sets stay separate placements.
+    source=graph(['X','C','C'],[(0,1,1),(0,2,1.2)])
+    result,_=compare(source,target,config=FragmentMatchConfig(branch_limit=3,iso_tolerance=.15))
+    assert not result.capped and len(result.matches)==3
+    assert {tuple(sorted(p for _, p in m)) for m in represented(result)} == {
+        (0,1,2), (0,1,3), (0,2,3)}
     source=graph(['O','H','C'],[(0,1,1),(0,2,1)])
     target=graph(['O','H','C']*2,[(0,1,1),(0,2,1),(3,4,1),(3,5,1)])
     result,_=compare(source,target,config=FragmentMatchConfig(branch_limit=1))

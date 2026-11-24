@@ -328,12 +328,36 @@ def test_placement_certificate_uses_event_weights_instead_of_matching_weights():
     local, response = prepare(events, (('relation', fragment), placement), dict(fragment.witness))
     # The matching graph permits the placement; original event weights do not
     # preserve its selected pair bag. Reusing that bag would wrongly assert one.
-    assert not response.event_counts.owner.preserves_weights(placement)
+    assert not response.event_counts.owner.preserves_responses(placement)
     assert response.event_counts.owner.aggregate_bound(response) == 0
     assert response.event_counts.minimum == 0
     mappings = [{0: 0, 1: 1}, {0: 0, 1: 2}]
     assert {literal_count(events, mapping, (0, 1)) for mapping in mappings} == {0, 1}
     assert_bounds_cover_mappings(local, response, mappings)
+
+
+def test_placement_with_unequal_bond_orders_and_equal_verdicts_reuses_prepared_counts(monkeypatch):
+    from mappa.mappa_core.core.symmetry.constraints import FiniteConstraints
+    source = weights(6, [(0, 1, 1.), (0, 2, 1.), (1, 2, 1.)])
+    # The second component's bond orders differ from the first's in the third
+    # decimal: no event threshold separates them.
+    target = weights(6, [(0, 1, 1.), (1, 2, 1.), (3, 4, .971), (4, 5, .969)])
+    endpoints = problem(source, target)
+    fragment = saved_fragment(endpoints, source_atoms=(0, 1, 2))
+    placement = ('group', ((3, 4, 5, 0, 1, 2),))
+    local, response = prepare(endpoints, (('relation', fragment), placement), dict(fragment.witness))
+    counts = response.event_counts
+    assert not np.array_equal(target, target[np.ix_(placement[1][0], placement[1][0])])
+    assert counts.owner.preserves_responses(placement)
+    assert counts.owner.fixed_pair_bag(response)
+    monkeypatch.setattr(FiniteConstraints, 'act',
+        lambda *_: pytest.fail('Response-preserving placement entered the count contraction'))
+    assert counts.prepared_fragment is not None and counts.minimum == 1
+    mappings = [dict(enumerate(images)) for atoms in ((0, 1, 2), (3, 4, 5))
+                for images in permutations(atoms)]
+    assert min(literal_count(endpoints, mapping, (0, 1, 2)) for mapping in mappings) == 1
+    assert_bounds_cover_mappings(local, response, mappings)
+    assert counts.endpoint_bounds(0) == dict.fromkeys(range(6), 1)
 
 
 def test_weight_bag_certificate_respects_metal_and_ordinary_thresholds(monkeypatch):

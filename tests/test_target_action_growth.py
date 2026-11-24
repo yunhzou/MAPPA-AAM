@@ -188,7 +188,7 @@ def test_placement_group_fixes_prior_locks_outside_current_fragment(native, monk
 
 @pytest.mark.parametrize('native', ['0', '1'])
 @pytest.mark.parametrize('contact', [False, True], ids=['active-weight', 'subthreshold-contact'])
-def test_placement_group_preserves_original_weights_not_only_binary_structure(native, contact, monkeypatch):
+def test_placement_group_follows_discovery_support_not_bond_order_equality(native, contact, monkeypatch):
     monkeypatch.setenv('MAPPA_NATIVE', native)
     source = graph(['C', 'H'], [(0, 1, 1.)])
     elements = ['C', 'H', 'C', 'H'] + (['O'] if contact else [])
@@ -196,10 +196,31 @@ def test_placement_group_preserves_original_weights_not_only_binary_structure(na
     if contact:
         edges += [(0, 4, .05), (2, 4, .15)]
     target = graph(elements, edges)
+    # Tolerance 0.5 accepts both C-H bonds, and contacts below the bond floor
+    # are no matching constraint: the two placements share one continuation.
     result = match_fragment(source, target, seed=0,
-        config=FragmentMatchConfig(iso_tolerance=.5,  branch_limit=2))
-    assert not result.capped and len(result.matches) == 2
+        config=FragmentMatchConfig(iso_tolerance=.5,  branch_limit=1))
+    assert not result.capped and len(result.matches) == 1
     assert represented(result) == {((0, 0), (1, 1)), ((0, 2), (1, 3))}
+    # Tolerance 0.2 rejects the 1.3 bond, so nothing is exchanged onto it.
+    if not contact:
+        strict = match_fragment(source, target, seed=0,
+            config=FragmentMatchConfig(iso_tolerance=.2,  branch_limit=1))
+        assert represented(strict) == {((0, 0), (1, 1))}
+
+
+@pytest.mark.parametrize('native', ['0', '1'])
+def test_equivalent_hydrogens_with_unequal_bond_orders_share_one_placement(native, monkeypatch):
+    monkeypatch.setenv('MAPPA_NATIVE', native)
+    # Continuous bond orders differ between the hydrogens of one methyl group.
+    source = graph(['C', 'H', 'H'], [(0, 1, .97), (0, 2, .97)])
+    target = graph(['C', 'H', 'H', 'H'], [(0, 1, .970), (0, 2, .969), (0, 3, .971)])
+    result = match_fragment(source, target, seed=0,
+                            config=FragmentMatchConfig(iso_tolerance=2., branch_limit=1))
+    assert not result.capped and len(result.matches) == 1
+    assert len(represented(result)) == 6
+    assert {frozenset(p for _, p in mapping) for mapping in represented(result)} == {
+        frozenset((0, a, b)) for a, b in ((1, 2), (1, 3), (2, 3))}
 
 
 def test_full_discovery_on_one_image_is_not_replaced_by_a_witness_orbit():

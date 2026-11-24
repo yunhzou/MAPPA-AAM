@@ -102,14 +102,14 @@ def test_global_placement_composes_local_choices_and_scores_original_boundaries(
     decoded = decode_events(saved, event_problem=scoring)
     assert len(decoded.inventory.fragments) == 1
     assert decoded.fragments[0].response.fragment.source_atoms == decoded.inventory.fragments[0].source_atoms
-    assert not decoded.local.counts.preserves_weights(saved.families[0].actions[1])
+    assert not decoded.local.counts.preserves_responses(saved.families[0].actions[1])
     seen = set()
     for image, word in product(((0, 1), (1, 0)), ((), (1,))):
         choice = dict(discovery=dict(zip((0, 1), image)))
         seen.add(assert_counts(decoded, (choice, word)))
     assert seen == {(0, 1), (1, 0), (2, 3), (3, 2)}
     ordinary = decode_events(saved)
-    assert ordinary.local.counts.preserves_weights(saved.families[0].actions[1])
+    assert ordinary.local.counts.preserves_responses(saved.families[0].actions[1])
     assert all(ordinary.contributions(0, (None, word))['total'] == 0 for word in ((), (1,)))
 
 

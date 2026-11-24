@@ -26,6 +26,34 @@ std::shared_ptr<const PreparedSymmetry> prepare_self(const Graph& graph,
     return result;
 }
 
+// Every distinct test a source edge of this search can apply to a target bond.
+DiscoveryConstraints discovery_constraints(const Source& source,double tolerance) {
+    DiscoveryConstraints result;
+    for (int a=0;a<source.n;++a) for (int b:source.adj[a]) if (a<b)
+        result.emplace_back(source.wbo(a,b),source.tolerance(a,b,tolerance),source.tolerance_inclusive);
+    std::sort(result.begin(),result.end());
+    result.erase(std::unique(result.begin(),result.end()),result.end());
+    return result;
+}
+
+// A placement exchange is certified when it keeps active connectivity and no
+// discovery constraint accepts a target bond but rejects its image. Bond orders
+// need not be equal: equivalent atoms rarely carry identical continuous values.
+// Such exchanges preserve every later matching constraint under composition.
+bool preserves_discovery(const Target& target,const std::vector<int>& generator,
+        const DiscoveryConstraints& constraints) {
+    for (int a=0;a<target.n;++a) for (int b=a+1;b<target.n;++b) {
+        int c=generator[a],d=generator[b];
+        if (target.has_edge(a,b)!=target.has_edge(c,d)) return false;
+        double weight=target.wbo(a,b),image=target.wbo(c,d);
+        if (!target.has_edge(a,b) || weight==image) continue;
+        for (const auto& [source_weight,limit,inclusive]:constraints)
+            if (growth_edge_supported(source_weight,weight,limit,target.bond_cut,inclusive)!=
+                growth_edge_supported(source_weight,image,limit,target.bond_cut,inclusive)) return false;
+    }
+    return true;
+}
+
 void complete_fragment(const Source& source,const Target& target,const std::vector<int>& locked,
         FragmentGrowth& growth,double threshold,double tolerance,
         int min_lock_size,long max_branches,GrowResult& result,GrowthObservation* observation,
@@ -41,18 +69,18 @@ void complete_fragment(const Source& source,const Target& target,const std::vect
         if (!target.global_self || target.global_self->bond_threshold!=threshold) {
             std::vector<int> atoms(target.n);std::iota(atoms.begin(),atoms.end(),0);
             target.global_self=prepare_self(target,std::move(atoms),{},threshold);
-            PlacementGenerators exact_generators;
-            for (const auto& generator:target.global_self->generators) {
-                bool exact=true;
-                for (int a=0;a<target.n && exact;++a) for (int b=a+1;b<target.n;++b)
-                    if (target.has_edge(a,b)!=target.has_edge(generator[a],generator[b]) ||
-                        target.wbo(a,b)!=target.wbo(generator[a],generator[b])) {exact=false;break;}
-                if (exact) exact_generators.push_back(generator);
-            }
+            target.placement_orbits.reset();
+        }
+        auto constraints=discovery_constraints(source,tolerance);
+        if (!target.placement_orbits || target.placement_constraints!=constraints) {
+            PlacementGenerators certified;
+            for (const auto& generator:target.global_self->generators)
+                if (preserves_discovery(target,generator,constraints)) certified.push_back(generator);
             target.placement_generators=std::make_shared<const PlacementGenerators>(
-                permutation_native::SetOrbit(target.n,exact_generators).stabilizer({}));
+                permutation_native::SetOrbit(target.n,certified).stabilizer({}));
             target.placement_orbits=std::make_unique<permutation_native::SetOrbit>(
                 target.n,*target.placement_generators);
+            target.placement_constraints=std::move(constraints);
         }
         result.placement_generators=occupied.empty() ? target.placement_generators
             : std::make_shared<const PlacementGenerators>(
