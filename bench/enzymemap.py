@@ -28,7 +28,7 @@ def decoding_policy(index):
     """Read the declared event policy, using defaults only for omitted settings."""
     return EventDecodeConfig(**index.get('decode_config', dict(
         threshold=index['config']['event_threshold'],
-        metal_threshold=index['config']['metal_event_threshold'])))
+        fractional_bond_threshold=index['config']['fractional_bond_event_threshold'])))
 
 
 def prepared_problem(row):

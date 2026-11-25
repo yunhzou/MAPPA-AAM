@@ -152,7 +152,7 @@ def endpoint_bond_changes(reaction, mechanism, target, assignment):
             before, after = float(endpoint.wbo[a,b]), float(t.wbo[x,y])
             threshold = bond_event_threshold(r.elements, i, j,
                 default_threshold=reaction.config.event_threshold,
-                metal_threshold=reaction.config.metal_event_threshold)
+                fractional_bond_threshold=reaction.config.fractional_bond_event_threshold)
             delta = after-before
             if abs(delta) <= threshold:
                 continue

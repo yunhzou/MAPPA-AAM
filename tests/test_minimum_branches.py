@@ -70,7 +70,7 @@ def test_fragment_atom_sets_define_identity_and_reverse_normalization():
 def test_equal_event_totals_do_not_merge_different_reaction_centers():
     ep = endpoint('CCCCON', [(0, 1, 1.), (1, 2, 1.), (2, 3, 1.), (0, 4, 1.), (3, 5, 1.)])
     mappings = [tuple(enumerate((1, 0, 2, 3, 4, 5))), tuple(enumerate((0, 1, 3, 2, 4, 5)))]
-    centers = observed_centers(AAMProblem(ep, ep), mappings, dict(threshold=.5, metal_threshold=.3))
+    centers = observed_centers(AAMProblem(ep, ep), mappings, dict(threshold=.5, fractional_bond_threshold=.3))
     assert len(centers) == 2
     assert [value['physical_event_count'] for value in centers] == [4, 4]
     assert centers[0]['events'] != centers[1]['events']
@@ -80,6 +80,6 @@ def test_symmetry_equivalent_hydrogen_changes_share_a_reaction_center():
     base = endpoint('COHH', [(0, 1, 1.), (0, 2, 1.), (0, 3, 1.)])
     target = endpoint('COHH', [(0, 1, 1.), (0, 2, 1.), (1, 3, 1.)])
     mappings = [tuple(enumerate((0, 1, 2, 3))), tuple(enumerate((0, 1, 3, 2)))]
-    centers = observed_centers(AAMProblem(base, target), mappings, dict(threshold=.5, metal_threshold=.3))
+    centers = observed_centers(AAMProblem(base, target), mappings, dict(threshold=.5, fractional_bond_threshold=.3))
     assert len(centers) == 1
     assert centers[0]['physical_event_count'] == 2

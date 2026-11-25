@@ -145,7 +145,7 @@ def audit_decoded_witness(decoded, reference, context, answer, *, reverse=False,
     source, target = index.problem.reactant, index.problem.product
     def threshold(endpoint, a, b):
         return bond_event_threshold(endpoint.elements, a, b,
-            default_threshold=index.threshold, metal_threshold=index.metal_threshold)
+            default_threshold=index.threshold, fractional_bond_threshold=index.fractional_bond_threshold)
     def changed(a, b):
         product_weight = target.wbo[mapping[a], mapping[b]] if a in mapping and b in mapping else 0.
         return bool(abs(float(product_weight) - float(source.wbo[a, b])) > threshold(source, a, b))

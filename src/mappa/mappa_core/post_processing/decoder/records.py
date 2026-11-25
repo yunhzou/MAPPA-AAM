@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 @dataclass(frozen=True)
 class EventDecodeConfig:
     threshold: float = 0.5
-    metal_threshold: float | None = 0.3
+    fractional_bond_threshold: float | None = 0.3
     event_slack: int = 6
     fragment_seconds: float = 5.
 
@@ -23,7 +23,7 @@ class EventDecodeConfig:
         import math
         if self.threshold is None or any(
             v is not None and (not math.isfinite(v) or v <= 0)
-            for v in (self.threshold, self.metal_threshold)
+            for v in (self.threshold, self.fractional_bond_threshold)
         ):
             raise ValueError('event thresholds must be finite and positive')
         if isinstance(self.event_slack, bool) or not isinstance(self.event_slack, int) or self.event_slack < 0:

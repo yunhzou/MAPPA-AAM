@@ -682,8 +682,13 @@ unfinished search never becomes absence or an exact minimum. Branch queries
 preserve the surviving choices rather than exporting one chosen bijection.
 
 Events use **original endpoint WBOs**, not cut search graphs. The ordinary
-threshold defaults to 0.5 and the metal threshold to 0.3; an event requires a
-strictly larger weight change. Breaking, forming, strengthening and weakening
+threshold defaults to 0.5 and the fractional-bond threshold to 0.3; an event
+requires a strictly larger weight change. The lower threshold applies when
+either atom is a metal or a main-group element that forms three-centre bonds
+(B; Si, P, S, Cl and their heavier congeners; Kr, Xe, Rn). In a three-centre
+bond each link has a Wiberg order near one half, so one link forming or
+breaking changes the order by at most about 0.5 and would fall under the
+ordinary threshold. H, C, N, O and F keep the ordinary threshold. Breaking, forming, strengthening and weakening
 are exclusive categories. Growth tolerance is separate. Count changes touching
 mapped atoms, including mapped/unmapped boundaries; omit bonds wholly inside
 unmatched material. Invent no correspondence for unmatched atoms.

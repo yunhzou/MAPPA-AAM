@@ -47,7 +47,7 @@ def _config(args):
         graph_floor=args.graph_floor,
         iso_tolerance=args.iso_tolerance,
         event_threshold=args.event_threshold,
-        metal_event_threshold=args.metal_event_threshold,
+        fractional_bond_event_threshold=args.fractional_bond_event_threshold,
         seed_count=args.seed_count,
         branch_limit=args.branch_limit,
         anchors=anchors,
@@ -73,7 +73,8 @@ def _parser():
     parser.add_argument("--graph-floor", type=float, default=0.2)
     parser.add_argument("--iso-tolerance", type=float, default=1.0)
     parser.add_argument("--event-threshold", type=float, default=0.5)
-    parser.add_argument("--metal-event-threshold", type=float, default=0.3)
+    parser.add_argument("--fractional-bond-event-threshold", "--metal-event-threshold",
+                        dest="fractional_bond_event_threshold", type=float, default=0.3)
     parser.add_argument("--seed-count", type=int, default=1)
     parser.add_argument("--branch-limit", type=int, default=100)
     parser.add_argument("--anchor", action="append", default=[], metavar="R:P")
@@ -107,7 +108,7 @@ def main(argv=None):
         if args.stage == "events":
             decoded = decode_events(aam, EventDecodeConfig(
                 threshold=args.event_threshold,
-                metal_threshold=args.metal_event_threshold))
+                fractional_bond_threshold=args.fractional_bond_event_threshold))
             (output / "events.json").write_text(
                 json.dumps(decoded_events_record(decoded), indent=2))
         print(output.resolve())

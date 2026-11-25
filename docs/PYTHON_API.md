@@ -17,7 +17,7 @@ config = AAMSearchConfig(iso_tolerance=2.0, seed_count=1, branch_limit=100)
 
 matched = search_aam_directions(problem, config, direction="both", workers=1)
 catalogues = deduplicate(matched)  # Final matching subphase, across seeds/cuts.
-decoded = decode_events(catalogues, threshold=0.5, metal_threshold=0.3, event_slack=5)
+decoded = decode_events(catalogues, threshold=0.5, fractional_bond_threshold=0.3, event_slack=5)
 
 # Optional post-processing, explicitly separate from decoding.
 cores = extract_reaction_cores(decoded)
@@ -107,8 +107,8 @@ symmetry optimization. Easy fragments stop early. `complete=True` certifies this
 fragment's minimum; otherwise `event_count` is the actual count of a best-found
 mapping, with `lower_bound` reported separately. The returned discovery witness
 and source/target operations retain its membership proof. Original event weights
-can be supplied through `event_problem`; the ordinary and metal thresholds
-default to 0.5 and 0.3. This does not compute boundary events or all event bins.
+can be supplied through `event_problem`; the ordinary and fractional-bond
+thresholds default to 0.5 and 0.3. This does not compute boundary events or all event bins.
 
 Deadline checks are cooperative. An opaque native call can overrun until it
 returns; a strict wall-clock cutoff requires the execution layer's watchdog.
@@ -121,7 +121,7 @@ from IPython.display import HTML, display
 from mappa.presentation.viewers import aam_growth_html
 
 page = aam_growth_html(aam, context=None, event_threshold=0.5,
-                       metal_event_threshold=0.3)
+                       fractional_bond_event_threshold=0.3)
 display(HTML('<iframe style="width:100%;height:1020px" srcdoc="'
              + escape(page, quote=True) + '"></iframe>'))
 ```
@@ -197,8 +197,8 @@ reject unsupported trace events and custom node policies. Select `MAPPA_NATIVE=0
 |---|---|
 | `AAMSearchConfig` | `iso_tolerance=1.0`; `graph_floor=0.2`; `cut_floor=0.2`; `sweep_cuts=True`; `seed_count=1`; `random_seed=42`; `seed_selection="random"` or `"distance"`; `branch_limit=100`; `anchors=()`; `task_chunksize=1` |
 | `search_aam` / directional helper | `workers`; `execution="reused_native"` (default), `"reference"`, or `"shared_policies"`; `intermediate_dir`; `resume`; `archive_format="json"` or `"checkpoint"` |
-| `decode_events` / `EventDecodeConfig` | `threshold=0.5`; `metal_threshold=0.3`; `event_slack=6` above the best attained model count; `fragment_seconds=5.0` for starting-map improvement |
-| `RefinementConfig` | `threshold=0.5`; `metal_threshold=0.3` (`None` disables the special metal rule); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
+| `decode_events` / `EventDecodeConfig` | `threshold=0.5`; `fractional_bond_threshold=0.3`; `event_slack=6` above the best attained model count; `fragment_seconds=5.0` for starting-map improvement |
+| `RefinementConfig` | `threshold=0.5`; `fractional_bond_threshold=0.3` (`None` disables the lower threshold for metals and three-centre-bonding elements); `max_events=None`; `event_slack=None`; `branch_limit=100`; `random_seed=42` |
 | `query_assignments` | `assignments`; `same_events=True`; `seconds=10` |
 | `FragmentMatchConfig` | `graph_floor`; `iso_tolerance`; `minimum_size`; `branch_limit`; `node_policy`; `allow_mapped_seed`; `random_seed`; `bond_tolerance` |
 | `FragmentMatchContext` | `locked_mapping`; `islands`; `deferred_edges`; optional reusable `fragment_cache`; `placement_fixed_targets=()` |
@@ -226,7 +226,7 @@ to a retained state. Historical checkpoints keep their original attached stops.
 
 Raw search does not classify or repair events. `decode_events` interprets original
 mappings; `refine_mapping` is separate experimental hierarchical matching.
-`AAMSearchConfig.event_threshold` and `metal_event_threshold` remain inputs to
+`AAMSearchConfig.event_threshold` and `fractional_bond_event_threshold` remain inputs to
 competition ordering; they do not configure decoding. `extract_reaction_cores`
 optionally groups saved decoded witnesses by their bond changes. TS analysis
 requires a `ReactionContext` supplied by the caller. Checkpoints containing
@@ -328,7 +328,7 @@ names. Shared seed search and optional fragment competition remain supported.
 ```python
 from mappa import decode_events
 
-events = decode_events(aam, threshold=0.5, metal_threshold=0.3, event_slack=6)
+events = decode_events(aam, threshold=0.5, fractional_bond_threshold=0.3, event_slack=6)
 events.minimum_events                  # Minimum of the approximate event model
 events.event_window                    # Inclusive upper count: minimum + 6
 counts = events.contributions(0)['counts']

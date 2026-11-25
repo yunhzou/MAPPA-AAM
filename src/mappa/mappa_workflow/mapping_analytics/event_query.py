@@ -1,6 +1,6 @@
 """Symbolic equality queries for signed event classes; never called by decoding."""
 import time
-from mappa.mappa_core.utils.bonds import is_metal_element
+from mappa.mappa_core.utils.bonds import is_fractional_bond_element
 
 class _EventTerms(dict):
     """Signed terms plus exact Boolean event-presence indicators."""
@@ -79,9 +79,9 @@ def _event_model(compiled, index, deadline):
             for p in range(index.m):
                 if time.perf_counter() >= deadline:
                     raise TimeoutError('event encoding budget')
-                tau = (index.metal_threshold if index.metal_threshold is not None and
-                       (is_metal_element(index.elements[a]) or
-                        is_metal_element(index.problem.product.elements[p])) else index.threshold)
+                tau = (index.fractional_bond_threshold if index.fractional_bond_threshold is not None and
+                       (is_fractional_bond_element(index.elements[a]) or
+                        is_fractional_bond_element(index.problem.product.elements[p])) else index.threshold)
                 support = tuple(x for x in value[1] if index.p[x, p] > tau)
                 if not support:
                     continue

@@ -19,6 +19,6 @@ def record(catalogue, *, max_events=None, event_slack=None, seconds=30, query_lo
     return dict(schema='mappa.decoded_events/v1', complete=complete,
         minimum_proven=complete and minimum is not None, observed_minimum=minimum,
         event_window=bound, incomplete_paths=0, event_policy=index.policy,
-        config=dict(threshold=.5,metal_threshold=.3,max_events=max_events,event_slack=event_slack,
+        config=dict(threshold=.5,fractional_bond_threshold=.3,max_events=max_events,event_slack=event_slack,
                     seconds_per_family=seconds,max_patterns_per_family=None),
         family_reports=reports, candidates=sorted((c for c in candidates.values() if bound is None or c['total']<=bound),key=lambda c:(c['total'],c['id'])))

@@ -105,7 +105,7 @@ class FragmentCountIndex:
             ys, counts_y = target[key]
             a, b = (representatives[e] for e in elements)
             threshold = bond_event_threshold(self.index.elements, a, b,
-                default_threshold=self.index.threshold, metal_threshold=self.index.metal_threshold)
+                default_threshold=self.index.threshold, fractional_bond_threshold=self.index.fractional_bond_threshold)
             i = j = matches = 0
             left = int(counts_x[0]) if len(xs) else 0
             right = int(counts_y[0]) if len(ys) else 0

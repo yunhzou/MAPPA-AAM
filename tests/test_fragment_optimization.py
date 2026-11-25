@@ -228,7 +228,7 @@ def test_original_event_problem_retains_sparse_indices_and_metal_threshold():
     assert answer.complete and answer.event_count == answer.lower_bound == 1
     assert answer.witness == ((1, 2), (3, 0))
     assert FragmentObjective(value, original).count((1, 0)) == 1
-    assert optimize_fragment(value, event_problem=original, metal_threshold=.5).event_count == 0
+    assert optimize_fragment(value, event_problem=original, fractional_bond_threshold=.5).event_count == 0
 
 
 def test_prepared_response_shares_original_weights_and_uniform_threshold():

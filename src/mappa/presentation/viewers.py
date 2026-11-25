@@ -166,7 +166,7 @@ def reaction_html(document):
 
 
 def aam_growth_html(aam, *, context=None, terminals=None, title=None,
-                    event_threshold=0.5, metal_event_threshold=0.3):
+                    event_threshold=0.5, fractional_bond_event_threshold=0.3):
     """Offline interactive growth replay directly from an AAMResult.
 
     ``context=None`` includes every saved sweep/seed context having terminals;
@@ -195,7 +195,7 @@ def aam_growth_html(aam, *, context=None, terminals=None, title=None,
         if terminals is not None:selection['terminals']=list(terminals)
         selections.append(selection)
     document=build_trajectory(selections,title=title,event_tolerance=event_threshold,
-                              metal_event_tolerance=metal_event_threshold)
+                              fractional_bond_event_tolerance=fractional_bond_event_threshold)
     return growth_trace_html(document)
 
 

@@ -8,7 +8,7 @@ from functools import cached_property
 import hashlib
 import numpy as np
 import pynauty
-from mappa.mappa_core.utils.bonds import is_metal_element
+from mappa.mappa_core.utils.bonds import is_fractional_bond_element
 from mappa.mappa_core.post_processing.decoder.events import classify_bonds
 
 
@@ -48,7 +48,7 @@ class DeltaPatterns:
         self.n = len(self.r)
         assert len(self.p) == self.n
         self.a, self.b = np.triu_indices(self.n, 1)
-        metal = np.array([is_metal_element(e) for e in self.elements])
+        metal = np.array([is_fractional_bond_element(e) for e in self.elements])
         self.tau = np.where(metal[self.a] | metal[self.b], .3, .5)
         self.cache = {}
 
@@ -72,7 +72,7 @@ class DeltaPatterns:
             for a in range(self.n):
                 for b in range(a+1, self.n):
                     pair = tuple(sorted((ep['elements'][a], ep['elements'][b])))
-                    tau = .3 if any(is_metal_element(e) for e in pair) else .5
+                    tau = .3 if any(is_fractional_bond_element(e) for e in pair) else .5
                     delta = values[pair] - w[a,b]
                     response = np.where(delta < -tau, -1, np.where(delta > tau, 1, 0)).astype(np.int8)
                     bonds.append((a,b,(response.tobytes().hex(),)))
@@ -122,7 +122,7 @@ class DeltaPatterns:
 def scalar_events(raw, mapping):
     r, p = raw['reactant'], raw['product']
     broken, formed, _, _ = classify_bonds(dict(mapping), np.asarray(r['wbo']), np.asarray(p['wbo']),
-        dwbo_threshold=.5, elements_R=r['elements'], elements_P=p['elements'], metal_dwbo_threshold=.3)
+        dwbo_threshold=.5, elements_R=r['elements'], elements_P=p['elements'], fractional_bond_dwbo_threshold=.3)
     inverse = {p: r for r, p in dict(mapping).items()}
     return dict(broken=broken, formed=formed, total=len(broken)+len(formed),
                 formed_on_R=[tuple(sorted((inverse[a], inverse[b]))) for a,b,*_ in formed

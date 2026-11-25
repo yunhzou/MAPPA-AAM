@@ -6,7 +6,7 @@ from .fragments import FragmentInventory, FragmentDecoder
 from ..final_branches import FinalBranchCatalogue
 
 
-def decode_events(aam, config=None, *, threshold=.5, metal_threshold=.3,
+def decode_events(aam, config=None, *, threshold=.5, fractional_bond_threshold=.3,
                   event_slack=6, fragment_seconds=5., event_problem=None):
     """Prepare the independent-fragment event model and its minimum+n window.
 
@@ -16,7 +16,7 @@ def decode_events(aam, config=None, *, threshold=.5, metal_threshold=.3,
     the selected sweep correction retains its endpoint dependence. Original
     scoring weights may be supplied for the same indexed atoms in event_problem.
     """
-    config = config or EventDecodeConfig(threshold, metal_threshold, event_slack, fragment_seconds)
+    config = config or EventDecodeConfig(threshold, fractional_bond_threshold, event_slack, fragment_seconds)
     catalogue = (aam if isinstance(aam, FinalBranchCatalogue)
                  else FinalBranchCatalogue(aam.problem).add_aam(aam))
     return EventDecodeSession(catalogue.problem, config,
@@ -44,7 +44,7 @@ class EventDecodeSession:
             _validate_atom_identity(problem, event_problem)
             self.event_problem_sha256 = FinalBranchCatalogue(event_problem).problem_sha256
         self.index = SignedEventIndex(event_problem, threshold=config.threshold,
-                                     metal_threshold=config.metal_threshold)
+                                     fractional_bond_threshold=config.fractional_bond_threshold)
         self.fragments = {}
 
     def decode(self, catalogue):

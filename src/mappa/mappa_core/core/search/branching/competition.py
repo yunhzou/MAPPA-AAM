@@ -108,7 +108,7 @@ def compete_fragments(a, config=None):
     idx = SignedEventIndex(
         problem,
         threshold=cfg.event_threshold,
-        metal_threshold=cfg.metal_event_threshold,
+        fractional_bond_threshold=cfg.fractional_bond_event_threshold,
     )
     start = time.perf_counter()
     deadline = start + config.seconds

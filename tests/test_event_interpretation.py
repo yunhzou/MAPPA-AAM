@@ -10,7 +10,7 @@ import pytest
 from mappa import AAMProblem, MolecularEndpoint, decode_events
 from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
 from mappa.mappa_core.core.symmetry.responses import response_bounds
-from mappa.mappa_core.utils.bonds import is_metal_element
+from mappa.mappa_core.utils.bonds import is_fractional_bond_element
 from mappa.mappa_core.post_processing.final_branches import FinalBranchCatalogue, FinalFamily
 from growth_cases import saved_fragment
 
@@ -44,7 +44,7 @@ def swap(fragment):
     return dict(discovery=dict(zip(fragment.source_atoms, reversed(fragment.target_atoms))))
 
 
-def dense_counts(problem, mapping, threshold=.5, metal_threshold=.3):
+def dense_counts(problem, mapping, threshold=.5, fractional_bond_threshold=.3):
     result = []
     for ep, other, images in ((problem.reactant, problem.product, mapping),
                              (problem.product, problem.reactant, {p:r for r,p in mapping.items()})):
@@ -53,8 +53,8 @@ def dense_counts(problem, mapping, threshold=.5, metal_threshold=.3):
             for b in range(a + 1, ep.atom_count):
                 if a not in images and b not in images:
                     continue
-                tau = (metal_threshold if metal_threshold is not None
-                       and any(is_metal_element(ep.elements[i]) for i in (a,b)) else threshold)
+                tau = (fractional_bond_threshold if fractional_bond_threshold is not None
+                       and any(is_fractional_bond_element(ep.elements[i]) for i in (a,b)) else threshold)
                 target = other.wbo[images[a], images[b]] if a in images and b in images else 0.
                 count += ep.wbo[a,b] - target > tau
         result.append(int(count))
@@ -74,7 +74,7 @@ def test_neighbor_domains_and_boundary_filter_match_independent_dense_pairs():
                    for a in range(7) if rng.random() < .7}
         owners = [int(rng.integers(3)) if a in domains else -1 for a in range(7)]
         def threshold(a, b):
-            return .3 if any(is_metal_element(elements[i]) for i in (a, b)) else .5
+            return .3 if any(is_fractional_bond_element(elements[i]) for i in (a, b)) else .5
         expected = set()
         for a, b in combinations(range(7), 2):
             if a not in domains and b not in domains:
@@ -159,7 +159,7 @@ def test_count_batches_bound_pair_scratch(monkeypatch):
 
 
 
-def dense_categories(problem, mapping, threshold=.5, metal_threshold=.3):
+def dense_categories(problem, mapping, threshold=.5, fractional_bond_threshold=.3):
     """Independent scalar oracle, including original endpoint pair identities."""
     result = []
     r,p = problem.reactant,problem.product
@@ -167,8 +167,8 @@ def dense_categories(problem, mapping, threshold=.5, metal_threshold=.3):
         for b in range(a+1,r.atom_count):
             if a not in mapping and b not in mapping:
                 continue
-            tau = metal_threshold if metal_threshold is not None and any(
-                is_metal_element(r.elements[k]) for k in (a,b)) else threshold
+            tau = fractional_bond_threshold if fractional_bond_threshold is not None and any(
+                is_fractional_bond_element(r.elements[k]) for k in (a,b)) else threshold
             x,y = mapping.get(a),mapping.get(b)
             old = float(r.wbo[a,b]); new = float(p.wbo[x,y]) if x is not None and y is not None else 0.
             if old-new > tau:
@@ -181,21 +181,21 @@ def dense_categories(problem, mapping, threshold=.5, metal_threshold=.3):
     inverse = {v:k for k,v in mapping.items()}
     for a in range(p.atom_count):
         for b in range(a+1,p.atom_count):
-            tau = metal_threshold if metal_threshold is not None and any(
-                is_metal_element(p.elements[k]) for k in (a,b)) else threshold
+            tau = fractional_bond_threshold if fractional_bond_threshold is not None and any(
+                is_fractional_bond_element(p.elements[k]) for k in (a,b)) else threshold
             if (a in inverse) != (b in inverse) and p.wbo[a,b] > tau:
                 result.append(('forming',None,(a,b)))
     return sorted(result,key=repr)
 
 
-def model_events(problem, representative, mapping, partition, cuts=(), *, threshold=.5, metal_threshold=.3):
+def model_events(problem, representative, mapping, partition, cuts=(), *, threshold=.5, fractional_bond_threshold=.3):
     """Independent dense oracle: local physical events plus fixed boundary ledgers."""
     owners = {a: i for i, atoms in enumerate(partition) for a in atoms}
     target_owners = {p: owners[a] for a, p in representative.items()}
     cut = next(((a, b) for a, b in cuts
                 if a in owners and b in owners and owners[a] != owners[b]), None)
     cut_target = None if cut is None else tuple(sorted(mapping[a] for a in cut))
-    physical = dense_categories(problem, mapping, threshold, metal_threshold)
+    physical = dense_categories(problem, mapping, threshold, fractional_bond_threshold)
     result = [event for event in physical if event[1] is not None
               and all(a in owners for a in event[1])
               and (owners[event[1][0]] == owners[event[1][1]] or event[1] == cut)]
@@ -204,8 +204,8 @@ def model_events(problem, representative, mapping, partition, cuts=(), *, thresh
         (problem.product, target_owners, 'forming', cut_target),
     ):
         for a, b in combinations(range(endpoint.atom_count), 2):
-            tau = (metal_threshold if metal_threshold is not None
-                   and any(is_metal_element(endpoint.elements[i]) for i in (a, b)) else threshold)
+            tau = (fractional_bond_threshold if fractional_bond_threshold is not None
+                   and any(is_fractional_bond_element(endpoint.elements[i]) for i in (a, b)) else threshold)
             if ((a, b) != excluded and labels.get(a, -1) != labels.get(b, -1)
                     and endpoint.wbo[a, b] > tau):
                 result.append((category, (a, b) if category == 'breaking' else None,
@@ -224,11 +224,11 @@ def check_contributions(interpreted, choices):
     for choice in choices:
         mapping = interpreted.realize(0,choice)
         physical = dense_categories(interpreted.index.problem,mapping,
-            interpreted.index.threshold,interpreted.index.metal_threshold)
+            interpreted.index.threshold,interpreted.index.fractional_bond_threshold)
         assert interpreted.evaluate(0, choice)['total'] == len(physical)
         expected = model_events(interpreted.event_problem, dict(interpreted.catalogue.families[0].mapping),
             mapping, interpreted.fragment_partitions[0][0], interpreted.cut_contexts[0][0][0],
-            threshold=interpreted.index.threshold, metal_threshold=interpreted.index.metal_threshold)
+            threshold=interpreted.index.threshold, fractional_bond_threshold=interpreted.index.fractional_bond_threshold)
         result = interpreted.contributions(0,choice,include_events=True)
         actual = sorted([(e['category'],e['reactant_pair'],e['product_pair']) for e in result['events']],key=repr)
         assert actual == expected
@@ -240,7 +240,7 @@ def check_contributions(interpreted, choices):
             partition_expected = model_events(interpreted.event_problem,
                 dict(interpreted.catalogue.families[0].mapping), mapping,
                 restored.fragment_partitions[fid][partition], restored.cut_contexts[fid][partition][cut],
-                threshold=interpreted.index.threshold, metal_threshold=interpreted.index.metal_threshold)
+                threshold=interpreted.index.threshold, fractional_bond_threshold=interpreted.index.fractional_bond_threshold)
             detail = restored.contributions(fid, choice, partition=partition, cut=cut, include_events=True)
             exported = [(event['category'], event['reactant_pair'], event['product_pair'])
                         for event in detail['events']]

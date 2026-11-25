@@ -376,7 +376,7 @@ class AAMSearchConfig:
     graph_floor: float = 0.2
     iso_tolerance: float = 1.0
     event_threshold: float = 0.5
-    metal_event_threshold: float | None = 0.3
+    fractional_bond_event_threshold: float | None = 0.3
     seed_count: int = 1
     branch_limit: int = 100
     task_chunksize: int = 1
@@ -389,9 +389,9 @@ class AAMSearchConfig:
         for name in ('cut_floor', 'graph_floor', 'iso_tolerance', 'event_threshold'):
             if not math.isfinite(getattr(self, name)):
                 raise ValueError(f'{name} must be finite')
-        if self.metal_event_threshold is not None and (
-                not math.isfinite(self.metal_event_threshold) or self.metal_event_threshold <= 0):
-            raise ValueError('metal event threshold must be finite and positive')
+        if self.fractional_bond_event_threshold is not None and (
+                not math.isfinite(self.fractional_bond_event_threshold) or self.fractional_bond_event_threshold <= 0):
+            raise ValueError('fractional-bond event threshold must be finite and positive')
         if not isinstance(self.random_seed, int):
             raise ValueError('random_seed must be an integer')
         if not isinstance(self.sweep_cuts, bool):

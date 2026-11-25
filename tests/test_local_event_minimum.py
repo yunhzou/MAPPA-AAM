@@ -255,7 +255,7 @@ def test_counted_pair_bags_preserve_all_weights_and_assignment_bound(seed):
         cost = 0
         for (labels, incident), left in bags[0].items():
             a, b = (elements.index(label) for label in labels)
-            limit = bond_event_threshold(elements, a, b, default_threshold=.5, metal_threshold=.3)
+            limit = bond_event_threshold(elements, a, b, default_threshold=.5, fractional_bond_threshold=.3)
             matrix = np.abs(np.subtract.outer(left, bags[1][labels, incident])) > limit
             rows, columns = linear_sum_assignment(matrix)
             cost += matrix[rows, columns].sum()

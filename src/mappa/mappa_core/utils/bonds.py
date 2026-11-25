@@ -12,27 +12,59 @@ METAL_ELEMENTS = frozenset({
 })
 
 
-def is_metal_element(element):
-    """Return True for elements treated with the metal WBO-event cutoff."""
+# Main-group centres whose bonds are not limited to two-centre two-electron
+# pairs. In a three-centre bond the Wiberg order of each link is about one
+# half, so one link forming or breaking changes the order by at most ~0.5 and
+# falls under the ordinary cutoff.
+#   three-centre four-electron (hypervalent and secondary/sigma-hole bonds):
+#     p-block elements from the third period on, which can hold more than
+#     four electron pairs around the centre;
+#   three-centre two-electron (electron-deficient): boron. Its heavier
+#     congeners are already listed as metals.
+# H, C, N, O and F keep the ordinary cutoff: their stable endpoints are
+# described by two-centre bonds with near-integer orders.
+MULTICENTER_ELEMENTS = frozenset({
+    "B",
+    "Si", "P", "S", "Cl",
+    "Ge", "As", "Se", "Br", "Kr",
+    "Sb", "Te", "I", "Xe",
+    "At", "Rn",
+})
+FRACTIONAL_BOND_ELEMENTS = METAL_ELEMENTS | MULTICENTER_ELEMENTS
+
+
+def _symbol(element):
     if element is None:
-        return False
+        return ""
     s = str(element).strip()
-    if not s:
-        return False
-    return s[0].upper() + s[1:].lower() in METAL_ELEMENTS
+    return s[0].upper() + s[1:].lower() if s else ""
+
+
+def is_metal_element(element):
+    """Return True for metals."""
+    return _symbol(element) in METAL_ELEMENTS
+
+
+def is_fractional_bond_element(element):
+    """Return True for elements treated with the lower WBO-event cutoff.
+
+    These are metals and the main-group elements that form three-centre
+    bonds, where a single link carries a bond order near one half.
+    """
+    return _symbol(element) in FRACTIONAL_BOND_ELEMENTS
 
 
 def bond_event_threshold(elements, i, j, *,
                          default_threshold=0.5,
-                         metal_threshold=None):
+                         fractional_bond_threshold=None):
     """Pair-specific delta-WBO threshold for mechanism events.
 
-    The default threshold is used for ordinary covalent/organic pairs.  If a
-    metal threshold is supplied and either endpoint is a metal, the lower
-    metal-aware cutoff is used.
+    The default threshold is used for ordinary two-centre covalent pairs. If a
+    fractional-bond threshold is supplied and either endpoint is a metal or a main-group
+    element that forms three-centre bonds, the lower cutoff is used.
     """
-    if elements is None or metal_threshold is None:
+    if elements is None or fractional_bond_threshold is None:
         return float(default_threshold)
-    if is_metal_element(elements[i]) or is_metal_element(elements[j]):
-        return float(metal_threshold)
+    if is_fractional_bond_element(elements[i]) or is_fractional_bond_element(elements[j]):
+        return float(fractional_bond_threshold)
     return float(default_threshold)

@@ -21,7 +21,7 @@ from mappa.mappa_core.utils.io.records import problem_from_record
 SLAP_REVISION = 'ea248fd9494f52f4865193e87a98cc92c62b5f9e'
 SLAP_CORE_SHA256 = '62964b12866e691698d594bfdc65f84ae714fb049df4267a5f5964b5c7e5fa3c'
 CONFIG = AAMSearchConfig(seed_count=1, branch_limit=100, iso_tolerance=2., random_seed=42)
-DECODE = dict(event_slack=5, threshold=.5, metal_threshold=.3, fragment_seconds=5.)
+DECODE = dict(event_slack=5, threshold=.5, fractional_bond_threshold=.3, fragment_seconds=5.)
 
 
 def hardware():

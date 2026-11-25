@@ -75,7 +75,7 @@ class FragmentSymmetryEvents:
     orbit. They do not exhaust the Fragment's other discovery alternatives.
     """
 
-    def __init__(self, fragment, *, event_problem=None, threshold=.5, metal_threshold=.3,
+    def __init__(self, fragment, *, event_problem=None, threshold=.5, fractional_bond_threshold=.3,
                  deadline=None, objective=None):
         started = perf_counter()
         self.deadline = deadline
@@ -90,7 +90,7 @@ class FragmentSymmetryEvents:
         inverse = np.argsort(self.witness)
         self.source_binary = source.weights > source.bond_threshold
         self.target_binary = (target.weights > target.bond_threshold)[np.ix_(self.witness, self.witness)]
-        objective = objective or FragmentObjective(fragment, event_problem, threshold, metal_threshold)
+        objective = objective or FragmentObjective(fragment, event_problem, threshold, fractional_bond_threshold)
         self.source = objective.source
         self.target = objective.aligned_target(self.witness)
         self.thresholds = objective.thresholds
@@ -145,7 +145,7 @@ class FragmentSymmetryEvents:
             pair_orbit_states=self.pair_orbit_states)
 
     @classmethod
-    def from_record(cls, fragment, record, *, event_problem=None, threshold=.5, metal_threshold=.3):
+    def from_record(cls, fragment, record, *, event_problem=None, threshold=.5, fractional_bond_threshold=.3):
         if record['schema'] != 'mappa.fragment_events/1':
             raise ValueError('unsupported fragment event response')
         result = cls.__new__(cls)
@@ -153,7 +153,7 @@ class FragmentSymmetryEvents:
         positions = {atom:i for i,atom in enumerate(fragment.target_atoms)}
         mapping = dict(fragment.witness)
         result.witness = tuple(positions[mapping[a]] for a in fragment.source_atoms)
-        objective = FragmentObjective(fragment, event_problem, threshold, metal_threshold)
+        objective = FragmentObjective(fragment, event_problem, threshold, fractional_bond_threshold)
         result.source, result.thresholds = objective.source, objective.thresholds
         result.target = objective.aligned_target(result.witness)
         result.source_binary = fragment.source_symmetry.weights > fragment.source_symmetry.bond_threshold
@@ -462,7 +462,7 @@ class _Search:
 
 
 def fragment_symmetry_minimum(fragment, *, event_problem=None, threshold=.5,
-                              metal_threshold=.3, max_nodes=10000, cache_entries=2048):
+                              fractional_bond_threshold=.3, max_nodes=10000, cache_entries=2048):
     """Return one minimum-event witness in the actual Fragment's saved orbit.
 
     ``complete`` certifies this orbit only. The original Fragment retains its
@@ -470,5 +470,5 @@ def fragment_symmetry_minimum(fragment, *, event_problem=None, threshold=.5,
     incomplete minimization; it never selects a different algorithm.
     """
     return FragmentSymmetryEvents(fragment, event_problem=event_problem,
-        threshold=threshold, metal_threshold=metal_threshold).solve(
+        threshold=threshold, fractional_bond_threshold=fractional_bond_threshold).solve(
             max_nodes=max_nodes, cache_entries=cache_entries)

@@ -398,12 +398,12 @@ def test_classify_bonds_uses_lower_metal_event_threshold():
         mapping, wbo_r, wbo_p,
         dwbo_threshold=0.5,
         elements_R=["C", "O"], elements_P=["C", "O"],
-        metal_dwbo_threshold=0.3)
+        fractional_bond_dwbo_threshold=0.3)
     metal = classify_bonds(
         mapping, wbo_r, wbo_p,
         dwbo_threshold=0.5,
         elements_R=["Pd", "O"], elements_P=["Pd", "O"],
-        metal_dwbo_threshold=0.3)
+        fractional_bond_dwbo_threshold=0.3)
 
     assert organic[1] == []
     assert metal[1] == [(0, 1, 0.0, 0.35)]

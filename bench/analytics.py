@@ -23,7 +23,7 @@ from mappa.mappa_workflow.mapping_analytics.event_query import _event_model, _ev
 from mappa.mappa_core.core.search.queries.family import compile_path
 
 
-def heavy_event_index(problem, *, threshold=.5, metal_threshold=.3):
+def heavy_event_index(problem, *, threshold=.5, fractional_bond_threshold=.3):
     """Project event counting only; keep full atom indices for original constraints."""
     endpoints = []
     for endpoint in (problem.reactant, problem.product):
@@ -31,7 +31,7 @@ def heavy_event_index(problem, *, threshold=.5, metal_threshold=.3):
         weights = np.where(heavy[:, None] & heavy[None, :], endpoint.wbo, 0.)
         endpoints.append(replace(endpoint, wbo=weights))
     counted = replace(problem, reactant=endpoints[0], product=endpoints[1])
-    index = SignedEventIndex(counted, threshold=threshold, metal_threshold=metal_threshold)
+    index = SignedEventIndex(counted, threshold=threshold, fractional_bond_threshold=fractional_bond_threshold)
     # Omitted pairs have identically zero responses. Retain the original atom
     # numbering so the existing symbolic family expressions need no translation.
     for endpoint, names in ((counted.reactant, ('a', 'b', 'tau')),
@@ -102,8 +102,8 @@ def minimum_events(decoded, reference, *, seconds=30.):
                 decoded['event_problem_sha256'] != FinalBranchCatalogue(event_problem).problem_sha256):
             raise ValueError('Saved matching and event identities differ from their matrices')
     threshold = decoded['event_policy']['threshold']
-    metal_threshold = decoded['event_policy']['metal_threshold']
-    index = heavy_event_index(event_problem, threshold=threshold, metal_threshold=metal_threshold)
+    fractional_bond_threshold = decoded['event_policy']['fractional_bond_threshold']
+    index = heavy_event_index(event_problem, threshold=threshold, fractional_bond_threshold=fractional_bond_threshold)
     reference = {int(a): int(b) for a, b in reference.items()}
     def count(mapping):
         return int(index.counts([index.vector(mapping)])[0].sum())
@@ -144,7 +144,7 @@ def minimum_events(decoded, reference, *, seconds=30.):
                 if 'event_problem' in decoded else catalogue['problem_sha256']),
             decoded_schema=decoded['schema'],
             cpu_seconds=time.process_time()-cpu, wall_seconds=time.perf_counter()-started,
-            event_policy=dict(threshold=threshold, metal_threshold=metal_threshold,
+            event_policy=dict(threshold=threshold, fractional_bond_threshold=fractional_bond_threshold,
                               atom_scope='heavy-heavy', comparison='absolute difference > threshold'),
             scope='Minimum over this saved direction catalogue; no claim of exhaustive search coverage')
 
@@ -222,7 +222,7 @@ def event_minimum(payload, workspace):
     if not isinstance(saved, DecodingResult):
         raise TypeError('Event minima require a saved original-space DecodingResult')
     if (saved.record['event_policy']['threshold'] != saved.config.threshold or
-            saved.record['event_policy']['metal_threshold'] != saved.config.metal_threshold):
+            saved.record['event_policy']['fractional_bond_threshold'] != saved.config.fractional_bond_threshold):
         raise ValueError('Saved event configuration and response policy differ')
     reference = read_blob(Blob(**payload['row']['reference']), workspace.scratch)
     mapping = dict(reference['mapping'])

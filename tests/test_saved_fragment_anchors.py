@@ -22,7 +22,7 @@ def graph(elements, edges):
 
 def event_threshold(source, a, b):
     return bond_event_threshold({n: source.nodes[n]['element'] for n in (a, b)}, a, b,
-                               default_threshold=.5, metal_threshold=.3)
+                               default_threshold=.5, fractional_bond_threshold=.3)
 
 
 def saved_fragment(mapping, *, anchors=(), source=None, target=None):

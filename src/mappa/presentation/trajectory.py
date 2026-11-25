@@ -54,12 +54,12 @@ def replay(source, target, state, after, edge, context):
                     relation=fragment.to_record()) for fragment in isos], verified=True)
 
 
-def bond_events(raw, mapping, floor=.2, tolerance=.5, metal_tolerance=.3):
+def bond_events(raw, mapping, floor=.2, tolerance=.5, fractional_bond_tolerance=.3):
     """Same signed-event thresholds as decoding; floor only labels the drawing."""
     r=np.array(raw['reactant']['wbo']);p=np.array(raw['product']['wbo'])
     broken,formed,_,_=classify_bonds(mapping,r,p,dwbo_threshold=tolerance,
         elements_R=raw['reactant']['elements'],elements_P=raw['product']['elements'],
-        metal_dwbo_threshold=metal_tolerance)
+        fractional_bond_dwbo_threshold=fractional_bond_tolerance)
     inverse={p:r for r,p in mapping.items()}
     out=[]
     for a,b,x,y in broken:
@@ -167,7 +167,7 @@ def read_archive(path):
 
 
 def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=None,
-                     event_tolerance=.5, metal_event_tolerance=.3):
+                     event_tolerance=.5, fractional_bond_event_tolerance=.3):
     """Capture selected contexts from compatible archives of the same endpoints.
 
     Each selection specifies either an in-memory ``aam`` or an ``archive``,
@@ -178,8 +178,8 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
     """
     if not math.isfinite(event_tolerance) or event_tolerance <= 0:
         raise ValueError('event_tolerance must be finite and positive')
-    if metal_event_tolerance is not None and (not math.isfinite(metal_event_tolerance) or metal_event_tolerance <= 0):
-        raise ValueError('metal_event_tolerance must be finite and positive')
+    if fractional_bond_event_tolerance is not None and (not math.isfinite(fractional_bond_event_tolerance) or fractional_bond_event_tolerance <= 0):
+        raise ValueError('fractional_bond_event_tolerance must be finite and positive')
     runs,checks,raw=[],[],None
     for selection in selections:
         if ('aam' in selection) == ('archive' in selection):
@@ -212,7 +212,7 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
         for t in terminals:
             frames=frames_for(g,t,traces);mapping=dict(g.states[t].mapping)
             complete=len(mapping)==len(raw['reactant']['elements'])
-            events=bond_events(raw,mapping,c.graph_floor,event_tolerance,metal_event_tolerance)
+            events=bond_events(raw,mapping,c.graph_floor,event_tolerance,fractional_bond_event_tolerance)
             for frame in frames:
                 for candidate in frame['candidates']:
                     preview={**frame['locked'],**candidate['witness']}
@@ -232,7 +232,7 @@ def build_trajectory(selections, *, title=None, key_atoms=None, watch_targets=No
             config=dict(graph_floor=c.graph_floor,iso_tolerance=c.iso_tolerance,branch_limit=c.branch_limit,
                         growth_policy=c.growth_policy,
                         random_seed=c.random_seed,
-                        event_tolerance=event_tolerance,metal_event_tolerance=metal_event_tolerance),
+                        event_tolerance=event_tolerance,fractional_bond_event_tolerance=fractional_bond_event_tolerance),
             graph=dict(states=[dict(id=s.id,assigned=len(s.mapping)) for s in nodes],
                 transitions=[dict(id=eid,source=g.transitions[eid].source,target=g.transitions[eid].target,
                     seed=g.transitions[eid].seed,size=len(g.transitions[eid].match.source_atoms) if g.transitions[eid].match else 0)

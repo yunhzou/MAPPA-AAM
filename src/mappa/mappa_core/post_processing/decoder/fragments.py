@@ -118,11 +118,11 @@ class FragmentDecoder:
                 raise ValueError('fragment was outside the saved decoding window; decode the catalogue with the requested window')
             minimum = optimize_fragment(fragment, time_limit=self.fragment_seconds,
                 event_problem=self.index.problem, threshold=self.index.threshold,
-                metal_threshold=self.index.metal_threshold)
+                fractional_bond_threshold=self.index.fractional_bond_threshold)
             selected = replace(fragment, relation=replace(fragment.relation,
                                witness=minimum.discovery_witness))
             response = FragmentSymmetryEvents(selected, event_problem=self.index.problem,
-                threshold=self.index.threshold, metal_threshold=self.index.metal_threshold)
+                threshold=self.index.threshold, fractional_bond_threshold=self.index.fractional_bond_threshold)
             self.prepared[fragment.key] = DecodedFragment(fragment, minimum, response)
         return self.prepared[fragment.key]
 
@@ -137,7 +137,7 @@ class FragmentDecoder:
         if key not in self.bonds:
             a, b = atoms
             tau = bond_event_threshold(self.index.elements, a, b,
-                default_threshold=self.index.threshold, metal_threshold=self.index.metal_threshold)
+                default_threshold=self.index.threshold, fractional_bond_threshold=self.index.fractional_bond_threshold)
             weight = self.index.r[a, b]
             response = self.index.domain_response(weight, tau, xs, ys)
             response, projected = self.index.refine_response(weight, tau, pair, actions, response)

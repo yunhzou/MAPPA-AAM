@@ -164,7 +164,7 @@ def decoded_events_from_record(record):
     events = problem_from_record(record['event_problem']) if 'event_problem' in record else problem
     catalogue = FinalBranchCatalogue.from_record(problem,record['catalogue'])
     policy = record['event_policy']
-    config = EventDecodeConfig(policy['threshold'],policy['metal_threshold'],record['event_slack'],record['fragment_seconds'])
+    config = EventDecodeConfig(policy['threshold'],policy.get('fractional_bond_threshold', policy.get('metal_threshold')),record['event_slack'],record['fragment_seconds'])
     result = EventDecodeSession(problem,config,event_problem=events).decode(catalogue)
     for saved in record['fragment_responses']:
         fragment = result.inventory.fragments[saved['fragment']]
@@ -177,7 +177,7 @@ def decoded_events_from_record(record):
         minimum = FragmentMinimum(**values)
         selected = replace(fragment,relation=replace(fragment.relation,witness=minimum.discovery_witness))
         response = FragmentSymmetryEvents.from_record(selected,saved['response'],event_problem=events,
-            threshold=config.threshold,metal_threshold=config.metal_threshold)
+            threshold=config.threshold,fractional_bond_threshold=config.fractional_bond_threshold)
         result.local.prepared[fragment.key] = DecodedFragment(fragment,minimum,response)
     result.local.frozen = True
     from mappa.mappa_core.post_processing.decoder.window import EventWindow

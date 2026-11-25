@@ -20,14 +20,14 @@ from mappa.mappa_core.core.matching.policy import BondTolerance
 @dataclass(frozen=True)
 class RefinementConfig:
     threshold: float = 0.5
-    metal_threshold: float | None = 0.3
+    fractional_bond_threshold: float | None = 0.3
     max_events: int | None = None
     branch_limit: int = 100
     random_seed: int = 42
     event_slack: int | None = None
 
     def __post_init__(self):
-        for value in (self.threshold, self.metal_threshold):
+        for value in (self.threshold, self.fractional_bond_threshold):
             if value is not None and (not math.isfinite(value) or value <= 0):
                 raise ValueError("event thresholds must be finite and positive")
         if self.threshold is None:
@@ -159,7 +159,7 @@ class FragmentConversion:
                 and all(item.complete for item in self.rematches))
 
 
-def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
+def convert_fragments(aam, *, threshold=.5, fractional_bond_threshold=.3,
                       branch_limit=100, random_seed=42):
     """Rematch each distinct saved pair/anchor context with the existing matcher.
 
@@ -167,7 +167,7 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
     retains compressed actions and fragment partitions, not all bijections.
     The branch limit applies to each rematch's existing growth scheduler.
     """
-    RefinementConfig(threshold=threshold, metal_threshold=metal_threshold,
+    RefinementConfig(threshold=threshold, fractional_bond_threshold=fractional_bond_threshold,
                       branch_limit=branch_limit, random_seed=random_seed)
     source = aam if isinstance(aam, FinalBranchCatalogue) else FinalBranchCatalogue(aam.problem).add_aam(aam)
     if source.families and not (source.branches or source.coupled_branches):
@@ -181,7 +181,7 @@ def convert_fragments(aam, *, threshold=.5, metal_threshold=.3,
 
     def tolerance(graph, a, b):
         return bond_event_threshold(problem.reactant.elements, a, b,
-            default_threshold=threshold, metal_threshold=metal_threshold)
+            default_threshold=threshold, fractional_bond_threshold=fractional_bond_threshold)
 
     rule = BondTolerance(tolerance)
     entries = ((policy, pairs, fid) for (policy, pairs), ids in source.branches.items()
@@ -286,7 +286,7 @@ class FragmentEventCounter:
             for a in range(endpoint.atom_count):
                 for b in range(a + 1, endpoint.atom_count):
                     threshold = bond_event_threshold(endpoint.elements, a, b,
-                        default_threshold=index.threshold, metal_threshold=index.metal_threshold)
+                        default_threshold=index.threshold, fractional_bond_threshold=index.fractional_bond_threshold)
                     weight = endpoint.wbo[a, b]
                     if weight > threshold:
                         adjacency[a].append((b, weight, threshold))
@@ -392,11 +392,11 @@ def refine_mapping(aam, config=None):
     """
     config = config or RefinementConfig()
     conversion = convert_fragments(aam, threshold=config.threshold,
-        metal_threshold=config.metal_threshold, branch_limit=config.branch_limit,
+        fractional_bond_threshold=config.fractional_bond_threshold, branch_limit=config.branch_limit,
         random_seed=config.random_seed)
     catalogue = conversion.catalogue
     index = SignedEventIndex(catalogue.problem, threshold=config.threshold,
-                             metal_threshold=config.metal_threshold)
+                             fractional_bond_threshold=config.fractional_bond_threshold)
     candidates, reports = {}, []
     counter = FragmentEventCounter(index)
     for branch in conversion.branches:

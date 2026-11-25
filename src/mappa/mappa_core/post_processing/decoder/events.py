@@ -14,7 +14,7 @@ import math
 import numpy as np
 import pynauty
 
-from mappa.mappa_core.utils.bonds import is_metal_element, bond_event_threshold
+from mappa.mappa_core.utils.bonds import is_fractional_bond_element, bond_event_threshold
 from mappa.mappa_core.core.symmetry.responses import BondResponseIndex, response_bounds
 
 
@@ -27,8 +27,8 @@ class SignedEventIndex(BondResponseIndex):
     """
     schema = 'mappa.signed_events/v3'
 
-    def __init__(self, raw_problem, *, threshold=0.5, metal_threshold=0.3):
-        for value in (threshold, metal_threshold):
+    def __init__(self, raw_problem, *, threshold=0.5, fractional_bond_threshold=0.3):
+        for value in (threshold, fractional_bond_threshold):
             if value is not None and (not math.isfinite(value) or value <= 0):
                 raise ValueError('event thresholds must be finite and positive')
         if threshold is None:
@@ -41,17 +41,17 @@ class SignedEventIndex(BondResponseIndex):
         if not np.array_equal(self.r, self.r.T) or np.any(self.r < 0):
             raise ValueError('raw WBOs must be nonnegative and exactly symmetric')
         self.threshold = float(threshold)
-        self.metal_threshold = None if metal_threshold is None else float(metal_threshold)
+        self.fractional_bond_threshold = None if fractional_bond_threshold is None else float(fractional_bond_threshold)
         self.a, self.b = np.triu_indices(self.n, 1)
-        metal = np.array([is_metal_element(e) for e in self.elements])
+        fractional = np.array([is_fractional_bond_element(e) for e in self.elements])
         self.tau = np.full(len(self.a), self.threshold)
-        if self.metal_threshold is not None:
-            self.tau[metal[self.a] | metal[self.b]] = self.metal_threshold
+        if self.fractional_bond_threshold is not None:
+            self.tau[fractional[self.a] | fractional[self.b]] = self.fractional_bond_threshold
         self.pa, self.pb = np.triu_indices(self.m, 1)
-        target_metal = np.array([is_metal_element(e) for e in raw_problem.product.elements])
+        target_fractional = np.array([is_fractional_bond_element(e) for e in raw_problem.product.elements])
         self.ptau = np.full(len(self.pa), self.threshold)
-        if self.metal_threshold is not None:
-            self.ptau[target_metal[self.pa] | target_metal[self.pb]] = self.metal_threshold
+        if self.fractional_bond_threshold is not None:
+            self.ptau[target_fractional[self.pa] | target_fractional[self.pb]] = self.fractional_bond_threshold
         self.reactant_bonds = np.column_stack((self.a, self.b))[
             self.r[self.a, self.b] > self.tau]
         self.product_bonds = np.column_stack((self.pa, self.pb))[
@@ -141,7 +141,7 @@ class SignedEventIndex(BondResponseIndex):
     @property
     def policy(self):
         return dict(schema=self.schema, threshold=self.threshold,
-                    metal_threshold=self.metal_threshold, includes_hydrogens=True,
+                    fractional_bond_threshold=self.fractional_bond_threshold, includes_hydrogens=True,
                     event_comparison="absolute difference > threshold",
                     unmatched="ignore bonds with two unmapped endpoints",
                     event_frame="R indices; unmatched P atom p is encoded as source_atom_count+p",
@@ -212,8 +212,8 @@ class SignedEventIndex(BondResponseIndex):
             memo = {}
             for pair, values in weights.items():
                 values = sorted(values)
-                tau = (self.metal_threshold if self.metal_threshold is not None
-                       and any(is_metal_element(e) for e in pair) else self.threshold)
+                tau = (self.fractional_bond_threshold if self.fractional_bond_threshold is not None
+                       and any(is_fractional_bond_element(e) for e in pair) else self.threshold)
                 bounds = response_bounds(opposite_values.get(pair, (0.,)), values, tau)
                 memo.update(((pair, weight), (int(lo), int(hi)))
                             for weight, lo, hi in zip(values, *bounds))
@@ -334,7 +334,7 @@ class SignedEventIndex(BondResponseIndex):
         mapping = self.mapping(vector)
         broken, formed, _, _ = classify_bonds(mapping, self.r, self.p,
             dwbo_threshold=self.threshold, elements_R=self.elements,
-            elements_P=self.problem.product.elements, metal_dwbo_threshold=self.metal_threshold)
+            elements_P=self.problem.product.elements, fractional_bond_dwbo_threshold=self.fractional_bond_threshold)
         result = self._describe_events(vector, tuple((a, b) for a, b, *_ in broken),
                                        tuple((a, b) for a, b, *_ in formed))
         if tuple(self.counts([vector])[0]) != tuple(result['counts'].values()):
@@ -464,7 +464,7 @@ class AssignedEventBound:
                 pair = tuple(sorted((self.assignments[a], self.assignments[b])))
                 index = self.index
                 tau = bond_event_threshold(index.elements, a, b,
-                    default_threshold=index.threshold, metal_threshold=index.metal_threshold)
+                    default_threshold=index.threshold, fractional_bond_threshold=index.fractional_bond_threshold)
                 changed = abs(index.r[a, b] - index.p[pair]) > tau
                 fixed = (boundary.count - int(boundary.source_cut_counted)
                          - int(pair in boundary.target_pair_set) + int(changed))
@@ -500,7 +500,7 @@ def prepare_boundary_events(index, mapping, pieces, cut_bonds=()):
     if cut is not None:
         a, b = cut
         tau = bond_event_threshold(index.elements, a, b,
-            default_threshold=index.threshold, metal_threshold=index.metal_threshold)
+            default_threshold=index.threshold, fractional_bond_threshold=index.fractional_bond_threshold)
         counted = bool(index.r[a, b] > tau)
         reserve = int(bool(len(target_pairs)))
         removed, width = int(counted) + reserve, 1 + reserve
@@ -599,7 +599,7 @@ class FragmentEventTables:
         if self.sweep_cut is not None:
             a, b = self.sweep_cut
             tau = bond_event_threshold(self.index.elements, a, b,
-                default_threshold=self.index.threshold, metal_threshold=self.index.metal_threshold)
+                default_threshold=self.index.threshold, fractional_bond_threshold=self.index.fractional_bond_threshold)
             reserve = self.sweep_removed - int(self.boundary_events.source_cut_counted)
             sweep = self.sweep_cut, float(self.index.r[a,b]), tau, reserve, self.product_boundary_set
         return OrderedSymmetryEvents(family.mapping, actions, self.index.p, (),
@@ -799,15 +799,16 @@ class FragmentEventTables:
 
 def classify_bonds(mapping, wbo_R, wbo_P, dwbo_threshold=0.5,
                    elements_R=None, elements_P=None,
-                   metal_dwbo_threshold=None):
+                   fractional_bond_dwbo_threshold=None):
     """Bond classification by WBO change.
 
         broken iff (WBO_R - WBO_P) > pair_threshold
         formed iff (WBO_P - WBO_R) > pair_threshold
 
     `pair_threshold` is normally `dwbo_threshold`.  If element lists and
-    `metal_dwbo_threshold` are supplied, any pair containing a metal uses the
-    metal threshold instead.  Since WBO is non-negative, requiring
+    `fractional_bond_dwbo_threshold` are supplied, any pair containing a metal or a
+    three-centre-bonding main-group element uses that threshold instead.
+    Since WBO is non-negative, requiring
     (wR - wP) > pair_threshold automatically implies wR > pair_threshold
     (wP >= 0), so a single
     threshold both gates "is this a bond worth considering" and "did
@@ -819,31 +820,31 @@ def classify_bonds(mapping, wbo_R, wbo_P, dwbo_threshold=0.5,
     record is (i, j, wbo_R_or_None, wbo_P_or_None)."""
     inv = {v: k for k, v in mapping.items()}
     default_threshold = float(dwbo_threshold)
-    metal_threshold = (
-        None if metal_dwbo_threshold is None
-        else float(metal_dwbo_threshold))
-    metal_R = (
-        None if elements_R is None or metal_threshold is None
-        else tuple(is_metal_element(element) for element in elements_R))
-    metal_P = (
-        None if elements_P is None or metal_threshold is None
-        else tuple(is_metal_element(element) for element in elements_P))
-    def eligible(matrix, metal):
+    fractional_bond_threshold = (
+        None if fractional_bond_dwbo_threshold is None
+        else float(fractional_bond_dwbo_threshold))
+    fractional_R = (
+        None if elements_R is None or fractional_bond_threshold is None
+        else tuple(is_fractional_bond_element(element) for element in elements_R))
+    fractional_P = (
+        None if elements_P is None or fractional_bond_threshold is None
+        else tuple(is_fractional_bond_element(element) for element in elements_P))
+    def eligible(matrix, fractional):
         # Screen absent/subthreshold pairs in NumPy. The scalar subtraction
         # below remains the event oracle, including exact floating boundaries.
         threshold = default_threshold
-        if metal is not None:
-            flags = np.asarray(metal, dtype=bool)
+        if fractional is not None:
+            flags = np.asarray(fractional, dtype=bool)
             threshold = np.where(flags[:, None] | flags[None, :],
-                                 metal_threshold, default_threshold)
+                                 fractional_bond_threshold, default_threshold)
         a, b = np.nonzero(np.triu(matrix > threshold, k=1))
         return zip(a.tolist(), b.tolist())
 
     broken, formed = [], []
-    for i, j in eligible(wbo_R, metal_R):
+    for i, j in eligible(wbo_R, fractional_R):
         if i not in mapping and j not in mapping:
             continue
-        threshold = (metal_threshold if metal_R is not None and (metal_R[i] or metal_R[j])
+        threshold = (fractional_bond_threshold if fractional_R is not None and (fractional_R[i] or fractional_R[j])
                      else default_threshold)
         wR = wbo_R[i, j]
         if i not in mapping or j not in mapping:
@@ -851,10 +852,10 @@ def classify_bonds(mapping, wbo_R, wbo_P, dwbo_threshold=0.5,
         wP = wbo_P[mapping[i], mapping[j]]
         if wR - wP > threshold:
             broken.append((i, j, float(wR), float(wP)))
-    for ip, jp in eligible(wbo_P, metal_P):
+    for ip, jp in eligible(wbo_P, fractional_P):
         if ip not in inv and jp not in inv:
             continue
-        threshold = (metal_threshold if metal_P is not None and (metal_P[ip] or metal_P[jp])
+        threshold = (fractional_bond_threshold if fractional_P is not None and (fractional_P[ip] or fractional_P[jp])
                      else default_threshold)
         wP = wbo_P[ip, jp]
         if ip not in inv or jp not in inv:

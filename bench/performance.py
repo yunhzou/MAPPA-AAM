@@ -192,7 +192,7 @@ def worker(args, case):
                 catalogue = measure('reduction', lambda:
                     FinalBranchCatalogue(problem).add_graph(completed.graph))
                 decoded = measure('decoding', lambda: decode_events(catalogue,
-                    threshold=config.event_threshold, metal_threshold=config.metal_event_threshold))
+                    threshold=config.event_threshold, fractional_bond_threshold=config.fractional_bond_event_threshold))
                 record = measure('export', lambda: decoded_events_record(decoded))
                 binary = measure('serialization', lambda: pickle.dumps(record, protocol=5))
                 restored = measure('restoration', lambda: pickle.loads(binary))

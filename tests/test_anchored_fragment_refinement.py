@@ -27,13 +27,13 @@ def anchored_match(source, target, tolerance):
                                    allow_mapped_seed=True, branch_limit=100))
 
 
-def event_count(source, target, mapping, threshold=.5, metal_threshold=.3):
+def event_count(source, target, mapping, threshold=.5, fractional_bond_threshold=.3):
     broken, formed, _, _ = classify_bonds(
         mapping, source.graph['wbo_matrix'], target.graph['wbo_matrix'],
         dwbo_threshold=threshold,
         elements_R=[source.nodes[a]['element'] for a in source],
         elements_P=[target.nodes[a]['element'] for a in target],
-        metal_dwbo_threshold=metal_threshold)
+        fractional_bond_dwbo_threshold=fractional_bond_threshold)
     return len(broken) + len(formed)
 
 
@@ -95,7 +95,7 @@ def test_ordinary_and_metal_anchored_pair_thresholds(elements, delta, monkeypatc
     source = graph(elements, [(0, 1, 1.)])
     target = graph(elements, [(0, 1, 1. + delta)])
     threshold = bond_event_threshold(elements, 0, 1,
-                                     default_threshold=.5, metal_threshold=.3)
+                                     default_threshold=.5, fractional_bond_threshold=.3)
     result = anchored_match(source, target, threshold)
     assert not result.capped
     intact = any(match.source_atoms == (0, 1) for match in result.matches)
@@ -115,7 +115,7 @@ def test_mixed_fragment_needs_pair_specific_matching_policy(monkeypatch):
     assert result.matches[0].source_atoms == (0, 1, 2)
     broken, formed, _, _ = classify_bonds(
         {0: 0, 1: 1, 2: 2}, source.graph['wbo_matrix'], target.graph['wbo_matrix'],
-        dwbo_threshold=.5, metal_dwbo_threshold=.3,
+        dwbo_threshold=.5, fractional_bond_dwbo_threshold=.3,
         elements_R=['Co', 'C', 'O'], elements_P=['Co', 'C', 'O'])
     assert not broken
     assert [(a, b) for a, b, _, _ in formed] == [(0, 1)]

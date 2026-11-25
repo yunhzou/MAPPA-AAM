@@ -20,7 +20,7 @@ reactant/product selection is performed. From the command line, use
 Every TS score includes `diagnostics.endpoint_bond_changes` with separate
 `reactant_to_ts` and `product_to_ts` lists. Each entry reports zero-based atom
 indices, elements, endpoint/TS WBOs and distances, the directional WBO change,
-its existing metal/nonmetal event threshold, and whether it is an intended
+its ordinary or fractional-bond event threshold, and whether it is an intended
 reaction pair or touches atoms outside the reaction core. These are descriptive
 bond-order changes, **not** IRC validation or proof of an intermediate.
 

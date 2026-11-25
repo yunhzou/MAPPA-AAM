@@ -11,7 +11,7 @@ from mappa.mappa_workflow.mapping_analytics.event_query import _event_model, _ev
 from mappa.mappa_core.core.search.queries.family import compile_path
 from mappa.mappa_core.post_processing.final_branches import FinalFamily
 from mappa.mappa_core.post_processing.decoder.events import classify_bonds
-from mappa.mappa_core.utils.bonds import is_metal_element
+from mappa.mappa_core.utils.bonds import is_fractional_bond_element
 from reference_event_model import _event_model as reference_event_model
 from test_event_patterns import problem
 from growth_cases import saved_fragment
@@ -82,7 +82,7 @@ def test_sparse_scalar_validation_matches_dense_mapped_boundary_rule():
                 out=[]
                 for a,b in edges:
                     if a not in m and b not in m:continue
-                    tau = metal if metal is not None and any(is_metal_element(elements[i]) for i in (a,b)) else .5
+                    tau = metal if metal is not None and any(is_fractional_bond_element(elements[i]) for i in (a,b)) else .5
                     w=source[a,b]
                     if w <= tau:continue
                     mapped = a in m and b in m
@@ -94,12 +94,12 @@ def test_sparse_scalar_validation_matches_dense_mapped_boundary_rule():
             expected=(broken,formed,sorted({a for row in broken for a in row[:2]}),
                       sorted({a for row in formed for a in row[:2]}))
             assert classify_bonds(mapping,r,p,elements_R=elements,elements_P=elements,
-                                  metal_dwbo_threshold=metal)==expected
+                                  fractional_bond_dwbo_threshold=metal)==expected
 
 
 def test_empty_endpoints_keep_empty_scalar_event_result():
     w = np.zeros((0,0))
-    assert classify_bonds({},w,w,elements_R=(),elements_P=(),metal_dwbo_threshold=.3) == ([],[],[],[])
+    assert classify_bonds({},w,w,elements_R=(),elements_P=(),fractional_bond_dwbo_threshold=.3) == ([],[],[],[])
 
 
 def test_fragment_contributions_match_dense_events_for_all_small_partial_maps():
@@ -132,7 +132,7 @@ def test_fragment_contributions_match_dense_events_for_all_small_partial_maps():
                             for a,b in combinations(range(ep.atom_count), 2):
                                 if a not in assignment and b not in assignment:
                                     continue
-                                tau = .3 if any(is_metal_element(ep.elements[i]) for i in (a,b)) else .5
+                                tau = .3 if any(is_fractional_bond_element(ep.elements[i]) for i in (a,b)) else .5
                                 opposite = other.wbo[assignment[a],assignment[b]] if a in assignment and b in assignment else 0.
                                 if ep.wbo[a,b] - opposite > tau:
                                     pairs.append((a,b))
@@ -191,7 +191,7 @@ def test_many_combinations_reuse_fragment_and_boundary_counts():
     direct = []
     for mapping in mappings:
         broken, formed, _, _ = classify_bonds(dict(mapping), value.reactant.wbo, value.product.wbo,
-            elements_R=value.reactant.elements, elements_P=value.product.elements, metal_dwbo_threshold=.3)
+            elements_R=value.reactant.elements, elements_P=value.product.elements, fractional_bond_dwbo_threshold=.3)
         direct.append(len(broken)+len(formed))
     direct_cpu = time.process_time() - start
     start = time.process_time()

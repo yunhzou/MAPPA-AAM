@@ -4,11 +4,11 @@ from itertools import combinations
 
 import numpy as np
 
-from mappa.mappa_core.utils.bonds import is_metal_element
+from mappa.mappa_core.utils.bonds import is_fractional_bond_element
 
 
 class FragmentObjective:
-    def __init__(self, fragment, event_problem=None, threshold=.5, metal_threshold=.3):
+    def __init__(self, fragment, event_problem=None, threshold=.5, fractional_bond_threshold=.3):
         source, target = fragment.source_symmetry, fragment.target_symmetry
         if event_problem is None:
             self.source, self.target = source.weights, target.weights
@@ -21,11 +21,11 @@ class FragmentObjective:
             self.target_elements = tuple(right.elements[a] for a in target.atoms)
         self.size = len(source.atoms)
         self.thresholds = np.broadcast_to(float(threshold), (self.size, self.size))
-        if metal_threshold is not None:
-            metal = np.asarray([is_metal_element(element) for element in self.source_elements], dtype=bool)
-            if np.any(metal) and metal_threshold != threshold:
+        if fractional_bond_threshold is not None:
+            fractional = np.asarray([is_fractional_bond_element(element) for element in self.source_elements], dtype=bool)
+            if np.any(fractional) and fractional_bond_threshold != threshold:
                 self.thresholds = self.thresholds.copy()
-                self.thresholds[metal[:, None] | metal[None, :]] = float(metal_threshold)
+                self.thresholds[fractional[:, None] | fractional[None, :]] = float(fractional_bond_threshold)
         self.thresholds.setflags(write=False)
         self.target_positions = {atom: i for i, atom in enumerate(target.atoms)}
         self.source_atoms = source.atoms

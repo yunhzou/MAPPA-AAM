@@ -12,7 +12,7 @@ from test_growth_compression_exactness import graph, discovered, complete
 
 def event_threshold(source, a, b):
     elements = {n: source.nodes[n]['element'] for n in (a, b)}
-    return bond_event_threshold(elements, a, b, default_threshold=.5, metal_threshold=.3)
+    return bond_event_threshold(elements, a, b, default_threshold=.5, fractional_bond_threshold=.3)
 
 
 @pytest.fixture(params=['0', '1'])

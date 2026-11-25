@@ -118,7 +118,7 @@ def test_event_overlay_uses_decoder_thresholds_and_target_indexing():
     assert {(e['kind'], tuple(e['r'])) for e in events} == {
         ('weakened', (0, 1)), ('broken', (0, 2)), ('formed', (1, 3))}
     assert all(e['p'] == [mapping[a] for a in e['r']] for e in events)
-    uniform = bond_events(raw, mapping, metal_tolerance=None)
+    uniform = bond_events(raw, mapping, fractional_bond_tolerance=None)
     assert {tuple(e['r']) for e in uniform} == {(0, 1), (1, 3)}
 
 

@@ -83,7 +83,7 @@ def deduplicate(aam):
     return deduplicate_final_branches(aam)
 
 
-def decode_events(aam, config=None, *, threshold=.5, metal_threshold=.3,
+def decode_events(aam, config=None, *, threshold=.5, fractional_bond_threshold=.3,
                   event_slack=6, fragment_seconds=5., event_problem=None):
     """Decode one result or every supplied direction, preserving separate windows.
 
@@ -91,7 +91,7 @@ def decode_events(aam, config=None, *, threshold=.5, metal_threshold=.3,
     its endpoints are exchanged automatically for the reverse direction.
     """
     aam = _directional_search(aam)
-    settings = dict(threshold=threshold, metal_threshold=metal_threshold,
+    settings = dict(threshold=threshold, fractional_bond_threshold=fractional_bond_threshold,
                     event_slack=event_slack, fragment_seconds=fragment_seconds)
     if isinstance(aam, DirectionalResults):
         def decode(result, direction):

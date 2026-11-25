@@ -16,7 +16,7 @@ import time
 
 import numpy as np
 
-from mappa.mappa_core.utils.bonds import is_metal_element
+from mappa.mappa_core.utils.bonds import is_fractional_bond_element
 
 
 def composition(pieces, mapping, reverse=False):
@@ -34,10 +34,10 @@ def saved_branches(record, *, reverse=False, target_count=None, witnesses=None):
     source = np.asarray(problem['reactant']['wbo'])
     target = np.asarray(problem['product']['wbo'])
     policy = record['event_policy']
-    metals = np.array([is_metal_element(e) for e in problem['reactant']['elements']])
+    metals = np.array([is_fractional_bond_element(e) for e in problem['reactant']['elements']])
     thresholds = np.full(source.shape, policy['threshold'])
-    if policy['metal_threshold'] is not None:
-        thresholds[metals[:, None] | metals[None, :]] = policy['metal_threshold']
+    if policy['fractional_bond_threshold'] is not None:
+        thresholds[metals[:, None] | metals[None, :]] = policy['fractional_bond_threshold']
     catalogue = record['catalogue']
     prepared = {row['fragment']: row['optimization'] for row in record['fragment_responses']}
     operations = {}
@@ -111,7 +111,7 @@ def observed_centers(problem, mappings, policy):
     """Reuse MAPPA's physical event identity for existing concrete witnesses."""
     from mappa.mappa_core.post_processing.decoder.events import SignedEventIndex
     index = SignedEventIndex(problem, threshold=policy['threshold'],
-                             metal_threshold=policy['metal_threshold'])
+                             fractional_bond_threshold=policy['fractional_bond_threshold'])
     centers = {}
     for mapping in sorted(mappings):
         value = index.describe(index.vector(dict(mapping)))

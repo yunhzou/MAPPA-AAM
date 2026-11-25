@@ -85,7 +85,8 @@ separate, so changing event settings does not require repeating matching.
 
 This example selects discovery tolerance 2 and event slack 5; their defaults
 are 1 and 6. Event counting uses empirical bond-order change thresholds of 0.5
-for organic bonds and 0.3 for metal-related bonds.
+for ordinary two-centre bonds and 0.3 for bonds to metals or to main-group
+elements that form three-centre bonds (B, and the p-block from Si onward).
 
 Where to go next:
 

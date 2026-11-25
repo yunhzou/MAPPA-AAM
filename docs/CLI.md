@@ -24,7 +24,8 @@ Existing xTB caches can be supplied with `--reactant-cache` and `--product-cache
 
 Search settings are `--iso-tolerance`, `--seed-count`, `--branch-limit`,
 `--cut-floor`, `--graph-floor` and repeated `--anchor R:P`. Event settings are
-`--event-threshold` and `--metal-event-threshold`.
+`--event-threshold` and `--fractional-bond-event-threshold` (the earlier name
+`--metal-event-threshold` is still accepted).
 
 ## Transition-state scoring
 

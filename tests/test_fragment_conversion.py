@@ -273,16 +273,16 @@ def test_equal_discovery_tolerance_does_not_prove_relaxed_choices_need_no_rematc
     ep = endpoint('CCC', [(0, 1, 1.)])
     source = saved(ep, ep, dict(enumerate(range(3))), anchors=())
     before = source.to_record()
-    result = convert_fragments(source, threshold=1., metal_threshold=1.)
+    result = convert_fragments(source, threshold=1., fractional_bond_threshold=1.)
     assert result.rematches and result.catalogue is not source
     assert source.to_record() == before
 
 
-@pytest.mark.parametrize('threshold,metal_threshold', [(1., .3), (.5, 1.)])
-def test_both_tolerances_must_match_to_reuse(backend, threshold, metal_threshold):
+@pytest.mark.parametrize('threshold,fractional_bond_threshold', [(1., .3), (.5, 1.)])
+def test_both_tolerances_must_match_to_reuse(backend, threshold, fractional_bond_threshold):
     ep = endpoint(('Co', 'O'), [(0, 1, 1.)])
     result = convert_fragments(saved(ep, ep, {0: 0, 1: 1}),
-                               threshold=threshold, metal_threshold=metal_threshold)
+                               threshold=threshold, fractional_bond_threshold=fractional_bond_threshold)
     assert result.rematches
 
 
@@ -308,7 +308,7 @@ def test_alternative_partitions_remain_distinct_under_explicit_rematching():
     ep = endpoint('HH', [])
     source = saved(ep, ep, {0: 0, 1: 1}, anchors=())
     source.coupled_branches[0] = {(((0,), (0,)), ((1,), (1,)))}
-    result = refine_mapping(source, RefinementConfig(threshold=1., metal_threshold=1.))
+    result = refine_mapping(source, RefinementConfig(threshold=1., fractional_bond_threshold=1.))
     # The two-atom rematch keeps both placements in one global orbit. The
     # separate singleton partition contributes its own fixed placement.
     assert len(result.conversion.branches) == len(result.family_reports) == 2

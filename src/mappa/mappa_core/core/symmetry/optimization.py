@@ -62,7 +62,7 @@ def _accumulate(total, part):
 
 
 def optimize_fragment(fragment, *, time_limit=5., event_problem=None,
-                      threshold=.5, metal_threshold=.3, cache_entries=2048):
+                      threshold=.5, fractional_bond_threshold=.3, cache_entries=2048):
     """Improve one valid event witness under a single wall-clock search budget.
 
     Input is the saved Fragment; atom sets, constraints and candidate count are
@@ -78,7 +78,7 @@ def optimize_fragment(fragment, *, time_limit=5., event_problem=None,
         raise ValueError('cache_entries must be nonnegative')
     started = perf_counter()
     deadline = started + time_limit
-    objective = FragmentObjective(fragment, event_problem, threshold, metal_threshold)
+    objective = FragmentObjective(fragment, event_problem, threshold, fractional_bond_threshold)
     identity = tuple(range(objective.size))
     work = SymmetryWork()
     best = FragmentMinimum(fragment.witness, objective.count(objective.images(fragment.witness)),
